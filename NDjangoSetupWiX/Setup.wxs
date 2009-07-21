@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?define ProductVersion="0.9.0" ?>
+  <?define ProductVersionTitle="0.9.0.5" ?>
+  <?define UpgradeCode="{9EAD0F41-F6BB-4FDD-B2C3-2C8D3AFD5F47}"?>
+  <Product Id="7D58704A-F744-41B0-BBA8-87B6D425982E" Name="NDjango $(var.ProductVersionTitle)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
+    <Package InstallerVersion="200" Compressed="yes" />
+    <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+    <Upgrade Id="$(var.UpgradeCode)">
+      <!--<UpgradeVersion Minimum="$(var.ProductVersion)" IncludeMinimum="no" OnlyDetect="yes" Language="1033" Property="NEWPRODUCTFOUND" />-->
+      <UpgradeVersion Minimum="0.8.0" IncludeMinimum="yes" Maximum="$(var.ProductVersion)" IncludeMaximum="yes" Language="1033" Property="UPGRADEFOUND" />
+    </Upgrade>
+    <Property Id="VS2008FOUND">
+      <RegistrySearch Id="VS2008found" Type="raw" Root="HKLM" Key="Software\Microsoft\VisualStudio\9.0" Name="InstallDir" />
+    </Property>
+	  <Property Id="VS2008ITEMTEMPLATESLOCATION">
+		  <RegistrySearch Id="UserItemTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\9.0" Name="UserItemTemplatesLocation" />
+	  </Property>
+	<PropertyRef Id="NETFRAMEWORK35_SP_LEVEL" />
+    <Condition Message="This application requires Visual Studio 2008. Please install the Visual Studio 2008 then run this installer again.">Installed OR VS2008FOUND</Condition>
+    <Condition Message="This application requires .NET Framework 3.5SP1. Please install the .NET Framework 3.5SP1 then run this installer again."><![CDATA[Installed OR (NETFRAMEWORK35_SP_LEVEL and NOT NETFRAMEWORK35_SP_LEVEL = "#0")]]></Condition>
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" Overridable="yes" />
+    <WixVariable Id="WixUIBannerBmp" Value="bitmaps\bannrbmp.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="bitmaps\dlgbmp.bmp" />
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder" Name="PFiles">
+        <Directory Id="Hill30" Name="Hill30">
+          <Directory Id="INSTALLDIR" Name="NDjango">
+            <Component Id="NDjangoAssemblies" Guid="94965855-72E6-4B54-AA9F-E1DB5263F89D">
+              <File Id="ASPMVCIntegration.dll" Name="$(var.ASPMVCIntegration.TargetFileName)" Source="$(var.ASPMVCIntegration.TargetPath)" />
+              <File Id="NDjango.BistroIntegration.dll" Name="$(var.BistroIntegration.TargetFileName)" Source="$(var.BistroIntegration.TargetPath)" />
+              <File Id="NDjango.Core.dll" Name="NDjango.Core.dll" Source="..\NDjangoParser\bin\NDjango.Core.dll" />
+              <File Id="NDjango.Filters.dll" Name="$(var.NDjangoParserFilters.TargetFileName)" Source="$(var.NDjangoParserFilters.TargetPath)" />
+            </Component>
+            <Component Id="Readme" Guid="39D6280B-D600-4A8E-A929-62578C3CA890">
+              <File Id="Readme.txt" Name="Readme.txt" Source="Readme.txt" />
+            </Component>
+            <Component Id="FSharpComponents" Guid="C0587159-FC5A-4495-8287-F01E7B39A585">
+              <File Id="FSharp.PowerPack.dll" Name="FSharp.PowerPack.dll" Source="FSharp.PowerPack.dll" />
+              <File Id="FSharp.Core.dll" Name="FSharp.Core.dll" Source="FSharp.Core.dll" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+            <Directory Id="VS2008ITEMTEMPLATESLOCATION" >
+              <Directory Id="vs2008Web1" Name="Web">
+                <Component Id="ItemTemplates" Guid="F12101E4-615A-418F-9665-1D5C7B4ED5B8">
+                  <RemoveFolder Id="vs2008Web1" Directory="vs2008Web1" On="uninstall" />
+                  <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+                  <File Id="NDjangoTemplate.zip" Name="NDjangoTemplate.zip" Source="Templates\NDjangoTemplate.zip" />
+                </Component>
+              </Directory>
+            </Directory>
+      <Component Id="RegisterDjangoExtensionForHTMLEditor" Guid="02D1F592-DC45-4019-9551-9CDFC6F43F4F">
+        <!--<RegistryKey Key="SOFTWARE\Microsoft\VisualStudio\9.0\Editors\{C76D83F8-A489-11D0-8195-00A0C91BBEE3}\Extensions" Root="HKLM">
+          <RegistryValue Name="django" Value="40" Type="integer" />
+        </RegistryKey>-->
+        <RegistryKey Key="Software\Microsoft\VisualStudio\9.0\Default Editors\django" Root="HKCU">
+          <RegistryValue Name="Custom" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
+          <RegistryValue Name="Type" Value="1" Type="integer" />
+        </RegistryKey>
+        <RegistryKey Key="Software\Microsoft\VisualStudio\9.0\FileExtensionMapping\django" Root="HKCU">
+          <RegistryValue Name="(Default)" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
+          <RegistryValue Name="LogViewID" Value="{00000000-0000-0000-0000-000000000000}" Type="string" />
+        </RegistryKey>
+      </Component>
+    </Directory>
+    <Feature Id="ProductFeature" Level="1">
+      <ComponentRef Id="NDjangoAssemblies" />
+      <ComponentRef Id="ItemTemplates" />
+      <ComponentRef Id="RegisterDjangoExtensionForHTMLEditor" />
+      <ComponentRef Id="Readme" />
+      <ComponentRef Id="FSharpComponents" />
+    </Feature>
+    <InstallExecuteSequence>
+      <RemoveExistingProducts After="InstallInitialize" />
+    </InstallExecuteSequence>
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <UI>
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="WixUI_Mode" Value="InstallDir" />
+      <DialogRef Id="BrowseDlg" />
+      <DialogRef Id="DiskCostDlg" />
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath" Order="3">1</Publish>
+      <Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="4"><![CDATA[WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+      <Publish Dialog="WelcomeDlgCustom" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlgCustom">1</Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">LicenseAccepted = "1"</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">1</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3"><![CDATA[WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4"><![CDATA[WIXUI_INSTALLDIR_VALID="1"]]></Publish>
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" Order="1">NOT Installed</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed</Publish>
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+      <Property Id="ARPNOMODIFY" Value="1" />
+      <Dialog Id="WelcomeDlgCustom" Width="370" Height="270" Title="!(loc.WelcomeDlg_Title)">
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+        <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="!(loc.WelcomeDlgBitmap)" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Disabled="yes" Text="!(loc.WixUIBack)" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Description" Type="Text" X="135" Y="80" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.WelcomeDlgDescription)" />
+        <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.WelcomeDlgTitle)" />
+        <Control Type="Text" Width="220" Height="60" X="135" Y="140" Id="FSharpNOTE" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}NOTE: This application requires FSharp 1.9.6.2." Hidden="yes" />
+      </Dialog>
+      <InstallUISequence>
+        <Show Dialog="WelcomeDlgCustom" Before="ProgressDlg">NOT Installed</Show>
+      </InstallUISequence>
+    </UI>
+    <UIRef Id="WixUI_Common" />
+  </Product>
+</Wix>

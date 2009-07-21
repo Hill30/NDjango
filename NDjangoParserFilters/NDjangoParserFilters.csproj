@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{89DC9575-C706-4D0D-944A-79E5865FFE88}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NDjango.FiltersCS</RootNamespace>
+    <AssemblyName>NDjango.Filters</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Core, Version=1.9.6.16, Culture=neutral, PublicKeyToken=a19089b1c74d0809, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="HtmlFilters\RemoveTagsFilter.cs" />
+    <Compile Include="List\FirstFilter.cs" />
+    <Compile Include="List\LastFilter.cs" />
+    <Compile Include="List\LengthFilter.cs" />
+    <Compile Include="List\LengthIsFilter.cs" />
+    <Compile Include="List\RandomFilter.cs" />
+    <Compile Include="List\SliceFilter.cs" />
+    <Compile Include="StringFilters\AddFilter.cs" />
+    <Compile Include="StringFilters\AddSlashesFilter.cs" />
+    <Compile Include="StringFilters\CapFirstFilter.cs" />
+    <Compile Include="StringFilters\CenterFilter.cs" />
+    <Compile Include="StringFilters\CutFilter.cs" />
+    <Compile Include="StringFilters\DefaultFilter.cs" />
+    <Compile Include="StringFilters\DivisibleByFilter.cs" />
+    <Compile Include="StringFilters\EscapeJSFilter.cs" />
+    <Compile Include="FilterManager.cs" />
+    <Compile Include="StringFilters\FixAmpersandsFilter.cs" />
+    <Compile Include="StringFilters\FloatFormatFilter.cs" />
+    <Compile Include="StringFilters\GetDigit.cs" />
+    <Compile Include="StringFilters\LineNumbersFilter.cs" />
+    <Compile Include="StringFilters\LJustFilter.cs" />
+    <Compile Include="StringFilters\LowerFilter.cs" />
+    <Compile Include="StringFilters\MakeListFilter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringFilters\RJustFilter.cs" />
+    <Compile Include="StringFilters\TitleFilter.cs" />
+    <Compile Include="StringFilters\UpperFilter.cs" />
+    <Compile Include="StringFilters\WordCountFilter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NDjangoParser\NDjangoParser.fsproj">
+      <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
+      <Name>NDjangoParser</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
