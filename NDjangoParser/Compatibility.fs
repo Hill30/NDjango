@@ -21,66 +21,64 @@
 
 #light
 
-namespace NDjango
+namespace NDjango.Compatibility
 
 open NDjango.Lexer
 open NDjango.Interfaces
 open NDjango.OutputHandling
 open NDjango.Expressions
 
-module Compatibility =
+/// Abstract tag implementation designed for consumption outside of F#. This class
+/// will handle interaction with the expression system and the parser, providing
+/// the abstract 'ProcessTag' method with the execution-time values of the supplied
+/// parameters, along with the fully resolved text of the nested value (if in nested mode).
+/// Concrete implementations are required to define a 0-parameter constructor, and
+/// pass in relevant values for 'nested' and 'name'. The value of 'name' must match
+/// the name the tag is registered under, but is only applicable when 'nested' is true.
+[<AbstractClass>]
+type public SimpleTag(nested:bool, name:string, num_params:int) =
+    /// Resolves all expressions in the list against the context
+    let resolve_all list (context: IContext) =
+        list |>
+        List.map (fun (e: FilterExpression) -> 
+                    match fst <| e.Resolve context true with
+                    | None -> null
+                    | Some v -> v) |>
+        List.to_array
 
-    /// Abstract tag implementation designed for consumption outside of F#. This class
-    /// will handle interaction with the expression system and the parser, providing
-    /// the abstract 'ProcessTag' method with the execution-time values of the supplied
-    /// parameters, along with the fully resolved text of the nested value (if in nested mode).
-    /// Concrete implementations are required to define a 0-parameter constructor, and
-    /// pass in relevant values for 'nested' and 'name'. The value of 'name' must match
-    /// the name the tag is registered under, but is only applicable when 'nested' is true.
-    [<AbstractClass>]
-    type public SimpleTag(nested:bool, name:string, num_params:int) =
-        /// Resolves all expressions in the list against the context
-        let resolve_all list (context: IContext) =
-            list |>
-            List.map (fun (e: FilterExpression) -> 
-                        match fst <| e.Resolve context true with
-                        | None -> null
-                        | Some v -> v) |>
-            List.to_array
-    
-        /// Evaluates the contents of the nodelist against the given walker. This function
-        /// effectively parses the nested tags within the simple tag.
-        let read_walker walker nodelist =
-            let reader = 
-                new NDjango.ASTWalker.Reader ({walker with parent=None; nodes=nodelist; context=walker.context})
-            reader.ReadToEnd()
-            
-        /// Tag implementation. This method will receive the fully-evaluated nested contents for nested tag
-        /// along with fully resolved values of the parameters supplied to the tag. Parameters in the template
-        /// source may follow standard parameter conventions, e.g. they can be variables or literals, with 
-        /// filters.
-        abstract member ProcessTag: string -> obj array -> string 
+    /// Evaluates the contents of the nodelist against the given walker. This function
+    /// effectively parses the nested tags within the simple tag.
+    let read_walker walker nodelist =
+        let reader = 
+            new NDjango.ASTWalker.Reader ({walker with parent=None; nodes=nodelist; context=walker.context})
+        reader.ReadToEnd()
         
-        interface ITag with
-            member x.Perform token parser tokens = 
-                let parms = 
-                    token.Args |>
-                    List.map (fun elem -> new FilterExpression(parser, Block token, elem))
-                
-                if not (parms.Length = num_params) then
-                    raise (TemplateSyntaxError(sprintf "%s expects %d parameters, but was given %d." name num_params (parms.Length), Some (token:>obj)))
-                else
-                    let nodelist, tokens =
-                        if nested then parser.Parse tokens ["end" + name]
-                        else [], tokens
-                        
-                    {
-                        new Node(Block token)
-                        with
-                            override this.walk walker =
-                                let resolved_parms =  resolve_all parms walker.context
-                                if not nested then
-                                    {walker with parent = Some walker; buffer = (x.ProcessTag "" resolved_parms)}
-                                else
-                                    {walker with parent = Some walker; buffer = (x.ProcessTag (read_walker walker nodelist) resolved_parms)}
-                    }, tokens
+    /// Tag implementation. This method will receive the fully-evaluated nested contents for nested tag
+    /// along with fully resolved values of the parameters supplied to the tag. Parameters in the template
+    /// source may follow standard parameter conventions, e.g. they can be variables or literals, with 
+    /// filters.
+    abstract member ProcessTag: content:string -> parms:obj array -> string 
+    
+    interface ITag with
+        member x.Perform token parser tokens = 
+            let parms = 
+                token.Args |>
+                List.map (fun elem -> new FilterExpression(parser, Block token, elem))
+            
+            if not (parms.Length = num_params || num_params = -1) then
+                raise (TemplateSyntaxError(sprintf "%s expects %d parameters, but was given %d." name num_params (parms.Length), Some (token:>obj)))
+            else
+                let nodelist, tokens =
+                    if nested then parser.Parse tokens ["end" + name]
+                    else [], tokens
+                    
+                {
+                    new Node(Block token)
+                    with
+                        override this.walk walker =
+                            let resolved_parms =  resolve_all parms walker.context
+                            if not nested then
+                                {walker with buffer = (x.ProcessTag "" resolved_parms)}
+                            else
+                                {walker with buffer = (x.ProcessTag (read_walker walker nodelist) resolved_parms)}
+                }, tokens

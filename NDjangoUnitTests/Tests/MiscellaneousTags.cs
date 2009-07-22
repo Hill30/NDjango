@@ -210,10 +210,10 @@ new inner2
 
             // nested simple tag implementation
             lst.Add(new TestDescriptor("simple-nested-tag-01", "{% nested p1 %}{% spaceless %}templatetag<h1>  \r\n   </h1> !\r\n <h2> </h2>{% endspaceless %}{% endnested %}", ContextObjects.p("p1", "parm1"), ContextObjects.p(typeof(OutputHandling.TemplateSyntaxError))));
-            lst.Add(new TestDescriptor("simple-nested-tag-02", "{% nested p1 \"p2\" %}{% spaceless %}templatetag<h1>  \r\n   </h1> !\r\n <h2> </h2>{% endspaceless %}{% endnested %}", ContextObjects.p("p1", "parm1"), ContextObjects.p("parm1p2starttemplatetag<h1></h1> !\r\n <h2></h2>end")));
+            lst.Add(new TestDescriptor("simple-nested-tag-02", "{% nested p1 \"p2\" %}{% spaceless %}templatetag<h1>  \r\n   </h1> !\r\n <h2> </h2>{% endspaceless %}{% endnested %}woo", ContextObjects.p("p1", "parm1"), ContextObjects.p("parm1p2starttemplatetag<h1></h1> !\r\n <h2></h2>endwoo")));
 
             // non-nested simple tag implementation
-            lst.Add(new TestDescriptor("simple-non-nested-tag-01", "{% non-nested p1 \"p2\" %}", ContextObjects.p("p1", "parm1"), ContextObjects.p("parm1p2")));
+            lst.Add(new TestDescriptor("simple-non-nested-tag-01", "{% non-nested p1 \"p2\" %}woo", ContextObjects.p("p1", "parm1"), ContextObjects.p("parm1p2woo")));
 
 
             return lst;
