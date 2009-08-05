@@ -42,7 +42,7 @@ module internal Misc =
                     match token.Args with 
                     | "on"::[] -> walker.context.WithAutoescape(true)
                     | "off"::[] -> walker.context.WithAutoescape(false)
-                    | _ -> raise (TemplateSyntaxError("invalid argumanents for 'Autoescape' tag", Some (token:>obj)))
+                    | _ -> raise (TemplateSyntaxError("invalid arguments for 'Autoescape' tag", Some (token:>obj)))
                     
                 ({
                     new Node(Block token) with
