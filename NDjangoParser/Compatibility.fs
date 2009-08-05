@@ -57,7 +57,12 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
     /// along with fully resolved values of the parameters supplied to the tag. Parameters in the template
     /// source may follow standard parameter conventions, e.g. they can be variables or literals, with 
     /// filters.
-    abstract member ProcessTag: content:string -> parms:obj array -> string 
+    abstract member ProcessTag: context:IContext -> content:string -> parms:obj array -> string 
+    
+    member x.GetFromContext (context:IContext) (key:string) =
+        match context.tryfind key with
+        | None -> null
+        | Some v -> v
     
     interface ITag with
         member x.Perform token parser tokens = 
@@ -78,7 +83,7 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
                         override this.walk walker =
                             let resolved_parms =  resolve_all parms walker.context
                             if not nested then
-                                {walker with buffer = (x.ProcessTag "" resolved_parms)}
+                                {walker with buffer = (x.ProcessTag walker.context "" resolved_parms)}
                             else
-                                {walker with buffer = (x.ProcessTag (read_walker walker nodelist) resolved_parms)}
+                                {walker with buffer = (x.ProcessTag walker.context (read_walker walker nodelist) resolved_parms)}
                 }, tokens

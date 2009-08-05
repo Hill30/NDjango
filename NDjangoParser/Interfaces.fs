@@ -85,7 +85,7 @@ module Interfaces =
         abstract member add:(string*obj)->IContext
         
         /// Attempts to find an object in the context by the key
-        abstract member tryfind: string->obj option
+        abstract member tryfind: key:string->obj option
         
         /// Retrieves the requested template along with the containing template manager
         abstract member GetTemplate: string -> (ITemplateManager * ITemplate)

@@ -100,7 +100,7 @@ this is inner2
         {
             public SimpleNonNestedTag() : base(false, "non-nested", 2) { }
 
-            public override string ProcessTag(string contents, object[] parms)
+            public override string ProcessTag(NDjango.Interfaces.IContext context, string contents, object[] parms)
             {
                 StringBuilder res = new StringBuilder();
                 foreach (object o in parms)
@@ -116,7 +116,7 @@ this is inner2
         {
             public SimpleNestedTag() : base(true, "nested", 2) { }
 
-            public override string ProcessTag(string contents, object[] parms)
+            public override string ProcessTag(NDjango.Interfaces.IContext context, string contents, object[] parms)
             {
                 StringBuilder res = new StringBuilder();
                 foreach (object o in parms)
