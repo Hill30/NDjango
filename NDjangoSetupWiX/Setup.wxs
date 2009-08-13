@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?define ProductVersion="0.9.0" ?>
-  <?define ProductVersionTitle="0.9.0.5" ?>
+  <?define ProductVersion="0.9.1" ?>
+  <?define ProductVersionTitle="0.9.1.0" ?>
   <?define UpgradeCode="{9EAD0F41-F6BB-4FDD-B2C3-2C8D3AFD5F47}"?>
-  <Product Id="7D58704A-F744-41B0-BBA8-87B6D425982E" Name="NDjango $(var.ProductVersionTitle)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
+  <Product Id="2E2B2A9E-6C61-471E-850B-826F2D671628" Name="NDjango $(var.ProductVersionTitle)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
     <Package InstallerVersion="200" Compressed="yes" />
     <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
     <Upgrade Id="$(var.UpgradeCode)">
