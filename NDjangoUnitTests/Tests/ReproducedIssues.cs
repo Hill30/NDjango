@@ -12,9 +12,7 @@ namespace NDjango.UnitTests
         [Test, TestCaseSource("GetReproducedIssues")]
         public void ReproducedIssues(TestDescriptor test)
         {
-            string received = null;
-            bool pass = test.Run(out received);
-            Assert.IsTrue(pass, String.Format("FAILED - expected \"{0}\", received \"{1}\"", test.Result[0], received));
+            test.Run(manager);
         }
 
         private List<string> GetAHrefs(int amount)

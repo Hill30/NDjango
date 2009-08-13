@@ -26,6 +26,8 @@ open System.IO
 
 open NDjango.Lexer
 open NDjango.Interfaces
+open NDjango.ParserNodes
+open NDjango.ASTNodes
 open NDjango.OutputHandling
 open NDjango.Expressions
 
@@ -34,12 +36,12 @@ module internal LoaderTags =
     /// Define a block that can be overridden by child templates.
     type BlockTag() =
         interface ITag with
-            member this.Perform token parser tokens =
+            member this.Perform token provider tokens =
                 match token.Args with 
                 | name::[] -> 
-                    let node_list, remaining = parser.Parse tokens ["endblock"; "endblock " + name]
-                    (new NDjango.ASTLoader.BlockNode(token, name, node_list) :> Node), remaining
-                | _ -> raise (TemplateSyntaxError ("block tag takes only one argument", Some (token:>obj)))
+                    let node_list, remaining = (provider :?> IParser).Parse (Some token) tokens ["endblock"; "endblock " + name]
+                    (new BlockNode(provider, token, name, node_list) :> INodeImpl), remaining
+                | _ -> raise (SyntaxError ("block tag takes only one argument"))
 
     /// Signal that this template extends a parent template.
     /// 
@@ -50,16 +52,16 @@ module internal LoaderTags =
     /// the parent tempate itelf (if it evaluates to a Template object).
     type ExtendsTag() =
         interface ITag with
-            member this.Perform token parser tokens = 
+            member this.Perform token provider tokens = 
                 match token.Args with
                 | parent::[] -> 
-                    let node_list, remaining = parser.Parse tokens []
+                    let node_list, remaining = (provider :?> IParser).Parse (Some token) tokens []
                     
                     let parent_name_expr = 
-                        new FilterExpression(parser, Block token, parent)
+                        new FilterExpression(provider, Block token, parent)
                         
-                    (new NDjango.ASTLoader.ExtendsNode(token, node_list, parent_name_expr) :> Node), LazyList.empty<Token>()
-                | _ -> raise (TemplateSyntaxError ("extends tag takes only one argument", Some (token:>obj)))
+                    (new ExtendsNode(provider, token, node_list, parent_name_expr) :> INodeImpl), LazyList.empty<Token>()
+                | _ -> raise (SyntaxError ("extends tag takes only one argument"))
 
     /// Loads a template and renders it with the current context. This is a way of "including" other templates within a template.
     ///
@@ -86,20 +88,19 @@ module internal LoaderTags =
     type IncludeTag() =
 
         interface ITag with
-            member this.Perform token parser tokens = 
+            member this.Perform token provider tokens = 
                 match token.Args with
                 | name::[] -> 
                     let template_name = 
-                        new FilterExpression(parser, Block token, name)
-                    {
+                        new FilterExpression(provider, Block token, name)
+                    ({
                         //todo: we're not producing a node list here. may have to revisit
-                        new Node(Block token) 
+                        new TagNode(provider, token) 
                         with
-                            override this.walk walker = 
-                                let manager, template = NDjango.ASTLoader.get_template template_name walker.context
-                                {walker with parent=Some walker; nodes=template.Nodes}
-                    }, tokens
-                | _ -> raise (TemplateSyntaxError ("'include' tag takes only one argument", Some (token:>obj)))
+                            override this.walk manager walker = 
+                                {walker with parent=Some walker; nodes=(get_template manager template_name walker.context).Nodes}
+                    } :> INodeImpl), tokens
+                | _ -> raise (SyntaxError ("'include' tag takes only one argument"))
 
 /// ssi¶
 /// Output the contents of a given file into the page.
@@ -116,13 +117,13 @@ module internal LoaderTags =
 
     type Reader = Path of string | TextReader of System.IO.TextReader
 
-    type SsiNode(token:BlockToken, reader: Reader) = 
-        inherit Node(Block token)
+    type SsiNode(provider, token, reader: Reader, loader: string->TextReader) = 
+        inherit TagNode(provider, token)
 
-        override this.walk walker =
+        override this.walk manager walker =
             let templateReader =  
                 match reader with 
-                | Path path -> (walker.context.Manager :?> ITemplateContainer).GetTemplateReader(path)
+                | Path path -> loader path
                 | TextReader reader -> reader
             let bufarray = Array.create 4096 ' '
             let length = templateReader.Read(bufarray, 0, bufarray.Length)
@@ -130,24 +131,23 @@ module internal LoaderTags =
             let nodes = 
                 if length = 0 
                 then templateReader.Close(); walker.nodes
-                else (new SsiNode(token, TextReader templateReader) :> Node) :: walker.nodes
+                else (new SsiNode(provider, token, TextReader templateReader, loader) :> INodeImpl) :: walker.nodes
             {walker with buffer = buffer; nodes=nodes}
 
     type SsiTag() =
 
         interface ITag with
-            member this.Perform token parser tokens = 
+            member this.Perform token provider tokens = 
                 match token.Args with
-                | path::[] -> (new SsiNode(token, Path path) :> Node), tokens
+                | path::[] -> (new SsiNode(provider, token, Path path, provider.Loader.GetTemplate) :> INodeImpl), tokens
                 | path::"parsed"::[] ->
-                    let templateRef = FilterExpression (parser, Block token, "\"" + path + "\"")
-                    {
-                        new Node(Block token) 
+                    let templateRef = FilterExpression (provider, Block token, "\"" + path + "\"")
+                    ({
+                        new TagNode(provider, token) 
                         with
-                            override this.walk walker = 
-                                let manager, template = NDjango.ASTLoader.get_template templateRef walker.context
-                                {walker with parent=Some walker; nodes=template.Nodes}
-                    }, tokens
+                            override this.walk manager walker = 
+                                {walker with parent=Some walker; nodes=(get_template manager templateRef walker.context).Nodes}
+                    } :> INodeImpl), tokens
                 | _ ->
-                    raise (TemplateSyntaxError ("malformed 'ssi' tag", Some (token:>obj)))
+                    raise (SyntaxError ("malformed 'ssi' tag"))
                 

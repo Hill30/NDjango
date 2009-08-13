@@ -77,13 +77,14 @@ open System.Collections
 open System.Reflection
 
 open NDjango.Interfaces
+open NDjango.ASTNodes
 open Expressions
 open OutputHandling
 
 module internal Parser =
 
     /// Default parser implementation
-    type public DefaultParser(manager:ITemplateContainer) =
+    type public DefaultParser(provider: ITemplateManagerProvider) =
 
         /// parses a single token, returning an AST Node list. this function may advance the token stream if an 
         /// element consuming multiple tokens is encountered. In this scenario, the Node list returned will
@@ -92,24 +93,25 @@ module internal Parser =
             match token with
 
             | Lexer.Text textToken -> 
-                {new Node(token)
+                ({new Node(token)
                     with 
-                        override this.walk walker = 
+                        override this.walk manager walker = 
                             {walker with buffer = textToken.Text}
-                }, tokens
+                } :> INode), tokens
                 
             | Lexer.Variable var -> 
-                let expression = new FilterExpression(parser, Lexer.Variable var, var.Expression)
-                {new Node(token)
+                let expression = new FilterExpression(provider, Lexer.Variable var, var.Expression)
+                ({new Node(token)
                     with 
-                        override this.walk walker = 
-                            match expression.ResolveForOutput walker with
+                        override this.walk manager walker = 
+                            match expression.ResolveForOutput manager walker with
                             | Some w -> w
                             | None -> walker
-                }, tokens
+                        override this.GetVariables = expression.GetVariables
+                } :> INode), tokens
                 
             | Lexer.Block block -> 
-                match manager.FindTag block.Verb with 
+                match Map.tryFind block.Verb provider.Tags with 
                 | None -> raise (TemplateSyntaxError ("Invalid block tag:" + block.Verb, Some (block:>obj)))
                 | Some (tag: ITag) -> tag.Perform block (parser :> IParser) tokens
             
@@ -118,7 +120,7 @@ module internal Parser =
                 // the default behavior of the walk override is to return the same walker
                 // Considering that when walk is called the buffer is empty, this will 
                 // work for the comment node, so overriding the walk method here is unnecessary
-                new Node(token), tokens 
+                (new Node(token) :> INode), tokens 
 
         /// determines whether the given element is included in the termination token list
         let is_term_token elem (parse_until:string list) =
@@ -132,7 +134,7 @@ module internal Parser =
         /// recursively parses the token stream until the token(s) listed in parse_until are encountered.
         /// this function returns the node list and the unparsed remainder of the token stream
         /// the list is returned in the reversed order
-        let rec parse_internal parser (nodes:Node list) (tokens : LazyList<Lexer.Token>) parse_until =
+        let rec parse_internal parser (nodes:INode list) (tokens : LazyList<Lexer.Token>) parse_until =
            match tokens with
            | LazyList.Nil ->  
                 if not <| List.isEmpty parse_until then
@@ -140,7 +142,7 @@ module internal Parser =
                 (nodes, LazyList.empty<Lexer.Token>())
            | LazyList.Cons(token, tokens) -> 
                 if is_term_token token parse_until then
-                    (new Node(token) :: nodes, tokens)
+                    ((new Node(token) :> INode) :: nodes, tokens)
                 else
                     if List.isEmpty parse_until || LazyList.nonempty tokens || is_term_token token parse_until then
                         let node, tokens = parse_token parser tokens token
@@ -169,5 +171,3 @@ module internal Parser =
                 else
                     seek_internal parse_until tokens
             
-            member this.FindFilter name = manager.FindFilter name
-        

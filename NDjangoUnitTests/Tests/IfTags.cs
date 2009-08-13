@@ -13,9 +13,7 @@ namespace NDjango.UnitTests
         [Test, TestCaseSource("GetIfTagTests")]
         public void IfTag(TestDescriptor test)
         {
-            string received = null;
-            bool pass = test.Run(out received);
-            Assert.IsTrue(pass, String.Format("FAILED - expected \"{0}\", received \"{1}\"", test.Result[0], received));
+            test.Run(manager);
         }
 
         public IList<TestDescriptor> GetIfTagTests()
@@ -95,11 +93,12 @@ namespace NDjango.UnitTests
             lst.Add(new TestDescriptor("if-tag-not35", "{% if not foo or not bar %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", false), ContextObjects.p("yes")));
 
             // AND and OR raises a TemplateSyntaxError
-            lst.Add(new TestDescriptor("if-tag-error01", "{% if foo or bar and baz %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", false), ContextObjects.p(typeof(OutputHandling.TemplateSyntaxError))));
-            lst.Add(new TestDescriptor("if-tag-error02", "{% if foo and %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(OutputHandling.TemplateSyntaxError))));
-            lst.Add(new TestDescriptor("if-tag-error03", "{% if foo or %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(OutputHandling.TemplateSyntaxError))));
-            lst.Add(new TestDescriptor("if-tag-error04", "{% if not foo and %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(OutputHandling.TemplateSyntaxError))));
-            lst.Add(new TestDescriptor("if-tag-error05", "{% if not foo or %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(OutputHandling.TemplateSyntaxError))));
+            lst.Add(new TestDescriptor("if-tag-error01", "{% if foo or bar and baz %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", false), ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
+            lst.Add(new TestDescriptor("if-tag-error02", "{% if foo and %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
+            lst.Add(new TestDescriptor("if-tag-error03", "{% if foo or %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
+            lst.Add(new TestDescriptor("if-tag-error04", "{% if not foo and %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
+            lst.Add(new TestDescriptor("if-tag-error05", "{% if not foo or %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
+            lst.Add(new TestDescriptor("if-tag-error06", "{% if not foo %}yes{% else %}no", ContextObjects.p("foo", true), ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
             
             // IFEqual TAG
             lst.Add(new TestDescriptor("ifequal-tag-01", "{% ifequal foo bar %}yes{% else %}no{% endifequal %}", ContextObjects.p("foo", true, "bar", true), ContextObjects.p("yes")));

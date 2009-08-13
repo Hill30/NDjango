@@ -27,6 +27,7 @@ open NDjango.Lexer
 open NDjango.Interfaces
 open NDjango.OutputHandling
 open NDjango.Expressions
+open NDjango.ParserNodes
 
 /// Abstract tag implementation designed for consumption outside of F#. This class
 /// will handle interaction with the expression system and the parser, providing
@@ -48,9 +49,9 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
 
     /// Evaluates the contents of the nodelist against the given walker. This function
     /// effectively parses the nested tags within the simple tag.
-    let read_walker walker nodelist =
+    let read_walker manager walker nodelist =
         let reader = 
-            new NDjango.ASTWalker.Reader ({walker with parent=None; nodes=nodelist; context=walker.context})
+            new NDjango.ASTWalker.Reader (manager, {walker with parent=None; nodes=nodelist; context=walker.context})
         reader.ReadToEnd()
         
     /// Tag implementation. This method will receive the fully-evaluated nested contents for nested tag
@@ -65,25 +66,24 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
         | Some v -> v
     
     interface ITag with
-        member x.Perform token parser tokens = 
+        member x.Perform token provider tokens = 
             let parms = 
                 token.Args |>
-                List.map (fun elem -> new FilterExpression(parser, Block token, elem))
+                List.map (fun elem -> new FilterExpression(provider, Block token, elem))
             
             if not (parms.Length = num_params || num_params = -1) then
-                raise (TemplateSyntaxError(sprintf "%s expects %d parameters, but was given %d." name num_params (parms.Length), Some (token:>obj)))
+                raise (SyntaxError(sprintf "%s expects %d parameters, but was given %d." name num_params (parms.Length)))
             else
                 let nodelist, tokens =
-                    if nested then parser.Parse tokens ["end" + name]
+                    if nested then (provider :?> IParser).Parse (Some token) tokens ["end" + name]
                     else [], tokens
                     
-                {
-                    new Node(Block token)
+                ({new TagNode(provider, token)
                     with
-                        override this.walk walker =
+                        override this.walk manager walker =
                             let resolved_parms =  resolve_all parms walker.context
                             if not nested then
                                 {walker with buffer = (x.ProcessTag walker.context "" resolved_parms)}
                             else
-                                {walker with buffer = (x.ProcessTag walker.context (read_walker walker nodelist) resolved_parms)}
-                }, tokens
+                                {walker with buffer = (x.ProcessTag walker.context (read_walker manager walker nodelist) resolved_parms)}
+                } :> INodeImpl), tokens

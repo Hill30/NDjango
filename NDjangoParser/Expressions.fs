@@ -27,7 +27,7 @@ open System.Collections
 open System.Collections.Generic
 open System.Reflection
 
-open Interfaces
+open NDjango.Interfaces
 open OutputHandling
 open Utilities
 
@@ -122,7 +122,7 @@ module Expressions =
     ///     >>> Variable('article.section').resolve(c)
     ///     u'News'
     /// (The example assumes VARIABLE_ATTRIBUTE_SEPARATOR is '.')
-    type Variable(parser : IParser, token:Lexer.Token, variable:string) =
+    type Variable(provider: ITemplateManagerProvider, token:Lexer.Token, variable:string) =
         let (|ComponentStartsWith|_|) chr (text: string) =
             if text.StartsWith(chr) || text.Contains(Constants.VARIABLE_ATTRIBUTE_SEPARATOR + chr) then
                 Some chr
@@ -131,9 +131,9 @@ module Expressions =
         
         let fail_syntax v = 
             raise (
-                TemplateSyntaxError (
-                    sprintf "Variables and attributes may not be empty, begin with underscores or minus (-) signs: '%s', '%s'" variable v
-                    , Lexer.get_textToken token))
+                SyntaxError (
+                    sprintf "Variables and attributes may not be empty, begin with underscores or minus (-) signs: '%s', '%s'" variable v)
+                    )
 
         do match variable with 
             | ComponentStartsWith "-" v->
@@ -179,11 +179,16 @@ module Expressions =
                         | None -> None
                         with
                         | Some v1 -> v1
-                        | None -> context.TEMPLATE_STRING_IF_INVALID
-//                        | None -> None :> obj
+                        | None -> 
+                            match provider.Settings.TryFind(Constants.TEMPLATE_STRING_IF_INVALID) with
+                            | Some o -> o
+                            | None -> "" :> obj
+
                 (result, context.Autoescape)
         
         member this.ExpressionText with get() = variable
+        
+        member this.IsLiteral with get() = lookups.IsNone
 
     // TODO: we still need to figure out the translation piece
     // python code
@@ -202,9 +207,7 @@ module Expressions =
     ///     >>> fe.var
     ///     <Variable: 'variable'>
     ///
-    /// This class should never be instantiated outside of the
-    /// get_filters_from_token helper function. *)
-    type FilterExpression (manager: IParser, token:Lexer.Token, expression: string) =
+    type FilterExpression (provider: ITemplateManagerProvider, token:Lexer.Token, expression: string) =
         
         /// unescapes literal quotes. takes '\"value\"' and returns '"value"'
         let flatten (text: string) = text.Replace("\\\"", "\"")
@@ -217,7 +220,7 @@ module Expressions =
             match filter with 
             | :? IFilter as f->
                 if List.length provided = 0 && f.DefaultValue = null then
-                    raise (TemplateSyntaxError (sprintf "%s requires argument, none provided" name, Lexer.get_textToken token ))
+                    raise (SyntaxError (sprintf "%s requires argument, none provided" name))
                 else true
             | _ -> true
         
@@ -225,35 +228,33 @@ module Expressions =
         let rec parse_var (filter_match: Match) upto (var: Option<string>) =
             if not (filter_match.Success) then
                 if not (upto = expression.Length) 
-                then raise (TemplateSyntaxError (sprintf "Could not parse the remainder: '%s' from '%s'" expression.[upto..] expression
-                    , Lexer.get_textToken token))
+                then raise (SyntaxError (sprintf "Could not parse the remainder: '%s' from '%s'" expression.[upto..] expression))
                 else
-                    (upto, new Variable(manager, token, var.Value), [])
+                    (upto, new Variable(provider, token, var.Value), [])
             else
                 // short-hand for the recursive call. the values for match and upto are always computed the same way
                 let fast_call = fun v -> parse_var (filter_match.NextMatch()) (filter_match.Index + filter_match.Length) v
             
                 if not (upto = filter_match.Index) then
                     raise 
-                        (TemplateSyntaxError 
+                        (SyntaxError 
                             (sprintf "Could not parse some characters %s|%s|%s" 
                                 expression.[..upto] 
                                 expression.[upto..filter_match.Index] 
                                 expression.[filter_match.Index..]
-                            , Lexer.get_textToken token))
+                            ))
                 else
                     match var with
                     | None ->
                         match filter_match with
                         | Utilities.Matched "var" var_match -> fast_call (Some var_match)
-                        | _ -> raise (TemplateSyntaxError (sprintf "Could not find variable at start of %s" expression, Lexer.get_textToken token))
+                        | _ -> raise (SyntaxError (sprintf "Could not find variable at start of %s" expression))
                     | Some s ->
                         let filter_name = filter_match.Groups.["filter_name"]
-                        let arg = filter_match.Groups.["arg"].Captures |> Seq.cast |> Seq.to_list |> List.map (fun c -> Variable(manager, token, c.ToString())) 
-                        let filter = manager.FindFilter filter_name.Value
+                        let arg = filter_match.Groups.["arg"].Captures |> Seq.cast |> Seq.to_list |> List.map (fun c -> Variable(provider, token, c.ToString())) 
+                        let filter = Map.tryFind filter_name.Value provider.Filters 
                         
-                        if filter.IsNone then raise (TemplateSyntaxError (sprintf "filter %A could not be found" filter_name.Value
-                            , Lexer.get_textToken token))
+                        if filter.IsNone then raise (SyntaxError (sprintf "filter %A could not be found" filter_name.Value))
                         else
                             ignore <| args_check filter_name.Value filter.Value arg
 
@@ -285,7 +286,10 @@ module Expressions =
                         do_resolve context (wrap (std.PerformWithParam (v, param)), snd input) t
                     | _ as simple -> do_resolve context (wrap (simple.Perform v), snd input) t
                 | [] -> input
-            
+
+        let get_variables filters = 
+            filters |> List.fold (fun list item -> (item |> snd) @ list) []
+        
         /// resolves the filter against the given context. if ignoreFailures is true, None is returned for failed expressions.
         member this.Resolve (context: IContext) ignoreFailures =
             let resolved_value = 
@@ -305,13 +309,13 @@ module Expressions =
         /// converts it to string taking into account escaping. 
         /// This method never fails, if the expression fails to resolve, 
         /// the method returns None
-        member this.ResolveForOutput walker =
+        member this.ResolveForOutput manager walker =
             let result, needsEscape = this.Resolve walker.context false
             match result with 
             | None -> None  // this results in no output from the expression
             | Some o -> 
                 match o with 
-                | :? Node as node -> Some (node.walk walker) // take output from the node
+                | :? INodeImpl as node -> Some (node.walk manager walker) // take output from the node
                 | null -> None // this results in no output from the expression
                 | _ as v ->
                     match if needsEscape then escape v else string v with
@@ -323,3 +327,8 @@ module Expressions =
             //for filter, args in filters do
                 
         member this.Token with get() = expression
+        
+//        member this.GetVariables: string list = 
+//            let variables = variable :: (filters |> List.fold (fun list item -> (item |> snd) @ list) [])
+//            variables |> List.filter (fun item -> item.IsLiteral |> not) |> List.map (fun item -> item.ExpressionText)
+            

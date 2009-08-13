@@ -92,15 +92,16 @@ module internal If =
         | And
         | Or
 
-    /// AST Node representing an entire if tag, with all nested and composing tags
-    type Node(
-                token: BlockToken,
+    /// AST TagNode representing an entire if tag, with all nested and composing tags
+    type TagNode(
+                provider,
+                token,
                 bool_vars: (bool * FilterExpression) list, 
-                node_list_true: NDjango.Interfaces.Node list, 
-                node_list_false: NDjango.Interfaces.Node list, 
+                node_list_true: NDjango.Interfaces.INodeImpl list, 
+                node_list_false: NDjango.Interfaces.INodeImpl list, 
                 link_type: IfLinkType
                 ) =
-        inherit NDjango.Interfaces.Node(Block token)
+        inherit NDjango.ParserNodes.TagNode(provider, token)
         
         /// Evaluates a single filter expression against the context. Results are intepreted as follows: 
         /// None: false (or invalid values, as FilterExpression.Resolve is called with ignoreFailure = true)
@@ -139,11 +140,17 @@ module internal If =
                     | Or -> false
                     | And -> true
                 
-        override this.walk walker =
+        override this.walk manager walker =
             match eval_expression walker.context bool_vars with
             | true -> {walker with parent=Some walker; nodes=node_list_true}
             | false -> {walker with parent=Some walker; nodes=node_list_false}
             
+        override this.Nodes 
+            with get() =
+                base.Nodes 
+                    |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (node_list_true |> Seq.map (fun node -> (node :?> INode)))
+                    |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (node_list_false |> Seq.map (fun node -> (node :?> INode)))
+    
     type Tag() =
         /// builds a list of FilterExpression objects for the variable components of an if statement. 
         /// The tuple returned is (not flag, FilterExpression), where not flag is true when the value
@@ -159,31 +166,31 @@ module internal If =
                 append_vars IfLinkType.And var token notFlag (var2::tail) parser vars 
             | var::"or"::var2::tail -> 
                 append_vars IfLinkType.Or var token notFlag (var2::tail) parser vars 
-            | _ -> raise (TemplateSyntaxError ("invalid conditional expression in 'if' tag", Some (token:>obj)))
+            | _ -> raise (SyntaxError ("invalid conditional expression in 'if' tag"))
             
         and append_vars linkType var
             token notFlag (tokens: string list) parser vars =
             match fst vars with
-            | Some any when any <> linkType -> raise (TemplateSyntaxError ("'if' tags can't mix 'and' and 'or'", Some (token:>obj)))
+            | Some any when any <> linkType -> raise (SyntaxError ("'if' tags can't mix 'and' and 'or'"))
             | _ -> ()
             build_vars token false tokens parser (Some linkType, snd vars @ [(notFlag, new FilterExpression(parser, Block token, var))])
         
         
         interface ITag with 
-            member this.Perform token parser tokens =
+            member this.Perform token provider tokens =
 
-                let link_type, bool_vars = build_vars token false token.Args parser (None,[])
+                let link_type, bool_vars = build_vars token false token.Args provider (None,[])
                 
-                let node_list_true, remaining = parser.Parse tokens ["else"; "endif"]
+                let node_list_true, remaining = (provider :?> IParser).Parse (Some token) tokens ["else"; "endif"]
                 let node_list_false, remaining2 =
                     match node_list_true.[node_list_true.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb = "else" then
-                            parser.Parse remaining ["endif"]
+                            (provider :?> IParser).Parse (Some token) remaining ["endif"]
                         else
                             [], remaining
                     | _ -> [], remaining
 
-                ((new Node(token, bool_vars, node_list_true, node_list_false, link_type) :> NDjango.Interfaces.Node), remaining2)
+                ((new TagNode(provider, token, bool_vars, node_list_true, node_list_false, link_type) :> NDjango.Interfaces.INodeImpl), remaining2)
 
 

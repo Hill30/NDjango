@@ -31,43 +31,61 @@ open NDjango.OutputHandling
 
 module Lexer =
 
-    type TextToken(text:string, line:int, pos:int) =
-        member this.Text = text
-        override this.ToString() = sprintf " in token: \"%s\" at line %d pos %d " text line pos
+    type TextToken(text:string, pos:int, line:int, linePos:int) =
+        member x.Text = text
+        member x.Position = pos
+        member x.Line = line
+        member x.LinePos = linePos
+        member x.Length = text.Length
+        override x.ToString() = sprintf " in token: \"%s\" at line %d pos %d " text line linePos
 
-    type BlockToken(text, line, pos) =
-        inherit TextToken(text, line, pos)
+    /// Exception raised when template syntax errors are encountered
+    and SyntaxErrorException (message: string, token: TextToken) =
+        inherit System.ApplicationException(message + token.ToString())
+        
+        member x.Token = token
+        member x.ErrorMessage = message  
+    
+    type BlockToken(text, pos, line, linePos) =
+        inherit TextToken(text, pos, line, linePos)
         let verb, args = 
             match smart_split (text.[Constants.BLOCK_TAG_START.Length..text.Length-Constants.BLOCK_TAG_END.Length-1].Trim()) with
             | verb::args -> verb, args 
-            | _ -> raise (TemplateSyntaxError ("Empty tag block", Some (TextToken(text, line, pos):>obj)))
-        member this.Verb = verb 
-        member this.Args = args
+            | _ -> raise (SyntaxError("Empty tag block"))
+        member x.Verb = verb 
+        member x.Args = args
     
-    type VariableToken(text:string, line, pos) =
-        inherit TextToken(text, line, pos)
+    type ErrorToken(text, error:string, pos, line, linePos) =
+        inherit TextToken(text, pos, line, linePos)
+          
+        member x.ErrorMessage = error
+    
+    type VariableToken(text:string, pos, line, linePos) =
+        inherit TextToken(text, pos, line, linePos)
         let expression = text.[Constants.VARIABLE_TAG_START.Length..text.Length-Constants.VARIABLE_TAG_END.Length-1].Trim()
             
         member this.Expression = 
             if expression.Equals("") then
-                raise (TemplateSyntaxError ("Empty variable block", Some (TextToken(text, line, pos):>obj)))
+                raise (SyntaxError("Empty variable block"))
             expression 
     
-    type CommentToken(text, line, pos) =
-        inherit TextToken(text, line, pos) 
+    type CommentToken(text, pos, line, linePos) =
+        inherit TextToken(text, pos, line, linePos) 
     
     /// A lexer token produced through the tokenize function
     type Token =
         | Block of BlockToken
         | Variable of VariableToken
         | Comment of CommentToken
+        | Error of ErrorToken
         | Text of TextToken
         
     let get_textToken = function
-    | Block b -> Some (b :> obj)
-    | Variable v -> Some (v :> obj)
-    | Comment c -> Some (c :> obj)
-    | Text t -> Some (t :> obj)
+    | Block b -> b :> TextToken
+    | Error e -> e :> TextToken
+    | Variable v -> v :> TextToken
+    | Comment c -> c :> TextToken
+    | Text t -> t
         
     /// <summary> generates sequence of tokens out of template TextReader </summary>
     /// <remarks>the type implements the IEnumerable interface (sequence) of templates
@@ -78,29 +96,37 @@ module Lexer =
         let mutable current: Token list = []
         let mutable line = 0
         let mutable pos = 0
+        let mutable linePos = 0
         let mutable tail = ""
         let buffer = Array.create 4096 ' '
         
         let create_token in_tag text = 
             in_tag := not !in_tag
-            let currentLine = line
             let currentPos = pos
+            let currentLine = line
+            let currentLinePos = linePos
             Seq.iter 
                 (fun ch -> 
+                    pos <- pos + 1
                     if ch = '\n' then 
                         line <- line + 1 
-                        pos <- 0
-                    else pos <- pos + 1
+                        linePos <- 0
+                    else linePos <- linePos + 1
                     ) 
                 text
             if not !in_tag then
-                Text(new TextToken(text, currentLine, currentPos))
+                Text(new TextToken(text, currentPos, currentLine, currentLinePos))
             else
-                match text.[0..1] with
-                | "{{" -> Variable (new VariableToken(text, currentLine, currentPos))
-                | "{%" -> Block (new BlockToken(text, currentLine, currentPos))
-                | "{#" -> Comment (new CommentToken(text, currentLine, currentPos))
-                | _ -> Text (new TextToken(text, currentLine, currentPos))
+                try
+                    match text.[0..1] with
+                    | "{{" -> Variable (new VariableToken(text, currentPos, currentLine, currentLinePos))
+                    | "{%" -> Block (new BlockToken(text, currentPos, currentLine, currentLinePos))
+                    | "{#" -> Comment (new CommentToken(text, currentPos, currentLine, currentLinePos))
+                    | _ -> Text (new TextToken(text, currentPos, currentLine, currentLinePos))
+                with
+                | :? SyntaxError as ex -> 
+                    Error (new ErrorToken(text, ex.Message, currentPos, currentLine, currentLinePos))
+                | _ -> rethrow()
         
         interface IEnumerator<Token seq> with
             member this.Current = Seq.of_list current

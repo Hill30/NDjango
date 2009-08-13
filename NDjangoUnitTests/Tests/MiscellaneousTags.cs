@@ -16,9 +16,7 @@ namespace NDjango.UnitTests
         [Test, TestCaseSource("GetMiscellaneousTagsTests")]
         public void MiscellaneousTags(TestDescriptor test)
         {
-            string received = null;
-            bool pass = test.Run(out received);
-            Assert.IsTrue(pass, String.Format("FAILED - expected \"{0}\", received \"{1}\"", test.Result[0], received));
+            test.Run(manager);
         }
 
         public IList<TestDescriptor> GetMiscellaneousTagsTests()
@@ -209,7 +207,7 @@ new inner2
             lst.Add(new TestDescriptor("url-03", "no {% url \"hello/{0}/{1}\" parm1, parm2 as foo %}url, then {{ foo }}", ContextObjects.p("parm1", "new", "parm2", "world"), ContextObjects.p("no url, then /appRoot/hello/new/world")));
 
             // nested simple tag implementation
-            lst.Add(new TestDescriptor("simple-nested-tag-01", "{% nested p1 %}{% spaceless %}templatetag<h1>  \r\n   </h1> !\r\n <h2> </h2>{% endspaceless %}{% endnested %}", ContextObjects.p("p1", "parm1"), ContextObjects.p(typeof(OutputHandling.TemplateSyntaxError))));
+            lst.Add(new TestDescriptor("simple-nested-tag-01", "{% nested p1 %}{% spaceless %}templatetag<h1>  \r\n   </h1> !\r\n <h2> </h2>{% endspaceless %}{% endnested %}", ContextObjects.p("p1", "parm1"), ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
             lst.Add(new TestDescriptor("simple-nested-tag-02", "{% nested p1 \"p2\" %}{% spaceless %}templatetag<h1>  \r\n   </h1> !\r\n <h2> </h2>{% endspaceless %}{% endnested %}woo", ContextObjects.p("p1", "parm1"), ContextObjects.p("parm1p2starttemplatetag<h1></h1> !\r\n <h2></h2>endwoo")));
 
             // non-nested simple tag implementation

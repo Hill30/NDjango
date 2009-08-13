@@ -128,16 +128,23 @@ module OutputHandling =
     /// used to set defaults for optional parameters. retunrs o.Value if o.IsSome, v otherwise
     let internal defaultArg o v = match o with | Some o -> o | _ -> v
 
-    /// extends a template syntax error message with token position information, if any is present
-    let private extend_syntax_error_message msg position length = 
-        match position with 
-        | None -> msg
-        | Some v ->
-            sprintf "%s (at %s" msg ( sprintf "%d%s" v (match length with | None -> ")" | Some l -> sprintf "/%d)" l))
+//    /// extends a template syntax error message with token position information, if any is present
+//    let private extend_syntax_error_message msg position length = 
+//        match position with 
+//        | None -> msg
+//        | Some v ->
+//            sprintf "%s (at %s" msg ( sprintf "%d%s" v (match length with | None -> ")" | Some l -> sprintf "/%d)" l))
 
-    /// Exception raised when template syntax errors are encountered
-    type TemplateSyntaxError (message: string, details:obj option, ?innerException: exn) =
-        inherit System.ApplicationException(message + (match details with |None->""|Some v->v.ToString()), defaultArg innerException null)
+
+    /// Error message
+    type Error(severity:int, message:string) =
+        /// indicates the severity of the error with 0 being the information message
+        /// negative severity is used to mark a dummy message ("No messages" message) 
+        member x.Severity = severity
+        member x.Message = message
+
+    /// Exception raised when a template syntax error is encountered
+    type SyntaxError (message) = 
+        inherit System.ApplicationException(message)
     
-    type RenderingError (message: string, ?innerException: exn, ?position: int, ?length: int) =
-            inherit System.ApplicationException((extend_syntax_error_message message position length), defaultArg innerException null)
+

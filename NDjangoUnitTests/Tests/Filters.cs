@@ -12,9 +12,7 @@ namespace NDjango.UnitTests
     {
         private void InternalFilterProcess(TestDescriptor test)
         {
-            string received = null;
-            bool pass = test.Run(out received);
-            Assert.IsTrue(pass, String.Format("FAILED - expected \"{0}\" of type \"{1}\", received \"{2}\" of type {3}", test.Result[0], test.Result[0].GetType(), received, received.GetType()));
+            test.Run(manager);
         }
         
         [Test, TestCaseSource("GetFilters")]
@@ -232,10 +230,11 @@ namespace NDjango.UnitTests
             newVal.val1.val2.val3 = "test";
 
             lst.Add(new TestDescriptor("verybadtest", "{{value.val1.val2.val3}}", ContextObjects.p("value", newVal), ContextObjects.p("test")));
-
-
-            lst.Add(new TestDescriptor("filters-escape", "{{ headline|escape }}", ContextObjects.p("headline", "Success<>"), ContextObjects.p("Success&lt;&gt;")));
-            lst.Add(new TestDescriptor("add-filter01", "{{ '4'   | add:\"2\" }}", null, ContextObjects.p("6")));
+            lst.Add(new TestDescriptor("filters-escape", "{{ headline|escape }}", ContextObjects.p("headline", "Success<>"), 
+                ContextObjects.p("Success&lt;&gt;",
+                "headline"
+                )));
+            lst.Add(new TestDescriptor("add-filter01", "{{ value| add:\"2\" }}", ContextObjects.p("value", 4), ContextObjects.p("6"), "value"));
             lst.Add(new TestDescriptor("add-filter02", "{{ value |add:\"2\" }}", ContextObjects.p("value", 4), ContextObjects.p("6")));
             lst.Add(new TestDescriptor("add-filter03", "{{ value | add:\"2\" }}", ContextObjects.p("value", 4), ContextObjects.p("6")));
             lst.Add(new TestDescriptor("add-filter10", "{{ value | add:\"2\" }}", ContextObjects.p("value", -3.1), ContextObjects.p("-1")));
@@ -268,7 +267,7 @@ namespace NDjango.UnitTests
             //u'xyz'
 
 
-            lst.Add(new TestDescriptor("default-filter01", "{{ value|default:\"default\"}}", ContextObjects.p("value", "val"), ContextObjects.p("val")));
+            lst.Add(new TestDescriptor("default-filter01", "{{ value|default:\"default\"}}", ContextObjects.p("value", "val"), ContextObjects.p("val"), "value"));
             //>>> default(u"val", u"default")
             //u'val'
 

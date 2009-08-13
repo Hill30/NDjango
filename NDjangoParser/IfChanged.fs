@@ -24,6 +24,7 @@ namespace NDjango.Tags
 
 open NDjango.Lexer
 open NDjango.Interfaces
+open NDjango.ParserNodes
 open NDjango.Expressions
 open NDjango.OutputHandling
 
@@ -52,23 +53,23 @@ module internal IfChanged =
 
     type Tag() =
         interface ITag with
-            member this.Perform token parser tokens =
-                let nodes_ifchanged, remaining = parser.Parse tokens ["else"; "endifchanged"]
+            member this.Perform token provider tokens =
+                let nodes_ifchanged, remaining = (provider :?> IParser).Parse (Some token) tokens ["else"; "endifchanged"]
                 let nodes_ifsame, remaining =
                     match nodes_ifchanged.[nodes_ifchanged.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb = "else" then
-                            parser.Parse remaining ["endifchanged"]
+                            (provider :?> IParser).Parse (Some token) remaining ["endifchanged"]
                         else
                             [], remaining
                     | _ -> [], remaining
 
-                let createWalker =
-                    match token.Args |> List.map (fun var -> new Variable(parser, Block token, var)) with
+                let createWalker manager =
+                    match token.Args |> List.map (fun var -> new Variable(provider, Block token, var)) with
                     | [] ->
                         fun walker ->
                             let reader = 
-                                new NDjango.ASTWalker.Reader ({walker with parent=None; nodes=nodes_ifchanged; context=walker.context})
+                                new NDjango.ASTWalker.Reader (manager, {walker with parent=None; nodes=nodes_ifchanged; context=walker.context})
                             let newValue = reader.ReadToEnd() :> obj
                             match walker.context.tryfind("$oldValue") with
                             | Some o when o = newValue -> {walker with nodes = List.append nodes_ifsame walker.nodes}
@@ -87,10 +88,16 @@ module internal IfChanged =
                             match walker.context.tryfind("$oldValue") with
                             | Some o when not <| matchValues o newValues -> {walker with nodes = List.append nodes_ifsame walker.nodes}
                             | _ -> {walker with nodes = List.append nodes_ifchanged walker.nodes; context=walker.context.add("$oldValue", (newValues :> obj))}
-                ({
-                    new Node(Block token)
+                (({
+                    new TagNode(provider, token)
                     with
-                        override this.walk walker =
-                            createWalker walker        
-                        override this.nodes with get() = nodes_ifchanged @ nodes_ifsame
-                    }, remaining)
+                        override this.walk manager walker =
+                            createWalker manager walker 
+                                   
+                        override this.Nodes 
+                            with get() =
+                                base.Nodes 
+                                    |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (nodes_ifchanged |> Seq.map (fun node -> (node :?> INode)))
+                                    |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (nodes_ifsame |> Seq.map (fun node -> (node :?> INode)))
+
+                    } :> INodeImpl), remaining)

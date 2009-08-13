@@ -24,6 +24,7 @@ namespace NDjango.Tags
 
 open NDjango.Lexer
 open NDjango.Interfaces
+open NDjango.ParserNodes
 open NDjango.Expressions
 open NDjango.OutputHandling
 
@@ -45,14 +46,14 @@ module internal IfEqual =
 
     type Tag(not:bool) =
         interface ITag with
-            member this.Perform token parser tokens =
+            member this.Perform token provider tokens =
                 let tag = token.Verb
-                let node_list_true, remaining = parser.Parse tokens ["else"; "end" + tag]
+                let node_list_true, remaining = (provider :?> IParser).Parse (Some token) tokens ["else"; "end" + tag]
                 let node_list_false, remaining =
                     match node_list_true.[node_list_true.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb = "else" then
-                            parser.Parse remaining ["end" + tag]
+                            (provider :?> IParser).Parse (Some token) remaining ["end" + tag]
                         else
                             [], remaining
                     | _ -> [], remaining
@@ -67,12 +68,12 @@ module internal IfEqual =
 
                 match token.Args with
                 | var1::var2::[] ->
-                    let var1 = new FilterExpression(parser, Block token, var1)
-                    let var2 = new FilterExpression(parser, Block token, var2)
-                    {
-                        new Node(Block token)
+                    let var1 = new FilterExpression(provider, Block token, var1)
+                    let var2 = new FilterExpression(provider, Block token, var2)
+                    ({
+                        new TagNode(provider, token)
                         with 
-                            override this.walk walker =
+                            override this.walk manager walker =
                                 {
                                     walker 
                                     with 
@@ -80,8 +81,12 @@ module internal IfEqual =
                                         nodes=getNodeList (fst (var1.Resolve walker.context true)) (fst (var2.Resolve walker.context true))
                                 }
                         
-                            override this.nodes with get() = node_list_true @ node_list_false
-                    }, remaining
-                | _ -> raise (TemplateSyntaxError (sprintf "'%s' takes two arguments" tag, Some (token:>obj)))
+                            override this.Nodes 
+                                with get() =
+                                    base.Nodes 
+                                        |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (node_list_true |> Seq.map (fun node -> (node :?> INode)))
+                                        |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (node_list_false |> Seq.map (fun node -> (node :?> INode)))
+                    } :> INodeImpl), remaining
+                | _ -> raise (SyntaxError (sprintf "'%s' takes two arguments" tag))
 
                 

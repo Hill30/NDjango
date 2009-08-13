@@ -10,12 +10,77 @@ using FSStringList = Microsoft.FSharp.Collections.FSharpList<string>;
 using StringList = System.Collections.Generic.List<string>;
 using System.Text.RegularExpressions;
 using System.Xml;
+using NDjango.FiltersCS;
 
 namespace NDjango.UnitTests
 {
     [TestFixture]
     public partial class Tests
     {
+        public class Loader : NDjango.Interfaces.ITemplateLoader
+        {
+
+            public Loader()
+            {
+                templates.Add("t1", "insert1--{% block b1 %}to be replaced{% endblock %}--insert2");
+                templates.Add("t22", "insert1--{% block b1 %}to be replaced22{% endblock %}{% block b2 %}to be replaced22{% endblock %}--insert2");
+                templates.Add("t21", "{% extends \"t22\" %}skip - b21{% block b1 %}to be replaced21{% endblock %}skip-b21");
+                templates.Add("tBaseNested",
+@"{% block outer %}
+{% block inner1 %}
+this is inner1
+{% endblock inner1 %}
+{% block inner2 %}
+this is inner2
+{% endblock inner2 %}
+{% endblock outer %}");
+                templates.Add("include-name", "inside included template {{ value }}");
+            }
+            Dictionary<string, string> templates = new Dictionary<string, string>();
+
+            #region ITemplateLoader Members
+
+            public TextReader GetTemplate(string name)
+            {
+                if (templates.ContainsKey(name))
+                    return new StringReader(templates[name]);
+                return new StringReader(name);
+            }
+
+            public bool IsUpdated(string source, DateTime ts)
+            {
+                // alternate
+                //return ts.Second % 2 == 0;
+                return false;
+            }
+
+            #endregion
+        }
+
+        public class TestUrlTag : NDjango.Tags.Abstract.UrlTag
+        {
+            public override string GenerateUrl(string formatString, string[] parameters, NDjango.Interfaces.IContext context)
+            {
+                return "/appRoot/" + String.Format(formatString.Trim('/'), parameters);
+            }
+        }
+
+        NDjango.Interfaces.ITemplateManager manager;
+        TemplateManagerProvider provider;
+        
+        [TestFixtureSetUp]
+        public void Setup()
+        {
+            provider = new TemplateManagerProvider()
+                .WithLoader(new Loader())
+                .WithTag("non-nested", new TestDescriptor.SimpleNonNestedTag())
+                .WithTag("nested", new TestDescriptor.SimpleNestedTag())
+                .WithTag("url", new TestUrlTag())
+                ;
+            provider = FilterManager.Initialize(provider);
+            manager = provider.GetNewManager();
+        }
+
         public struct StringTest 
         {
             public StringTest(string name, string provided, string[] expected)
@@ -184,7 +249,7 @@ namespace NDjango.UnitTests
 //        [Test, TestCaseSource("TemplateTestEnum1")]
         public void Test1(string path)
         {
-            string retVal = TestDescriptor.runTemplate(File.ReadAllText(path + ".django"), CreateContext(path + ".xml"));
+            string retVal = TestDescriptor.runTemplate(manager, File.ReadAllText(path + ".django"), CreateContext(path + ".xml"));
             string retBase = File.ReadAllText(path + ".htm");
             Assert.AreEqual(retBase, retVal, String.Format("RESULT!!!!!!!!!!!!!!!!:\r\n{0}", retVal));
         }
@@ -206,7 +271,7 @@ namespace NDjango.UnitTests
 //        [Test, TestCaseSource("TestEnumerator")]
         public void Test(string path)
         {
-            string retVal = TestDescriptor.runTemplate(File.ReadAllText(path + ".django"), CreateContext(path + ".xml"));
+            string retVal = TestDescriptor.runTemplate(manager, File.ReadAllText(path + ".django"), CreateContext(path + ".xml"));
             string retBase = File.ReadAllText(path + ".htm"); 
             Assert.AreEqual(retBase, retVal,String.Format("RESULT!!!!!!!!!!!!!!!!:\r\n{0}",retVal));
         }

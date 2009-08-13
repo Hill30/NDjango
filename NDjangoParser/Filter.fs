@@ -26,6 +26,8 @@ open System
 
 open NDjango.Lexer
 open NDjango.Interfaces
+open NDjango.ParserNodes
+open NDjango.ASTNodes
 open NDjango.OutputHandling
 open NDjango.Expressions
 
@@ -33,14 +35,14 @@ module internal Filter =
 
     let FILTER_VARIABLE_NAME = "$filter"
 
-    type FilterNode(token:BlockToken, filter: FilterExpression, node_list: Node list) =
-        inherit Node(Block token)
+    type FilterNode(provider, token, filter: FilterExpression, node_list) =
+        inherit TagNode(provider, token)
 
-        override this.walk walker = 
+        override this.walk manager walker = 
             let reader = 
-                new NDjango.ASTWalker.Reader ({walker with parent=None; nodes=node_list; context=walker.context}) 
-            match filter.ResolveForOutput 
-                    {walker with context=walker.context.add(FILTER_VARIABLE_NAME, (reader.ReadToEnd():>obj))}
+                new NDjango.ASTWalker.Reader (manager, {walker with parent=None; nodes=node_list; context=walker.context}) 
+            match filter.ResolveForOutput manager
+                     {walker with context=walker.context.add(FILTER_VARIABLE_NAME, (reader.ReadToEnd():>obj))}
                 with
             | Some w -> w
             | None -> walker
@@ -57,12 +59,12 @@ module internal Filter =
     ///     {% endfilter %}
     type FilterTag() =
         interface ITag with
-            member this.Perform token parser tokens =
+            member this.Perform token provider tokens =
                 match token.Args with
                 | filter::[] ->
-                    let filter_expr = new FilterExpression(parser, Block token, FILTER_VARIABLE_NAME + "|" + filter)
-                    let node_list, remaining = parser.Parse tokens ["endfilter"]
-                    (new FilterNode(token, filter_expr, node_list) :> Node), remaining
-                | _ -> raise (TemplateSyntaxError ("'filter' tag requires one argument", Some (token:>obj)))
+                    let filter_expr = new FilterExpression(provider, Block token, FILTER_VARIABLE_NAME + "|" + filter)
+                    let node_list, remaining = (provider :?> IParser).Parse (Some token) tokens ["endfilter"]
+                    (new FilterNode(provider, token, filter_expr, node_list) :> INodeImpl), remaining
+                | _ -> raise (SyntaxError ("'filter' tag requires one argument"))
                 
                

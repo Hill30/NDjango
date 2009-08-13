@@ -27,6 +27,7 @@ open System.Text.RegularExpressions
 
 open NDjango.Lexer
 open NDjango.Interfaces
+open NDjango.ParserNodes
 open NDjango.Expressions
 open NDjango.OutputHandling
 
@@ -177,16 +178,16 @@ module internal Now =
     
     type Tag() =
         interface ITag with
-            member this.Perform token parser tokens =
+            member this.Perform token provider tokens =
                 match token.Args with
                     | f::[] ->
-                        {
-                            new Node(Block token)
+                        ({
+                            new TagNode(provider, token)
                             with
-                                override this.walk walker = 
+                                override this.walk manager walker = 
                                     {walker with buffer = f |> format |> System.DateTime.Now.ToString }
-                        }, tokens
-                    | _ -> raise (TemplateSyntaxError ("malformed 'now' tag", Some (token:>obj)))
+                        } :> INodeImpl), tokens
+                    | _ -> raise (SyntaxError ("malformed 'now' tag"))
                         
 
     /// Formats a date according to the given format (same as the now tag).
