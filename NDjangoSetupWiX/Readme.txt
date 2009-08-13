@@ -4,6 +4,14 @@ NDjango Requirements:
  *F# CTP v.1.9.6.16 (You can download it from:  http://download.microsoft.com/download/F/7/4/F74A3170-261C-4E8F-B1A8-2E352C61A89B/InstallFSharp.msi)
 
 
+New in 0.9.1.0
+ *Improved performance - Severely reduced level of interlocking between threads in cross-thread operations.
+ *Introduced SimpleTag to simplify creation of new tags:
+ *Internal architecture has slightly changed - TemplateManagerProvider introduced instead of static methods. That change may affect those who implemented library-level integration. It does NOT affect those who use Bistro Integration or ASP.MVC Integration projects for integration with NDjango.
+ *Extended diagnostic information on parsing errors - errors encountered can be now included in syntax tree and parsing process will not be interrupted.
+ *Parsing process behaviour can be changed through Settings dictionary. Two new options added - to enable/disable dynamic templates update support and to enable/disable crash on error while parsing a template.
+ *Fixed bug "Problem with view not updating after change" in ASP.MVC Integration.
+
 New in 0.9.0.5
  *moved to new version of F# (1.9.6.16)
  *added new filters
