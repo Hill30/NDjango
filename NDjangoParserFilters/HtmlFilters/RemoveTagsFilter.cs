@@ -34,6 +34,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|removetags:"b span"|safe }}
     ///     If value is "<b>Joel</b> <button>is</button> a <span>slug</span>" the output will be "Joel <button>is</button> a slug".
     /// </summary>
+    [NDjango.Interfaces.Name("removetags")]
     public class RemoveTagsFilter : NDjango.Interfaces.IFilter
     {
         #region IFilter Members

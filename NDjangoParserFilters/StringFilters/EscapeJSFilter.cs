@@ -31,6 +31,7 @@ namespace NDjango.FiltersCS
     ///     This does not make the string safe for use in HTML, but does protect you from syntax errors 
     ///     when using templates to generate JavaScript/JSON.
     /// </summary>
+    [NDjango.Interfaces.Name("escapejs")]
     public class EscapeJSFilter : NDjango.Interfaces.ISimpleFilter
     {
         #region ISimpleFilter Members

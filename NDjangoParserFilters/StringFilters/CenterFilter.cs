@@ -29,7 +29,8 @@ namespace NDjango.FiltersCS
     /// <summary>
     ///     Centers the value in a field of a given width.
     /// </summary>
-    public class CenterFilter: NDjango.Interfaces.IFilter
+    [NDjango.Interfaces.Name("center")]
+    public class CenterFilter : NDjango.Interfaces.IFilter
     {
         #region IFilter Members
 

@@ -31,6 +31,7 @@ namespace NDjango.FiltersCS
     ///     example. Less useful for escaping JavaScript; use the ``escapejs``
     ///     filter instead.
     /// </summary>
+    [NDjango.Interfaces.Name("addslashes")]
     public class AddSlashesFilter : NDjango.Interfaces.ISimpleFilter
     {
 

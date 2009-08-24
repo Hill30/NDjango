@@ -33,6 +33,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|upper }}
     ///     If value is "Joel is a slug", the output will be "JOEL IS A SLUG".
     /// </summary>
+    [NDjango.Interfaces.Name("upper")]
     public class UpperFilter : NDjango.Interfaces.ISimpleFilter
     {
 

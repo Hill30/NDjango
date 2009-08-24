@@ -33,6 +33,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|cut:" "}}
     ///     If value is "String with spaces", the output will be "Stringwithspaces".
     /// </summary>
+    [NDjango.Interfaces.Name("cut")]
     public class CutFilter: NDjango.Interfaces.IFilter
     {
 

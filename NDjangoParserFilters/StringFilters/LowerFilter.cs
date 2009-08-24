@@ -33,6 +33,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|lower }}
     ///     If value is "Still MAD At Yoko", the output will be "still mad at yoko".
     /// </summary>
+    [NDjango.Interfaces.Name("lower")]
     public class LowerFilter : NDjango.Interfaces.ISimpleFilter
     {
         #region ISimpleFilter Members

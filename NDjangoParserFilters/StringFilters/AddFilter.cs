@@ -33,6 +33,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|add:"2" }}
     ///     If value is 4, then the output will be 6.
     /// </summary>
+    [NDjango.Interfaces.Name("add")]
     public class AddFilter : NDjango.Interfaces.IFilter
     {
         #region IFilter Members

@@ -34,6 +34,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|random }}
     ///     If value is the list ['a', 'b', 'c', 'd'], the output could be "b".
     /// </summary>
+    [NDjango.Interfaces.Name("random")]
     public class RandomFilter : NDjango.Interfaces.ISimpleFilter
     {
         #region ISimpleFilter Members

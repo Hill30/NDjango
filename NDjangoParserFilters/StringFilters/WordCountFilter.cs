@@ -29,6 +29,7 @@ namespace NDjango.FiltersCS
     /// <summary>
     ///     Returns the number of words.
     /// </summary>
+    [NDjango.Interfaces.Name("wordcount")]
     public class WordCountFilter : NDjango.Interfaces.ISimpleFilter
     {
         #region ISimpleFilter Members

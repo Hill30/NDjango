@@ -37,7 +37,8 @@ namespace NDjango.FiltersCS
     ///     Another link:
     ///     http://www.python.org/doc/2.3.5/whatsnew/section-slices.html 
     /// </summary>
-    public class SliceFilter: NDjango.Interfaces.IFilter
+    [NDjango.Interfaces.Name("slice")]
+    public class SliceFilter : NDjango.Interfaces.IFilter
     {
         #region IFilter Members
 

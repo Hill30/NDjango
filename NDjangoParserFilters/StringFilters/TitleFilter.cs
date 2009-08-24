@@ -30,6 +30,7 @@ namespace NDjango.FiltersCS
     /// <summary>
     ///     Converts a string into Titlecase.
     /// </summary>
+    [NDjango.Interfaces.Name("title")]
     public class TitleFilter : NDjango.Interfaces.ISimpleFilter
     {
 

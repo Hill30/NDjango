@@ -34,6 +34,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|last }}
     ///     If value is the list ['a', 'b', 'c', 'd'], the output will be the string "d".
     /// </summary>
+    [NDjango.Interfaces.Name("last")]
     public class LastFilter : NDjango.Interfaces.ISimpleFilter
     {
         #region ISimpleFilter Members

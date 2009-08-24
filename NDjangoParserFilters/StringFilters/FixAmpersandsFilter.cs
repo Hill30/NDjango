@@ -29,6 +29,7 @@ namespace NDjango.FiltersCS
     /// <summary>
     ///     Replaces ampersands with ``&amp;`` entities.
     /// </summary>
+    [NDjango.Interfaces.Name("fix_ampersands")]
     public class FixAmpersandsFilter : NDjango.Interfaces.ISimpleFilter
     {
         #region ISimpleFilter Members

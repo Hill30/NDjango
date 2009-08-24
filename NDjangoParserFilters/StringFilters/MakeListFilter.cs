@@ -37,6 +37,7 @@ namespace NDjango.FiltersCS
     ///     [u'J', u'o', u'e', u'l']. If value is 123, the output will be the list [1, 2, 3].
     ///     
     /// </summary>
+    [NDjango.Interfaces.Name("make_list")]
     public class MakeListFilter : NDjango.Interfaces.ISimpleFilter
     {
         #region ISimpleFilter Members

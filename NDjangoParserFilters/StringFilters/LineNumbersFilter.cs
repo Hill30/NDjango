@@ -30,6 +30,7 @@ namespace NDjango.FiltersCS
     ///     Displays text with line numbers. Calculates maximum line number width 
     ///     to align text with correct padding.
     /// </summary>
+    [NDjango.Interfaces.Name("linenumbers")]
     public class LineNumbersFilter : NDjango.Interfaces.ISimpleFilter
     {
         #region ISimpleFilter Members

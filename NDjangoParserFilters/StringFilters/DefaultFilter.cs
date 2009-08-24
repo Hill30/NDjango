@@ -34,6 +34,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|default:"nothing" }}
     ///     If value is "" (the empty string), the output will be nothing.
     /// </summary>
+    [NDjango.Interfaces.Name("default")]
     public class DefaultFilter : NDjango.Interfaces.IFilter
     {
         #region IFilter Members

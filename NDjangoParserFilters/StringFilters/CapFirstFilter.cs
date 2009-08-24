@@ -29,6 +29,7 @@ namespace NDjango.FiltersCS
     /// <summary>
     ///     Capitalizes the first character of the value.
     /// </summary>
+    [NDjango.Interfaces.Name("capfirst")]
     public class CapFirstFilter : NDjango.Interfaces.ISimpleFilter
     {
 

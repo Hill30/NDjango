@@ -36,6 +36,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|get_digit:"2" }}
     ///     If value is 123456789, the output will be 8.
     /// </summary>
+    [NDjango.Interfaces.Name("get_digit")]
     public class GetDigit : NDjango.Interfaces.IFilter
     {
         #region IFilter Members

@@ -34,6 +34,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|length_is:"4" }}
     ///     If value is ['a', 'b', 'c', 'd'], the output will be True.
     /// </summary>
+    [NDjango.Interfaces.Name("length_is")]
     public class LengthIsFilter : NDjango.Interfaces.IFilter
     {
         #region IFilter Members

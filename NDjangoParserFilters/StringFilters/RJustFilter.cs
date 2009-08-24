@@ -30,6 +30,7 @@ namespace NDjango.FiltersCS
     ///     Right-aligns the value in a field of a given width.
     ///     Argument: field size.
     /// </summary>
+    [NDjango.Interfaces.Name("rjust")]
     public class RJustFilter : NDjango.Interfaces.IFilter
     {
         #region IFilter Members

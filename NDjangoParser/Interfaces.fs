@@ -264,3 +264,8 @@ type internal CompoundSyntaxError(message, nodes:INodeImpl list) =
     
     member x.Nodes = nodes
 
+/// Tags and/or filters marked with this attribute will be registered under the name
+/// supplied by the attribute unless the name will be provided explicitly during the registartion
+type NameAttribute(name:string) = 
+    inherit System.Attribute() 
+    member x.Name = name

@@ -34,6 +34,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|first }}
     ///     If value is the list ['a', 'b', 'c'], the output will be 'a'.
     /// </summary>
+    [NDjango.Interfaces.Name("first")]
     public class FirstFilter : NDjango.Interfaces.ISimpleFilter
     {
         #region ISimpleFilter Members

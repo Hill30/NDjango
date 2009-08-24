@@ -57,6 +57,7 @@ namespace NDjango.FiltersCS
     ///     If the input float is infinity or NaN, the (platform-dependent) string
     ///     representation of that value will be displayed.
     /// </summary>
+    [NDjango.Interfaces.Name("floatformat")]
     public class FloatFormatFilter : NDjango.Interfaces.IFilter
     {
         #region IFilter Members

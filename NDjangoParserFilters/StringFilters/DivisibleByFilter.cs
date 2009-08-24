@@ -33,6 +33,7 @@ namespace NDjango.FiltersCS
     ///     {{ value|divisibleby:"3" }}
     ///     If value is 21, the output would be True.
     /// </summary>
+    [NDjango.Interfaces.Name("divisibleby")]
     public class DivisibleByFilter : NDjango.Interfaces.IFilter
     {
         #region IFilter Members
