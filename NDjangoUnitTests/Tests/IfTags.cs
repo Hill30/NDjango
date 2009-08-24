@@ -22,6 +22,30 @@ namespace NDjango.UnitTests
             IList<TestDescriptor> lst = new List<TestDescriptor>();
 
             // ### IF TAG ################################################################
+            //designer test
+            lst.Add(new TestDescriptor("if-tag-designer", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), null
+                , new DesignerData[] 
+                {
+                    //position, length
+                    new DesignerData(0, 0),
+                    new DesignerData(0, 12),
+                    new DesignerData(25, 2),
+                    new DesignerData(27, 11),
+                    new DesignerData(29, 6),
+                    new DesignerData(27, 2),
+                    new DesignerData(36, 2),
+                    new DesignerData(12, 3),
+                    new DesignerData(15, 10),
+                    new DesignerData(17, 5),
+                    new DesignerData(15, 2),
+                    new DesignerData(23, 2),
+                    new DesignerData(2, 3),
+                    new DesignerData(0, 2),
+                    new DesignerData(10, 2),
+                    new DesignerData(38, 0)
+                } 
+                , null));
+            
             lst.Add(new TestDescriptor("if-tag01", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p("yes")));
             lst.Add(new TestDescriptor("if-tag02", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false), ContextObjects.p("no")));
             lst.Add(new TestDescriptor("if-tag02-1", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", null), ContextObjects.p("no")));

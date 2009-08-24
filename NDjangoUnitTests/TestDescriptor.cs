@@ -7,22 +7,45 @@ using NDjango.UnitTests.Data;
 using NDjango.FiltersCS;
 using System.Diagnostics;
 using NUnit.Framework;
-
+using NDjango.Interfaces;
 
 namespace NDjango.UnitTests
 {
+    public struct DesignerData
+    {
+        public DesignerData(int position, int length)
+        {
+            this.Position = position;
+            this.Length = length;
+        }
+
+        public int Position;
+        public int Length;
+    }
+
     public class TestDescriptor
     {
         public string Name { get; set; }
         public string Template { get; set; }
         public object[] ContextValues { get; set; }
         public object[] Result { get; set; }
+        public DesignerData[] ResultForDesigner { get; set; }
         public string[] Vars { get; set; }
         ResultGetter resultGetter;
 
         public override string ToString()
         {
             return Name;
+        }
+
+        public TestDescriptor(string name, string template, object[] values, object[] result, DesignerData[] designResult, params string[] vars)
+        {
+            Name = name;
+            Template = template;
+            ContextValues = values;
+            Result = result;
+            Vars = vars;
+            ResultForDesigner = designResult;
         }
 
         public TestDescriptor(string name, string template, object[] values, object[] result, params string[] vars)
@@ -44,7 +67,6 @@ namespace NDjango.UnitTests
             this.resultGetter = resultGetter;
             Vars = vars;
         }
-
 
         public static string runTemplate(NDjango.Interfaces.ITemplateManager manager, string templateName, IDictionary<string,object> context)
         {
@@ -89,6 +111,22 @@ namespace NDjango.UnitTests
 
         public void Run(NDjango.Interfaces.ITemplateManager manager)
         {
+            if (ResultForDesigner != null)
+            {
+                try
+                {
+                    ITemplate template = manager.GetTemplate(Template);
+                    //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
+                    List<INode> actualResult = getNodes(template.Nodes.ToList<INodeImpl>().ConvertAll(node => (INode)node));
+                    Assert.AreEqual(ResultForDesigner, actualResult.ConvertAll(node => new DesignerData(node.Position, node.Length)).ToArray(), "** Invalid rendering result");
+                }
+                catch (Exception ex)
+                {
+                    Assert.Fail("Exception:" + ex.Message);
+                }
+                return;
+            }
+
             var context = new Dictionary<string, object>();
 
             if (ContextValues != null)
@@ -99,6 +137,7 @@ namespace NDjango.UnitTests
             {
                 if (resultGetter != null)
                     Result = resultGetter();
+                
                 Assert.AreEqual(Result[0], runTemplate(manager, Template, context), "** Invalid rendering result");
                 //if (Vars.Length != 0)
                 //    Assert.AreEqual(Vars, manager.GetTemplateVariables(Template), "** Invalid variable list");
@@ -111,6 +150,21 @@ namespace NDjango.UnitTests
                     Result = resultGetter();
                 Assert.AreEqual(Result[0], ex.GetType(), "Exception: " + ex.Message);
             }
+        }
+
+        public static List<INode> getNodes(IEnumerable<INode> nodes)
+        {
+            List<INode> result = new List<INode>();
+
+            foreach (INode ancestor in nodes)
+	        {
+                result.Add(ancestor);
+                foreach (IEnumerable<INode> list in ancestor.Nodes.Values)
+                {
+                    result.AddRange(getNodes(list));
+                }
+	        }
+            return result;
         }
 
     }
