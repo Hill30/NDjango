@@ -6,7 +6,6 @@ NDjango Requirements:
 New in 0.9.1.1
  *Introduced tag and filter registration through web.config
  *Introduced NDjango setting changing through web.config
- *Ndjango.Filters.dll with standard filters now must be registered through web.config if needed.
 
 New in 0.9.1.0
  *Improved performance - Severely reduced level of interlocking between threads in cross-thread operations.
