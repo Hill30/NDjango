@@ -123,6 +123,10 @@ namespace NDjango.UnitTests
                 return;
             }
 
+            //ITemplate template = manager.GetTemplate(Template);
+
+            //List<INode> stuff = getNodes(manager.GetTemplate(Template).Nodes.ToList<INodeImpl>().ConvertAll(node => (INode)node));
+
             var context = new Dictionary<string, object>();
 
             if (ContextValues != null)
@@ -167,6 +171,7 @@ namespace NDjango.UnitTests
             }            
         }
 
+        //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
         public static List<INode> getNodes(IEnumerable<INode> nodes)
         {
             List<INode> result = new List<INode>();
