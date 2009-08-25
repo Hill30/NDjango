@@ -13,14 +13,20 @@ namespace NDjango.UnitTests
 {
     public struct DesignerData
     {
-        public DesignerData(int position, int length)
+        public DesignerData(int position, int length, string[] values, int severity, string errorMessage)
         {
             this.Position = position;
             this.Length = length;
+            this.Values = values;
+            this.Severity = severity;
+            this.ErrorMessage = errorMessage;
         }
 
         public int Position;
         public int Length;
+        public string[] Values;
+        public int Severity;
+        public string ErrorMessage;
     }
 
     public class TestDescriptor
@@ -29,7 +35,7 @@ namespace NDjango.UnitTests
         public string Template { get; set; }
         public object[] ContextValues { get; set; }
         public object[] Result { get; set; }
-        public DesignerData[] ResultForDesigner { get; set; }
+        public List<DesignerData> ResultForDesigner { get; set; }
         public string[] Vars { get; set; }
         ResultGetter resultGetter;
 
@@ -38,7 +44,7 @@ namespace NDjango.UnitTests
             return Name;
         }
 
-        public TestDescriptor(string name, string template, object[] values, object[] result, DesignerData[] designResult, params string[] vars)
+        public TestDescriptor(string name, string template, object[] values, object[] result, List<DesignerData> designResult, params string[] vars)
         {
             Name = name;
             Template = template;
@@ -113,17 +119,7 @@ namespace NDjango.UnitTests
         {
             if (ResultForDesigner != null)
             {
-                try
-                {
-                    ITemplate template = manager.GetTemplate(Template);
-                    //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
-                    List<INode> actualResult = getNodes(template.Nodes.ToList<INodeImpl>().ConvertAll(node => (INode)node));
-                    Assert.AreEqual(ResultForDesigner, actualResult.ConvertAll(node => new DesignerData(node.Position, node.Length)).ToArray(), "** Invalid rendering result");
-                }
-                catch (Exception ex)
-                {
-                    Assert.Fail("Exception:" + ex.Message);
-                }
+                ValidateDesigner(manager);
                 return;
             }
 
@@ -152,6 +148,25 @@ namespace NDjango.UnitTests
             }
         }
 
+        private void ValidateDesigner(NDjango.Interfaces.ITemplateManager manager)
+        {
+            ITemplate template = manager.GetTemplate(Template);
+            
+            //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
+            List<INode> nodes = getNodes(template.Nodes.ToList<INodeImpl>().ConvertAll(node => (INode)node));
+            List<DesignerData> actualResult = nodes.ConvertAll(
+                node => new DesignerData(node.Position, node.Length, new List<string>(node.Values).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message));
+
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                Assert.AreEqual(actualResult[i].Length, ResultForDesigner[i].Length, "Invalid Length");
+                Assert.AreEqual(actualResult[i].Position, ResultForDesigner[i].Position, "Invalid Position");
+                Assert.AreEqual(actualResult[i].Severity, ResultForDesigner[i].Severity, "Invalid Severity");
+                Assert.AreEqual(actualResult[i].ErrorMessage, ResultForDesigner[i].ErrorMessage, "Invalid ErrorMessage");
+                Assert.AreEqual(actualResult[i].Values, ResultForDesigner[i].Values, "Invalid Values");
+            }            
+        }
+
         public static List<INode> getNodes(IEnumerable<INode> nodes)
         {
             List<INode> result = new List<INode>();
@@ -167,6 +182,34 @@ namespace NDjango.UnitTests
             return result;
         }
 
+        //the same list as in Defaults.standardTags
+        public static string[] standartValues = new string[]
+        { 
+            "autoescape",
+            "block",
+            "comment",
+            "cycle",
+            "debug",
+            "extends",
+            "filter",
+            "firstof",
+            "for",
+            "if",
+            "ifchanged",
+            "ifequal",
+            "ifnotequal",
+            "include",
+            "nested",
+            "non-nested",
+            "now",
+            "regroup",
+            "spaceless",
+            "ssi",
+            "templatetag",
+            "url",
+            "widthratio",
+            "with"
+        };
     }
 
 }

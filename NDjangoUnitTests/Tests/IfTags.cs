@@ -24,25 +24,25 @@ namespace NDjango.UnitTests
             // ### IF TAG ################################################################
             //designer test
             lst.Add(new TestDescriptor("if-tag-designer", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), null
-                , new DesignerData[] 
+                , new List<DesignerData>() 
                 {
-                    //position, length
-                    new DesignerData(0, 0),
-                    new DesignerData(0, 12),
-                    new DesignerData(25, 2),
-                    new DesignerData(27, 11),
-                    new DesignerData(29, 6),
-                    new DesignerData(27, 2),
-                    new DesignerData(36, 2),
-                    new DesignerData(12, 3),
-                    new DesignerData(15, 10),
-                    new DesignerData(17, 5),
-                    new DesignerData(15, 2),
-                    new DesignerData(23, 2),
-                    new DesignerData(2, 3),
-                    new DesignerData(0, 2),
-                    new DesignerData(10, 2),
-                    new DesignerData(38, 0)
+                    //position, length, values, severity, errorMessage
+                    new DesignerData(0, 0, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(0, 12, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(25, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(27, 11, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(29, 6, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
+                    new DesignerData(27, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(36, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(12, 3, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(15, 10, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(17, 5, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
+                    new DesignerData(15, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(23, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(2, 3, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
+                    new DesignerData(0, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(10, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(38, 0, new List<string>().ToArray(), -1, String.Empty)
                 } 
                 , null));
             
