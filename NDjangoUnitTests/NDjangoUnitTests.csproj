@@ -66,6 +66,7 @@
     <Compile Include="TestDescriptor.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Tests\BasicSyntax.cs" />
+    <Compile Include="Tests\Designer.cs" />
     <Compile Include="Tests\Filters.cs" />
     <Compile Include="Tests\MiscellaneousTags.cs" />
     <Compile Include="Tests\LoopTags.cs" />

@@ -234,6 +234,7 @@ namespace NDjango.UnitTests
                 ContextObjects.p("Success&lt;&gt;",
                 "headline"
                 )));
+            
             lst.Add(new TestDescriptor("add-filter01", "{{ value| add:\"2\" }}", ContextObjects.p("value", 4), ContextObjects.p("6"), "value"));
             lst.Add(new TestDescriptor("add-filter02", "{{ value |add:\"2\" }}", ContextObjects.p("value", 4), ContextObjects.p("6")));
             lst.Add(new TestDescriptor("add-filter03", "{{ value | add:\"2\" }}", ContextObjects.p("value", 4), ContextObjects.p("6")));

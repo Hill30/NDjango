@@ -23,28 +23,7 @@ namespace NDjango.UnitTests
 
             // ### IF TAG ################################################################
             //designer test
-            lst.Add(new TestDescriptor("if-tag-designer", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), null
-                , new List<DesignerData>() 
-                {
-                    //position, length, values, severity, errorMessage
-                    new DesignerData(0, 0, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(0, 12, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(25, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(27, 11, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(29, 6, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
-                    new DesignerData(27, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(36, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(12, 3, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(15, 10, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(17, 5, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
-                    new DesignerData(15, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(23, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(2, 3, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
-                    new DesignerData(0, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(10, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(38, 0, new List<string>().ToArray(), -1, String.Empty)
-                } 
-                , null));
+            
             
             lst.Add(new TestDescriptor("if-tag01", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p("yes")));
             lst.Add(new TestDescriptor("if-tag02", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false), ContextObjects.p("no")));
@@ -125,28 +104,7 @@ namespace NDjango.UnitTests
             lst.Add(new TestDescriptor("if-tag-error06", "{% if not foo %}yes{% else %}no", ContextObjects.p("foo", true), ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
             
             // IFEqual TAG
-            lst.Add(new TestDescriptor("ifequal-tag-designer", "{% ifequal foo bar %}yes{% else %}no{% endifequal %}", ContextObjects.p("foo", true, "bar", true), null
-                , new List<DesignerData>() 
-                {
-                    //position, length, values, severity, errorMessage
-                    new DesignerData(0, 0, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(0, 21, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(34, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(36, 16, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(38, 11, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
-                    new DesignerData(36, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(50, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(21, 3, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(24, 10, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(26, 5, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
-                    new DesignerData(24, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(32, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(2, 8, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
-                    new DesignerData(0, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(19, 2, new List<string>().ToArray(), -1, String.Empty),
-                    new DesignerData(52, 0, new List<string>().ToArray(), -1, String.Empty)
-                }
-                , null));
+            
             lst.Add(new TestDescriptor("ifequal-tag-01", "{% ifequal foo bar %}yes{% else %}no{% endifequal %}", ContextObjects.p("foo", true, "bar", true), ContextObjects.p("yes")));
             lst.Add(new TestDescriptor("ifequal-tag-02", "{% ifequal foo bar %}yes{% else %}no{% endifequal %}", ContextObjects.p("foo", true, "bar", false), ContextObjects.p("no")));
             lst.Add(new TestDescriptor("ifequal-tag-03", "{% ifnotequal foo bar %}yes{% else %}no{% endifnotequal %}", ContextObjects.p("foo", true, "bar", true), ContextObjects.p("no")));
