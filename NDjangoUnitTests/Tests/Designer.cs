@@ -73,7 +73,42 @@ namespace NDjango.UnitTests
                     new DesignerData(20, 0, new List<string>().ToArray(), -1, String.Empty)
                 }
                 , null));
-
+            lst.Add(new TestDescriptor("fortag-designer", "{% for i in test %}{% ifchanged %}nothing changed{%else%}same {% endifchanged %}{{ forloop.counter }},{% endfor %}", null, null
+                ,new List<DesignerData>() 
+                {
+                    //position, length, values, severity, errorMessage
+                    new DesignerData(0, 0, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(0, 19, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(19, 0, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(19, 15, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(57, 5, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(62, 18, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(64, 13, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
+                    new DesignerData(62, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(78, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(34, 15, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(49, 8, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(51, 4, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
+                    new DesignerData(49, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(55, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(21, 10, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
+                    new DesignerData(19, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(32, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(80, 0, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(80, 21, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(80, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(99, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(101, 1, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(102, 12, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(104, 7, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
+                    new DesignerData(102, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(112, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(2, 4, TestDescriptor.standartValues.ToArray(), -1, String.Empty),
+                    new DesignerData(0, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(17, 2, new List<string>().ToArray(), -1, String.Empty),
+                    new DesignerData(114, 0, new List<string>().ToArray(), -1, String.Empty)
+                }
+                , null));
 
             return lst;
         }
