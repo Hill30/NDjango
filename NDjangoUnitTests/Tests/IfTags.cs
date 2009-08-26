@@ -22,9 +22,6 @@ namespace NDjango.UnitTests
             IList<TestDescriptor> lst = new List<TestDescriptor>();
 
             // ### IF TAG ################################################################
-            //designer test
-            
-            
             lst.Add(new TestDescriptor("if-tag01", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p("yes")));
             lst.Add(new TestDescriptor("if-tag02", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false), ContextObjects.p("no")));
             lst.Add(new TestDescriptor("if-tag02-1", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", null), ContextObjects.p("no")));
@@ -104,7 +101,6 @@ namespace NDjango.UnitTests
             lst.Add(new TestDescriptor("if-tag-error06", "{% if not foo %}yes{% else %}no", ContextObjects.p("foo", true), ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
             
             // IFEqual TAG
-            
             lst.Add(new TestDescriptor("ifequal-tag-01", "{% ifequal foo bar %}yes{% else %}no{% endifequal %}", ContextObjects.p("foo", true, "bar", true), ContextObjects.p("yes")));
             lst.Add(new TestDescriptor("ifequal-tag-02", "{% ifequal foo bar %}yes{% else %}no{% endifequal %}", ContextObjects.p("foo", true, "bar", false), ContextObjects.p("no")));
             lst.Add(new TestDescriptor("ifequal-tag-03", "{% ifnotequal foo bar %}yes{% else %}no{% endifnotequal %}", ContextObjects.p("foo", true, "bar", true), ContextObjects.p("no")));
