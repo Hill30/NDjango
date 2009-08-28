@@ -76,8 +76,8 @@ this is inner2
                 .WithTag("non-nested", new TestDescriptor.SimpleNonNestedTag())
                 .WithTag("nested", new TestDescriptor.SimpleNestedTag())
                 .WithTag("url", new TestUrlTag())
+                .WithFilters(FilterManager.GetFilters())
                 ;
-            provider = FilterManager.Initialize(provider);
             manager = provider.GetNewManager();
         }
 

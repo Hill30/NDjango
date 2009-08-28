@@ -66,11 +66,9 @@ open System.Runtime.InteropServices;
 
 // by using the ‘*’ as shown below:
 
-// [assembly: AssemblyVersion("1.0.*")]
+[<assembly: AssemblyVersion("0.9.1.2")>]
 
-[<assembly: AssemblyVersion("0.9.1.1")>]
-
-[<assembly: AssemblyFileVersion("0.9.1.1")>]
+[<assembly: AssemblyFileVersion("0.9.1.2")>]
 
 ()
 

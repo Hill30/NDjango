@@ -32,7 +32,7 @@ namespace NDjango.FiltersCS
     /// </summary>
     public static class FilterManager
     {
-        public static TemplateManagerProvider Initialize(TemplateManagerProvider provider)
+        public static IEnumerable<Filter> GetFilters()
         {
             Filter[] filters = 
             {
@@ -64,8 +64,7 @@ namespace NDjango.FiltersCS
                 new Filter("slice", new NDjango.FiltersCS.SliceFilter())
             };
 
-            return provider
-                .WithFilters(filters);
+            return filters;
         }
     }
 }
