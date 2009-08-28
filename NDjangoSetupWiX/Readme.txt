@@ -3,9 +3,10 @@ NDjango Requirements:
  *Visual Studio 2008
  *F# CTP v.1.9.6.16 (You can download it from:  http://download.microsoft.com/download/F/7/4/F74A3170-261C-4E8F-B1A8-2E352C61A89B/InstallFSharp.msi)
 
-New in 0.9.1.1
- *Introduced tag and filter registration through web.config
- *Introduced NDjango setting changing through web.config
+
+New in 0.9.1.2
+ *Introduced tags and filters registration using StructureMap.dll
+ *StructureMap.dll 2.5.3 included in the setup
 
 New in 0.9.1.0
  *Improved performance - Severely reduced level of interlocking between threads in cross-thread operations.
