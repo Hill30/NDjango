@@ -5,7 +5,7 @@ NDjango Requirements:
 
 New in 0.9.1.3
  *Integration project Bistro Integration is now bound to the Bistro.Core version 0.9.1.0 instead of 0.9.0.0
- *NDjango.Core and NDjango.Filters were not changed
+ *NDjango.Core and NDjango.Filters were not changed since 0.9.1.2
 
 New in 0.9.1.2
  *Introduced tags and filters registration using StructureMap.dll
