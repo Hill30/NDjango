@@ -50,19 +50,25 @@ module Constants =
     // (e.g. strings)
     let internal UNKNOWN_SOURCE = "&lt;unknown source&gt;"
 
+    /// <summary>
+    /// Regular expression to extract django tags from the source of the template.
+    /// In compliance with django specs it is built to ensure that a character 
+    /// sequence starting with a tag start and ending with a tag end is considered 
+    /// to be a tag ONLY if both tag start and start end are located on the SAME line
+    /// </summary>
     let internal tag_re = 
         new Regex(
             "(" + !!BLOCK_TAG_START + ".*?" + !!BLOCK_TAG_END + "|"
              + !!VARIABLE_TAG_START + ".*?" + !!VARIABLE_TAG_END + "|"
               + !!COMMENT_TAG_START + ".*?" + !!COMMENT_TAG_END + ")",
             RegexOptions.Compiled)
-
-    let internal word_split_re = new Regex("\s+", RegexOptions.Compiled)
-            
   
-    // This expression was modified from the original python version
-    // to allow $ as the first character of variable names. Such names will 
-    // be used for internal purposes          
+    /// <summary>
+    /// Regular expression parsing a filter expression in raw (Python) format
+    /// This expression was modified from the original python version
+    /// to allow $ as the first character of variable names. Such names will 
+    /// be used for internal purposes          
+    /// </summary>
     let internal filter_raw_string =
         @"
         ^(?P<var>%(i18n_open)s`%(str)s`%(i18n_close)s|
@@ -80,24 +86,10 @@ module Constants =
                      )
                  )?
          )"
-    (*
-    let filter_raw_string =
-        @"
-        ^%(i18n_open)s`(?P<i18n_constant>%(str)s)`%(i18n_close)s|
-        ^`(?P<constant>%(str)s)`|
-        ^(?P<var>[%(var_chars)s]+)|
-         (?:%(filter_sep)s
-             (?P<filter_name>\w+)
-                 (?:%(arg_sep)s
-                     (?:
-                      %(i18n_open)s`(?P<i18n_arg>%(str)s)`%(i18n_close)s|
-                      `(?P<constant_arg>%(str)s)`|
-                      (?P<var_arg>[%(var_chars)s]+)
-                     )
-                 )?
-         )"
-    *)
-     
+
+    /// <summary>
+    // Regular expression for parsing a filter expression in the .NET format
+    /// </summary>
     let internal filter_re =
         new Regex(
             filter_raw_string.
@@ -117,10 +109,29 @@ module Constants =
                 Replace("%(i18n_close)s", !!I18N_CLOSE), RegexOptions.Compiled)
 
 
-    /// Standard settings
+    /// <summary>
+    /// Names for the standard settings - settings defined in the parser core
+    /// Default value for the autoescape setting
+    /// </summary>
     let DEFAULT_AUTOESCAPE = "settings.DEFAULT_AUTOESCAPE"
+    
+    /// <summary>
+    /// The value inserted in the rendering result in the cases if 
+    /// the actual value could not be retrieved
+    /// </summary>
     let TEMPLATE_STRING_IF_INVALID = "settings.TEMPLATE_STRING_IF_INVALID"
+    
+    /// <summary>
+    /// Flag indicating whether the templates should be checked for updates
+    /// before rendering. If set to <b>false<b> all modifications to a template 
+    /// after the first successful parse will be igonred
+    /// </summary>
     let RELOAD_IF_UPDATED = "settings.RELOAD_IF_UPDATED"
+    
+    /// <summary>
+    /// Flag indicating whether template parsing should stop after the first
+    /// encountered syntax error
+    /// </summary>
     let EXCEPTION_IF_ERROR = "settings.EXCEPTION_IF_ERROR"
     
     /// <summary>
@@ -143,3 +154,13 @@ module Constants =
     /// List of nodes representing the <b>false</b> branch of the if tag and similar tags
     /// </summary>
     let NODELIST_IFTAG_IFFALSE = "if.false.children";
+    
+    /// <summary>
+    /// List of nodes representing the <b>body</b> branch of the for tag
+    /// </summary>
+    let NODELIST_FOR_BODY = "for.body.children";
+    
+    /// <summary>
+    /// List of nodes representing the <b>empty</b> branch of the for tag
+    /// </summary>
+    let NODELIST_FOR_EMPTY = "for.empty.children";

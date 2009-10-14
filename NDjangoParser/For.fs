@@ -28,7 +28,9 @@ open System.Linq;
 
 open NDjango.Lexer
 open NDjango.Interfaces
+open NDjango.Variables
 open NDjango.Expressions
+open NDjango.ParserNodes
 open NDjango.OutputHandling
 
 module internal For =
@@ -143,7 +145,7 @@ module internal For =
                 }
             | false ->
                 match context with
-                | None -> failwith "Context should always be available after the first iteration"
+                | None -> raise (new RenderingError("Context should always be available after the first iteration"))
                 | Some context ->
                     {
                         counter = context.counter+1;
@@ -164,12 +166,7 @@ module internal For =
             |Some o ->
                 match o with
                 | :? IEnumerable as loop when not (loop |> Seq.cast |> Seq.isEmpty) -> 
-//                    let size =
-//                        match loop with
-//                        | :? System.Array as array -> Some (array.GetLength(0))
-//                        | :? System.Collections.IList as list -> Some (list.Count)
-//                        | _ -> None
-//                    let size = Some ((loop.OfType<Object>()).Count<Object>())
+
                     let size = Some (Seq.length(loop |> Seq.cast))
                     
                     /// create context with the loop variables and the forloop 
@@ -188,7 +185,7 @@ module internal For =
                                 | _ ->
                                     variables |> List.fold 
                                         (fun context var -> 
-                                            let value = match resolve_lookup item [var] with | Some o -> o | None -> None :> obj
+                                            let value = match resolve_members item [var] with | Some o -> o | None -> None :> obj
                                             context.add(var, value))
                                         walker.context
                         
@@ -209,11 +206,10 @@ module internal For =
                 | _ -> {walker with parent=Some walker; nodes=emptyNodes}
             | None -> {walker with parent=Some walker; nodes=emptyNodes}
         
-        override this.Nodes 
-            with get() =
+        override this.Nodes =
                 base.Nodes 
-                    |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (bodyNodes |> Seq.map (fun node -> (node :?> INode)))
-                    |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (emptyNodes |> Seq.map (fun node -> (node :?> INode)))
+                    |> Map.add (NDjango.Constants.NODELIST_FOR_BODY) (bodyNodes |> Seq.map (fun node -> (node :?> INode)))
+                    |> Map.add (NDjango.Constants.NODELIST_FOR_EMPTY) (emptyNodes |> Seq.map (fun node -> (node :?> INode)))
  
     /// this is a for loop helper node. The real loop node <see cref="TagNode"/> places a list of nodes
     /// for the loop body into the walker, it adds the Repeater as the last one. The repeater checks for
@@ -228,32 +224,44 @@ module internal For =
             else 
                 createWalker walker enumerator
 
+    [<NDjango.ParserNodes.Description("Loops over each item in a collection.")>]
     type Tag() =
 
         interface NDjango.Interfaces.ITag with 
-            member this.Perform token provider tokens =
-                let enumerator, variables, reversed = 
-                    match List.rev token.Args with
-                        | var::"in"::syntax -> 
-                            var,
-                            syntax,
-                            false
-                        | "reversed"::var::"in"::syntax -> 
-                            var,
-                            syntax,
-                            true
-                        | _ -> raise (SyntaxError ("malformed 'for' tag"))
-                let enumExpr = FilterExpression(provider, Block token, enumerator)
-                let variables = variables |> List.rev |>  List.fold (fun l item -> (List.append l (Array.to_list( item.Split([|','|], StringSplitOptions.RemoveEmptyEntries))))) []  
-                let node_list_body, remaining = (provider :?> IParser).Parse (Some token) tokens ["empty"; "endfor"]
+            member this.Perform token context tokens =
+                let node_list_body, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["empty"; "endfor"]
                 let node_list_empty, remaining2 =
                     match node_list_body.[node_list_body.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
-                        if b.Verb = "empty" then
-                            (provider :?> IParser).Parse (Some token) remaining ["endfor"]
+                        if b.Verb.RawText = "empty" then
+                            (context.Provider :?> IParser).Parse (Some token) remaining ["endfor"]
                         else
                             [], remaining
                     | _ -> [], remaining
+                
+                let enumerator, variables, reversed = 
+                    match List.rev token.Args with
+                        | var::MatchToken("in")::syntax -> 
+                            var,
+                            syntax,
+                            false
+                        | MatchToken("reversed")::var::MatchToken("in")::syntax -> 
+                            var,
+                            syntax,
+                            true
+                        | _ -> raise (SyntaxError ("malformed 'for' tag",
+                                        List.append node_list_body node_list_empty,
+                                        remaining2))
+                let enumExpr = FilterExpression(context, enumerator)
+                let variables = variables |> List.rev |>  List.fold (fun l item -> (List.append l (Array.to_list( item.RawText.Split([|','|], StringSplitOptions.RemoveEmptyEntries))))) []  
+                
 
-                ((TagNode(provider, token, enumExpr, variables, node_list_body, node_list_empty, reversed) :> NDjango.Interfaces.INodeImpl), remaining2)
+                (({
+                    new TagNode(context, token, enumExpr, variables, node_list_body, node_list_empty, reversed)
+                        with
+                            override this.elements
+                                with get()=
+                                    (enumExpr :> INode) :: base.elements
+                  } :> NDjango.Interfaces.INodeImpl), 
+                  remaining2)
 

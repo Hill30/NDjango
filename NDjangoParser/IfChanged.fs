@@ -25,6 +25,7 @@ namespace NDjango.Tags
 open NDjango.Lexer
 open NDjango.Interfaces
 open NDjango.ParserNodes
+open NDjango.Variables
 open NDjango.Expressions
 open NDjango.OutputHandling
 
@@ -51,21 +52,25 @@ module internal IfChanged =
 ///     {% endifchanged %}
 /// {% endfor %}
 
+    [<Description("Outputs the content of enclosed tags based on whether the value has changed.")>]
     type Tag() =
         interface ITag with
-            member this.Perform token provider tokens =
-                let nodes_ifchanged, remaining = (provider :?> IParser).Parse (Some token) tokens ["else"; "endifchanged"]
+            member this.Perform token context tokens =
+                let nodes_ifchanged, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["else"; "endifchanged"]
                 let nodes_ifsame, remaining =
                     match nodes_ifchanged.[nodes_ifchanged.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
-                        if b.Verb = "else" then
-                            (provider :?> IParser).Parse (Some token) remaining ["endifchanged"]
+                        if b.Verb.RawText = "else" then
+                            (context.Provider :?> IParser).Parse (Some token) remaining ["endifchanged"]
                         else
                             [], remaining
                     | _ -> [], remaining
 
+                let variables =
+                    token.Args |> List.map (fun var -> new Variable(context, var))
+
                 let createWalker manager =
-                    match token.Args |> List.map (fun var -> new Variable(provider, Block token, var)) with
+                    match variables with
                     | [] ->
                         fun walker ->
                             let reader = 
@@ -89,10 +94,14 @@ module internal IfChanged =
                             | Some o when not <| matchValues o newValues -> {walker with nodes = List.append nodes_ifsame walker.nodes}
                             | _ -> {walker with nodes = List.append nodes_ifchanged walker.nodes; context=walker.context.add("$oldValue", (newValues :> obj))}
                 (({
-                    new TagNode(provider, token)
+                    new TagNode(context, token)
                     with
                         override this.walk manager walker =
                             createWalker manager walker 
+                                   
+                        override this.elements
+                            with get() =
+                                List.append (variables |> List.map (fun node -> (node :> INode))) base.elements
                                    
                         override this.Nodes 
                             with get() =

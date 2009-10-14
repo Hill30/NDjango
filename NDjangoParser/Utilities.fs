@@ -52,22 +52,6 @@ module public Utilities =
         | Some v when dict.Contains(v) -> Some dict.[v] 
         | _ -> None
 
-    /// tries to parse out an integer from the string, returning None if unsuccessful
-    let internal try_int = function
-        | Int v -> Some v
-        | _ -> None
-        
-    /// tries to parse out a float from the string, returning None is unsuccessful
-    let internal try_float = function
-        | Float v -> Some v
-        | _ -> None
-        
-    let internal (|Matched|_|) (key: string) (re: System.Text.RegularExpressions.Match) = 
-        if re.Groups.[key].Success then
-            Some (re.Groups.[key].Value)
-        else
-            None
-            
     // method to convert input value to Int32            
     let get_int (inputVal:obj) =
         let str = Convert.ToString inputVal
@@ -76,7 +60,7 @@ module public Utilities =
         if (success && inRange) then
             true,(dblOut |> Convert.ToInt32)
         else
-            false,0
+            false, 0
             
     // method to convert input value to Double            
     let get_double (inputVal:obj) =

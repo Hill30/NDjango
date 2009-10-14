@@ -25,25 +25,51 @@ namespace NDjango
 open NDjango.Interfaces
 
 module internal ASTWalker =
+
+    /// Implements a TextReader to walk the template. An instance of this class is returned when 
+    /// TemplateManager.Render method is called (see the Template.fs)
     type Reader(manager:ITemplateManager, walker: Walker) =
         inherit System.IO.TextReader()
         
+        /// current walker
         let mutable walker = walker
         let buffer = Array.create 4096 ' '
         
+        /// Retrieves current character from the walker buffer, getting as necessary new walkers 
+        /// from the nodes
         let rec getChar() = 
-            if walker.bufferIndex >= walker.buffer.Length then
+            if walker.bufferIndex >= walker.buffer.Length 
+            then
+                // processing of the buffer in the current walker is completed - get a new one
+                // and then get our character from the new buffer by recursive call to itself
                 match walker.nodes with
                 | [] ->
+                    // we are done with the nodes of the current walker - pop the parent from the stack
                     match walker.parent with 
                     | Some w -> 
+                        // reset the walker to the parent
                         walker <- w
+                        // call itself on the parent
                         getChar() 
-                    | None -> -1 // we are done - nothing more to walk
+                    | None -> 
+                        // we are done - nothing more to walk
+                        -1 
                 | node :: nodes ->
-                    walker <- node.walk manager {walker with nodes = nodes; buffer=""; bufferIndex = 0}
+                    try
+                        // get a new walker from the node at the head of the node list
+                        // and advance the list to the next node
+//                        if not <| node.GetType().Name.Equals("ParsingContextNode") then
+//                            System.Diagnostics.Debug.WriteLine ("walking " + node.Token.DiagInfo )
+                        walker <- node.walk manager {walker with nodes = nodes; buffer=""; bufferIndex = 0}
+                    with
+                        // intercept rendering errors and rethrow them with additional diagnostic info
+                        | :? RenderingError as r -> 
+                            raise (new RenderingException(r.Message, node.Token, r.InnerException)) 
+                        | _ -> rethrow() 
+                    // call itself on the new walker
                     getChar()
             else
+                // get a character from the current buffer
                 int walker.buffer.[walker.bufferIndex]
 
         let read (buffer: char[]) index count = 

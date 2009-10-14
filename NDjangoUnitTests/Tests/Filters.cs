@@ -287,7 +287,11 @@ namespace NDjango.UnitTests
             //>>> divisibleby(4, 2)
             //True
 
-            lst.Add(new TestDescriptor("divisibleby-filter02", "{{value|divisibleby:3}}", ContextObjects.p("value",4),ContextObjects.p("False")));
+            lst.Add(new TestDescriptor("filter execution order ", "{{value|add:1|divisibleby:2}}", ContextObjects.p("value", 4), ContextObjects.p("False")));
+            //>>> divisibleby(4, 2)
+            //True
+
+            lst.Add(new TestDescriptor("divisibleby-filter02", "{{value|divisibleby:3}}", ContextObjects.p("value", 4), ContextObjects.p("False")));
             //>>> divisibleby(4, 3)
             //False
 

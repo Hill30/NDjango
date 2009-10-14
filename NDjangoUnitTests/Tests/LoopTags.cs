@@ -23,13 +23,13 @@ namespace NDjango.UnitTests
             IList<TestDescriptor> lst = new List<TestDescriptor>();
 
             // CYCLE TAG 
-            lst.Add(new TestDescriptor("cycle01", "{% cycle a %}", ContextObjects.empty, ContextObjects.p(typeof(TemplateRenderingError))));
+            lst.Add(new TestDescriptor("cycle01", "{% cycle a %}", ContextObjects.empty, ContextObjects.p(typeof(RenderingException))));
             lst.Add(new TestDescriptor("cycle02", "{% cycle a,b,c as abc %}{% cycle abc %}", ContextObjects.empty, ContextObjects.p("ab")));
             lst.Add(new TestDescriptor("cycle03", "{% cycle a,b,c as abc %}{% cycle abc %}{% cycle abc %}", ContextObjects.empty, ContextObjects.p("abc")));
             lst.Add(new TestDescriptor("cycle04", "{% cycle a,b,c as abc %}{% cycle abc %}{% cycle abc %}{% cycle abc %}", ContextObjects.empty, ContextObjects.p("abca")));
-            lst.Add(new TestDescriptor("cycle05", "{% cycle %}", ContextObjects.empty, ContextObjects.p(typeof(Lexer.SyntaxErrorException))));
-            lst.Add(new TestDescriptor("cycle06", "{% cycle a %}", ContextObjects.empty, ContextObjects.p(typeof(TemplateRenderingError))));
-            lst.Add(new TestDescriptor("cycle07", "{% cycle a,b,c as foo %}{% cycle bar %}", ContextObjects.empty, ContextObjects.p(typeof(TemplateRenderingError))));
+            lst.Add(new TestDescriptor("cycle05", "{% cycle %}", ContextObjects.empty, ContextObjects.p(typeof(SyntaxException))));
+            lst.Add(new TestDescriptor("cycle06", "{% cycle a %}", ContextObjects.empty, ContextObjects.p(typeof(RenderingException))));
+            lst.Add(new TestDescriptor("cycle07", "{% cycle a,b,c as foo %}{% cycle bar %}", ContextObjects.empty, ContextObjects.p(typeof(RenderingException))));
             lst.Add(new TestDescriptor("cycle08", "{% cycle a,b,c as foo %}{% cycle foo %}{{ foo }}{{ foo }}{% cycle foo %}{{ foo }}", ContextObjects.empty, ContextObjects.p("abbbcc")));
             lst.Add(new TestDescriptor("cycle09", "{% for i in test %}{% cycle a,b %}{{ i }},{% endfor %}", ContextObjects.p("test", ContextObjects.range(5)), ContextObjects.p("a0,b1,a2,b3,a4,")));
             lst.Add(new TestDescriptor("cycle09-1", "{% for i in test %}{% cycle a,b %}{{ i.0 }};{{i.1}},{% endfor %}", ContextObjects.p("test", ContextObjects.square(5, 2)), ContextObjects.p("a0-0;0-1,b1-0;1-1,a2-0;2-1,b3-0;3-1,a4-0;4-1,")));

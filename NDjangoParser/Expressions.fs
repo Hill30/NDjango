@@ -19,7 +19,6 @@
  *  
  ***************************************************************************)
 
-
 namespace NDjango
 open System.Text
 open System.Text.RegularExpressions
@@ -28,282 +27,175 @@ open System.Collections.Generic
 open System.Reflection
 
 open NDjango.Interfaces
+open Lexer
+open ParserNodes
+open Variables
 open OutputHandling
 open Utilities
 
 module Expressions =
-
-    /// Finds and invokes the first property, field or 0-parameter method in the list.
-    let rec private find_and_invoke_member (members: MemberInfo list) current bit =
-        match members with 
-        | h::t ->
-            match h with
-            | :? MethodInfo as mtd -> 
-                // only call methods that don't have any parameters
-                match mtd.GetParameters().Length with 
-                | 0 -> Some <| mtd.Invoke(current, null)
-                | _ -> find_and_invoke_member t current bit
-            | :? FieldInfo as fld -> Some <| fld.GetValue(current)
-            | :? PropertyInfo as prop -> 
-                match prop.GetIndexParameters().Length with
-                | 0 -> Some <| prop.GetValue(current, null)     // non-indexed property
-                | 1 -> Some <| prop.GetValue(current, [|bit|])  // indexed property
-                | _ -> None                                     // indexed property with more indeces that we can handle
-            | _ -> failwith <| sprintf "%A is unexpected." current // this shouldn't happen, as all other types would be filtered out
-        | [] -> None
     
-    /// recurses through the supplied list and attempts to navigate the "current" object graph using
-    /// name elements provided by the list. This function will invoke method and evaluate properties and members
-    let rec internal resolve_lookup (current: obj) = function
-        | h::t ->
-            // tries to invoke a member in the members list, calling f if find_and_invoke_member returned None
-            let try_invoke = fun (members: array<MemberInfo>) bit (f: unit -> obj option) ->
-                match find_and_invoke_member (List.of_array members) current bit with
-                | Some v -> Some v
-                | None -> f()
-                
-            let find_intermediate = fun bit (current: obj) ->        
-                match current with 
-                | :? IDictionary as dict ->
-                    match dict with
-                    | Utilities.Contains (Some bit) v -> Some v
-                    | Utilities.Contains (Some (String.concat System.String.Empty [OutputHandling.django_ns; bit])) v -> Some v
-                    | Utilities.Contains (Utilities.try_int bit) v -> Some v
-                    | _ ->
-                        let (dict_members: array<MemberInfo>) = current.GetType().GetMember(bit, MemberTypes.Field ||| MemberTypes.Method ||| MemberTypes.Property, BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.Instance)
-                        find_and_invoke_member (List.of_array dict_members) current bit
-                | :? IList as list ->
-                    match bit with 
-                    | Utilities.Int i when list.Count > i -> Some list.[i]
-                    | _ -> None
-                | null -> None
-                | _ ->
-                    let (members: array<MemberInfo>) = current.GetType().GetMember(bit, MemberTypes.Field ||| MemberTypes.Method ||| MemberTypes.Property, BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.Instance)
-                    let indexed_members = lazy ( current.GetType().GetMember("Item", MemberTypes.Property, BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.Instance))
-                    let as_array = fun () -> 
-                        try 
-                            // bit is an index into an array
-                            if (Utilities.is_int bit) && current.GetType().IsArray && Array.length (current :?> array<obj>) > (int bit) then
-                                Some <| Array.get (current :?> array<obj>) (int bit)
-                            // no clue
-                            else
-                                None
-                        // any number of issues as the result trying to parse an unknown value
-                        with | _ -> None
-                                           
-                    // this bit of trickery needs explanation. try_invoke tries to find and invoke a member in the
-                    // members array. if it doesn't, it will call the supplied function f. here, we're chaining together
-                    // a search across all members, followed by a search for indexed members. the second search is 
-                    // supplied as the "f" to the first search. also, indexed members are defined as lazy so that we
-                    // don't take the reflection hit if we dont' need it
-                    try_invoke members bit (fun () -> try_invoke (indexed_members.Force()) bit (fun () -> as_array()))
-
-            if not (t = []) then
-                match find_intermediate h current with
-                | Some v -> resolve_lookup v t
-                | None -> None
-            else
-                find_intermediate h current
-        | [] ->  None
+    /// Represents a single filter in the expression            
+    type private Filter(context:ParsingContext, expression_token:TextToken, filter_match:Match) =
+        let filter_token = expression_token.CreateToken(filter_match)
+        let filter_name = filter_match.Groups.["filter_name"]
+        let name_node = 
+            new FilterNameNode (
+                expression_token.CreateToken(filter_name),
+                context.Provider.Filters |> Map.to_seq |> Seq.map (fun f -> fst f) 
+            )
             
-    /// A template variable, resolvable against a given context. The variable may be
-    /// a hard-coded string (if it begins and ends with single or double quote
-    /// marks)::
-    /// 
-    ///     >>> c = {'article': {'section':u'News'}}
-    ///     >>> Variable('article.section').resolve(c)
-    ///     u'News'
-    ///     >>> Variable('article').resolve(c)
-    ///     {'section': u'News'}
-    ///     >>> class AClass: pass
-    ///     >>> c = AClass()
-    ///     >>> c.article = AClass()
-    ///     >>> c.article.section = u'News'
-    ///     >>> Variable('article.section').resolve(c)
-    ///     u'News'
-    /// (The example assumes VARIABLE_ATTRIBUTE_SEPARATOR is '.')
-    type Variable(provider: ITemplateManagerProvider, token:Lexer.Token, variable:string) =
-        let (|ComponentStartsWith|_|) chr (text: string) =
-            if text.StartsWith(chr) || text.Contains(Constants.VARIABLE_ATTRIBUTE_SEPARATOR + chr) then
-                Some chr
-            else
-                None
-        
-        let fail_syntax v = 
-            raise (
-                SyntaxError (
-                    sprintf "Variables and attributes may not be empty, begin with underscores or minus (-) signs: '%s', '%s'" variable v)
+        let args = filter_match.Groups.["arg"].Captures |> Seq.cast |> Seq.to_list 
+                |> List.map 
+                    (fun (c) ->
+                        new Variable(context, expression_token.CreateToken(c))
                     )
-
-        do match variable with 
-            | ComponentStartsWith "-" v->
-                match variable with
-                | Int i -> () 
-                | Float f -> ()
-                | _ -> fail_syntax v
-            | ComponentStartsWith "_" v when not <| variable.StartsWith(Constants.I18N_OPEN) ->
-                fail_syntax v
-            | _ -> () // need this to show the compiler that all cases are covered. 
-
-        /// Returns a tuple of (var * value * needs translation)
-        let find_literal = function
-            | Utilities.Int i -> (None, Some (i :> obj), false)
-            | Utilities.Float f -> (None, Some (f :> obj), false)
-            | _ as v ->
-                let var, is_literal, translate = OutputHandling.strip_markers v
-
-                ((if not is_literal then Some var else None), (if is_literal then Some (var :> obj) else None), translate)
-
-        let var, literal, translate = find_literal variable
-        
-        let lookups = if var.IsSome then Some <| List.of_array (var.Value.Split(Constants.VARIABLE_ATTRIBUTE_SEPARATOR.ToCharArray())) else None
-        
-        let clean_nulls  = function
-        | Some v as orig -> if v = null then None else orig
-        | None -> None
-
-        /// Resolves this variable against a given context
-        member this.Resolve (context: IContext) =
-            match lookups with
-            | None -> (literal.Value, false)
-            | Some lkp ->
-                let result =
-                    match 
-                        match context.tryfind (List.hd <| lkp) with
-                        | Some v -> 
-                            match lkp |> List.tl with
-                            | h::t -> 
-                                // make sure we don't end up with a 'Some null'
-                                resolve_lookup v (h::t) |> clean_nulls
-                            | _ -> Some v |> clean_nulls
-                        | None -> None
-                        with
-                        | Some v1 -> v1
-                        | None -> 
-                            match provider.Settings.TryFind(Constants.TEMPLATE_STRING_IF_INVALID) with
-                            | Some o -> o
-                            | None -> "" :> obj
-
-                (result, context.Autoescape)
-        
-        member this.ExpressionText with get() = variable
-        
-        member this.IsLiteral with get() = lookups.IsNone
-
-    // TODO: we still need to figure out the translation piece
-    // python code
-    //        if self.translate:
-    //            return _(value)
-
-    /// Helper class for parsing variable blocks
-    /// Parses a variable token and its optional filters (all as a single string),
-    /// and return a list of tuples of the filter name and arguments.
-    /// Sample:
-    ///     >>> token = 'variable|default:\"Default value\"|date:\"Y-m-d\"'
-    ///     >>> p = Parser('')
-    ///     >>> fe = FilterExpression(token, p)
-    ///     >>> len(fe.filters)
-    ///     2
-    ///     >>> fe.var
-    ///     <Variable: 'variable'>
-    ///
-    type FilterExpression (provider: ITemplateManagerProvider, token:Lexer.Token, expression: string) =
-        
-        /// unescapes literal quotes. takes '\"value\"' and returns '"value"'
-        let flatten (text: string) = text.Replace("\\\"", "\"")
-        
-        /// unescapes literal quotes. takes '\"value\"' and returns '"value"'
-        let flatten_group (group: Group) = flatten group.Value
-
-        /// validates that the argument supplied to the filter is sufficient per the filter definition
-        let args_check name (filter: ISimpleFilter) provided = 
-            match filter with 
-            | :? IFilter as f->
-                if List.length provided = 0 && f.DefaultValue = null then
-                    raise (SyntaxError (sprintf "%s requires argument, none provided" name))
-                else true
-            | _ -> true
-        
-        /// Parses a variable definition
-        let rec parse_var (filter_match: Match) upto (var: Option<string>) =
-            if not (filter_match.Success) then
-                if not (upto = expression.Length) 
-                then raise (SyntaxError (sprintf "Could not parse the remainder: '%s' from '%s'" expression.[upto..] expression))
+                    
+        let error, filter =
+            try 
+                match Map.tryFind filter_name.Value context.Provider.Filters with
+                | None -> raise (SyntaxError (sprintf "filter %A could not be found" filter_name.Value))
+                | Some filter ->
+                    match filter, args with
+                    | :? IFilter as f, [] when f.DefaultValue = null -> 
+                         raise (SyntaxError ("filter requires argument, none provided"))
+                    | _ -> Error.None, Some filter
+            with
+            | :? SyntaxError as ex -> 
+                if (context.Provider.Settings.[Constants.EXCEPTION_IF_ERROR] :?> bool)
+                then
+                    raise (SyntaxException(ex.Message, Text filter_token))
                 else
-                    (upto, new Variable(provider, token, var.Value), [])
-            else
-                // short-hand for the recursive call. the values for match and upto are always computed the same way
-                let fast_call = fun v -> parse_var (filter_match.NextMatch()) (filter_match.Index + filter_match.Length) v
+                    new Error(2, ex.Message), None
+            | _ -> rethrow()
+
+        member x.Perform (context, input) =
+            match filter with
+            | None -> raise (SyntaxException(error.Message, Text filter_token))
+            | Some f ->
+                match f with
+                | :? IFilter as std ->
+                    let param = 
+                        match args with
+                        // we don't have to check for the presence of a default value here, as parse time
+                        // check enforces that filters without defaults do not get called without parameters
+                        | [] -> std.DefaultValue
+                        | _ -> (args |> List.hd).Resolve context |> fst
+                    std.PerformWithParam(input, param)
+                | _ as simple -> simple.Perform input
             
-                if not (upto = filter_match.Index) then
-                    raise 
-                        (SyntaxError 
-                            (sprintf "Could not parse some characters %s|%s|%s" 
-                                expression.[..upto] 
-                                expression.[upto..filter_match.Index] 
-                                expression.[filter_match.Index..]
-                            ))
-                else
-                    match var with
-                    | None ->
-                        match filter_match with
-                        | Utilities.Matched "var" var_match -> fast_call (Some var_match)
-                        | _ -> raise (SyntaxError (sprintf "Could not find variable at start of %s" expression))
-                    | Some s ->
-                        let filter_name = filter_match.Groups.["filter_name"]
-                        let arg = filter_match.Groups.["arg"].Captures |> Seq.cast |> Seq.to_list |> List.map (fun c -> Variable(provider, token, c.ToString())) 
-                        let filter = Map.tryFind filter_name.Value provider.Filters 
-                        
-                        if filter.IsNone then raise (SyntaxError (sprintf "filter %A could not be found" filter_name.Value))
+        member x.elements = [(name_node :> INode)] |> Seq.append (args |> Seq.map (fun a -> (a:>INode)))
+        member x.EscapeFilter = 
+            match filter with
+            | None -> raise (SyntaxException(error.Message, Text filter_token))
+            | Some f ->
+                match f with
+                | :? NDjango.Filters.EscapeFilter -> true
+                | _ -> false
+
+        interface INode with
+            member x.NodeType = NodeType.Filter
+            member x.Position = filter_token.Location.Offset
+            member x.Length = filter_token.Location.Length
+            member x.Values = seq []
+            member x.ErrorMessage = error
+            member x.Description = ""
+            member x.Nodes = 
+                Map.of_list[(Constants.NODELIST_TAG_ELEMENTS, x.elements)] 
+                    :> IDictionary<string, IEnumerable<INode>>
+
+    /// Represents a django expression. An experssion consists of a reference followed by 
+    /// zero or more filters, followed by a filter placeholder. Filter
+    /// placeholder is always added as the last element so that the designer
+    /// can properly maintain the intellisense session when a new filter is added. 
+    type FilterExpression (context:ParsingContext, expression: TextToken) =
+        
+        let expression_text = expression.Value
+
+        let matches = Constants.filter_re.Matches expression_text
+        
+        let count, error, variable, filters =
+            matches |> Seq.cast |> Seq.fold 
+                (
+                fun (offset, error, variable, filters) (mtch:Match) ->
+                    try
+                        // check if there are any gaps in the coverage of the string with the matches
+                        if offset < mtch.Index 
+                        then
+                            raise (SyntaxError 
+                                        (sprintf "Could not parse some characters %s|%s|%s" 
+                                            expression_text.[..offset-1] 
+                                            expression_text.[offset..mtch.Index] 
+                                            expression_text.[mtch.Index..]
+                                ))
                         else
-                            ignore <| args_check filter_name.Value filter.Value arg
+                            match variable with
+                            | None -> 
+                                let var_match = mtch.Groups.["var"]
+                                if var_match.Success then
+                                    offset+mtch.Length, error, Some (new Variable(context, expression.CreateToken var_match)), filters
+                                else
+                                    raise (SyntaxError (sprintf "Could not find variable at the start of %s" expression_text))
+                            | Some _ -> 
+                                let token = expression.CreateToken(mtch) 
+                                offset+mtch.Length, error, variable, filters @ 
+                                    [new Filter(context, expression, mtch)]
+                    with
+                    | :? SyntaxError as ex ->
+                        if (context.Provider.Settings.[Constants.EXCEPTION_IF_ERROR] :?> bool)
+                        then
+                            raise (SyntaxException(ex.Message, Text expression))
+                        else
+                            mtch.Index+mtch.Length, new Error(2, ex.Message), variable, filters
+                    | _ -> rethrow()
+                ) 
+                (0, Error.None, None, [])
+        
+        // check if we reached the end of the expression string        
+        let error = 
+            if count = expression_text.Length 
+            then error
+            else
+                let message = 
+                    sprintf "Could not parse some characters %s|%s" 
+                        expression_text.[..count-1]
+                        expression_text.[count..]
+                if (context.Provider.Settings.[Constants.EXCEPTION_IF_ERROR] :?> bool)
+                then
+                    raise (SyntaxException(message, Text expression))
+                else
+                    new Error(2, message)
 
-                            let _upto, variable, filters = fast_call var
-                            (_upto, variable, [(filter.Value, arg)] @ filters)
-
-        // list of filters along with the arguments that they expect
-        let upto, variable, filters = parse_var (Constants.filter_re.Match(expression)) 0 None
-
-        /// recursively evaluates the filter list against the context and input objects.
+        /// resolves the filter against the given context. 
         /// the tuple returned consists of the value as the first item in the tuple
         /// and a boolean indicating whether the value needs escaping 
-        let rec do_resolve (context: IContext) (input: obj option*bool) (filter_list: list<ISimpleFilter * Variable list>) = 
-            match fst input with
-            | None -> (None, false)
-            | Some v ->
-                let wrap o = if o = null then None else Some o
-                match filter_list with
-                | h::t ->
-                    match fst h with
-                    | :? NDjango.Filters.IEscapeFilter -> (fst (do_resolve context input t), true)
-                    | :? IFilter as std -> 
-                        // we don't have to check for the presence of a default value here, as an earlier
-                        // check enforces that filters without defaults do not get called without parameters
-                        let param = 
-                            if List.length (snd h) = 0 
-                                then std.DefaultValue
-                                else fst <| (List.hd <| snd h).Resolve context
-                        do_resolve context (wrap (std.PerformWithParam (v, param)), snd input) t
-                    | _ as simple -> do_resolve context (wrap (simple.Perform v), snd input) t
-                | [] -> input
-
-        let get_variables filters = 
-            filters |> List.fold (fun list item -> (item |> snd) @ list) []
-        
-        /// resolves the filter against the given context. if ignoreFailures is true, None is returned for failed expressions.
+        /// if ignoreFailures is true, None is returned for failed expressions, otherwise an exception is thrown.
         member this.Resolve (context: IContext) ignoreFailures =
-            let resolved_value = 
-                try
-                    let result = variable.Resolve context
-                    (Some (fst <| result), snd <| result)
-                with
-                    | _ as exc -> 
-                        if ignoreFailures then
-                            (None, false)
-                        else
-                            raise (RenderingError((sprintf "Exception occured while processing variable '%s'" variable.ExpressionText), exc))
+            let resolved_value =
+                match variable with 
+                | Some v -> 
+                    try
+                        let result = v.Resolve context
+                        (Some (fst <| result), snd <| result)
+                    with
+                        | _ as exc -> 
+                            if ignoreFailures then
+                                (None, false)
+                            else
+                                rethrow()
+                 | None ->
+                    raise (SyntaxException(error.Message, Text expression))
             
-            do_resolve context resolved_value filters
+            filters |> List.fold 
+                (fun input filter ->
+                    match fst input with
+                    | None -> (None, false)
+                    | Some value ->
+                        if filter.EscapeFilter 
+                        then (fst input, true)
+                        else (Some (filter.Perform(context, value)), snd input)
+                ) 
+                resolved_value
             
         /// resolves the filter against the given context and 
         /// converts it to string taking into account escaping. 
@@ -326,9 +218,41 @@ module Expressions =
             //TODO: django language spec allows 0 or 1 arguments to be passed to a filter, however the django implementation will handle any number
             //for filter, args in filters do
                 
-        member this.Token with get() = expression
-        
-//        member this.GetVariables: string list = 
-//            let variables = variable :: (filters |> List.fold (fun list item -> (item |> snd) @ list) [])
-//            variables |> List.filter (fun item -> item.IsLiteral |> not) |> List.map (fun item -> item.ExpressionText)
+        interface INode with            
+                     
+            /// TagNode type = Expression
+            member x.NodeType = NodeType.Expression 
             
+            /// Position - the position of the first character of the expression
+            member x.Position = expression.Location.Offset
+            
+            /// Length - the expression length
+            member x.Length = expression.Location.Length
+
+            /// List of available values empty
+            member x.Values =  seq []
+            
+            /// error message associated with the node
+            member x.ErrorMessage = error
+            
+            /// No description 
+            member x.Description = ""
+            
+            /// node list consists of the variable node and the list of the filter nodes
+            member x.Nodes =
+                let elements = 
+                    filters |> Seq.of_list |> Seq.map (fun f -> f:>INode) 
+                let elements =
+                    match variable with
+                    | Some v -> [(v :> INode)] |> Seq.append elements
+                    | None -> elements 
+                new Map<string, IEnumerable<INode>>([]) 
+                    |> Map.add Constants.NODELIST_TAG_ELEMENTS elements 
+                        :> IDictionary<string, IEnumerable<INode>>
+
+
+    // TODO: we still need to figure out the translation piece
+    // python code
+    //        if self.translate:
+    //            return _(value)
+

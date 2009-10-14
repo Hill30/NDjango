@@ -29,40 +29,55 @@ open NDjango.Interfaces
 open NDjango.ParserNodes
 open NDjango.ASTNodes
 open NDjango.OutputHandling
+open NDjango.Variables
 open NDjango.Expressions
+open NDjango.ParserNodes
 
 module internal Misc =
 
-    /// Force autoescape behavior for this block
+    /// Forces autoescape behavior for this block
+    [<Description("Forces autoescape behavior for enclosed tags")>]
     type AutoescapeTag() =
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
+                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endautoescape"]
 
-                let nodelist, remaining = (provider :?> IParser).Parse (Some token) tokens ["endautoescape"]
+                let fail (fail_token:TextToken) =
+                        raise (SyntaxError(
+                                "invalid arguments for 'Autoescape' tag", 
+                                Some (Seq.of_list nodes),
+                                Some [(new KeywordNode(fail_token, ["on";"off"]) :> INode)],
+                                Some remaining
+                                ))
 
-                let createContext walker = 
+                let autoescape_flag = 
                     match token.Args with 
-                    | "on"::[] -> walker.context.WithAutoescape(true)
-                    | "off"::[] -> walker.context.WithAutoescape(false)
-                    | _ -> raise (SyntaxError("invalid arguments for 'Autoescape' tag"))
-                    
+                    | MatchToken("on")::[] -> true
+                    | MatchToken("off")::[] -> false
+                    | arg::list -> fail arg
+                    | _ -> fail <| token.CreateToken(token.Location.Length - 2, 0)
+
                 (({
-                    new TagNode(provider, token) with
-                        override this.walk manager walker = 
+                    new TagNode(context, token) with
+                        override x.walk manager walker = 
                             {walker with 
                                 parent=Some walker; 
-                                context = createContext walker; 
-                                nodes=nodelist}
-                        override this.nodes with get() = nodelist
+                                context = walker.context.WithAutoescape autoescape_flag; 
+                                nodes=nodes}
+                        override x.nodelist with get() = nodes
+                        override x.elements =
+                            (new KeywordNode(List.hd token.Args, ["on";"off"]) :> INode)
+                                ::base.elements
                    } :> INodeImpl), 
                    remaining)
                         
     /// Ignores everything between ``{% comment %}`` and ``{% endcomment %}``.
+    [<Description("Ignores everything between ``{% comment %}`` and ``{% endcomment %}``")>]
     type CommentTag() =
         interface ITag with
-            member this.Perform token provider tokens =
-                let remaining = (provider :?> IParser).Seek tokens ["endcomment"]
-                ((TagNode(provider, token) :> INodeImpl), remaining)
+            member this.Perform token context tokens =
+                let remaining = (context.Provider :?> IParser).Seek tokens ["endcomment"]
+                ((TagNode(context, token) :> INodeImpl), remaining)
                 
     /// Outputs a whole load of debugging information, including the current
     /// context and imported modules.
@@ -72,9 +87,16 @@ module internal Misc =
     ///     <pre>
     ///         {% debug %}
     ///     </pre>
+    [<Description("Outputs debug information")>]
     type DebugTag() =
         interface ITag with
-            member this.Perform token provider tokens = (new NDjango.Tags.Debug.TagNode(provider, token) :> INodeImpl), tokens
+            member this.Perform token provider tokens = 
+                ({new TagNode(provider, token)
+                    with
+                        override x.walk manager walker =
+                            // the actual debug output is built by the context ToString method
+                            {walker with buffer = walker.context.ToString()}
+                    } :> INodeImpl), tokens
             
     /// Outputs the first variable passed that is not False.
     /// 
@@ -100,20 +122,24 @@ module internal Misc =
     /// passed variables are False::
     /// 
     ///     {% firstof var1 var2 var3 "fallback value" %}
+    [<Description("Outputs the first variable passed that is not False")>]
     type FirstOfTag() =
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
                 match token.Args with
                     | [] -> raise (SyntaxError ("'firstof' tag requires at least one argument"))
                     | _ -> 
-                        let variables = token.Args |> List.map (fun (name) -> new FilterExpression(provider, Block token, name))
+                        let variables = token.Args |> List.map (fun (expression) -> new FilterExpression(context, expression))
                         ({
-                            new TagNode(provider, token)
+                            new TagNode(context, token)
                             with 
                                 override this.walk manager walker =
                                     match variables |> List.tryPick (fun var -> var.ResolveForOutput manager walker ) with
                                     | None -> walker 
                                     | Some w -> w
+                                override this.elements
+                                    with get()=
+                                        List.append (variables |> List.map (fun node -> (node :> INode))) base.elements
                         } :> INodeImpl), tokens
                         
 /// regroup¶
@@ -201,12 +227,13 @@ module internal Misc =
         }
         member this.Append(o) = {this with list=this.list @ o}
 
+    [<Description("Regroups a list of alike objects by a common attribute.")>]
     type RegroupTag() =
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
                 match token.Args with
-                | source::"by"::grouper::"as"::result::[] ->
-                    let value = new FilterExpression(provider, Block token, source)
+                | source::MatchToken("by")::grouper::MatchToken("as")::result::[] ->
+                    let value = new FilterExpression(context, source)
                     let regroup context =
                         match fst <| value.Resolve context false with
                         | Some o ->
@@ -218,7 +245,7 @@ module internal Misc =
                                             // this function takes a tuple with the first element representing the grouper
                                             // currently under construction and the second the list of groupers built so far
                                             (fun (groupers:Grouper option*Grouper list) item -> 
-                                                match resolve_lookup item [grouper] with
+                                                match resolve_members item [grouper.RawText] with
                                                 | Some value ->  // this is the current value to group by
                                                     match fst groupers with
                                                     | Some group -> // group is a group currently being built
@@ -237,12 +264,16 @@ module internal Misc =
                             | _ -> []
                         | None -> []
                     ({
-                        new TagNode(provider, token)
+                        new TagNode(context, token)
                         with 
                             override this.walk manager walker =
                                 match regroup walker.context with
                                 | [] -> walker
-                                | _ as list -> {walker with context=walker.context.add(result, (list :> obj))}
+                                | _ as list -> {walker with context=walker.context.add(result.RawText, (list :> obj))}
+                            
+                            override this.elements 
+                                with get() = 
+                                    (value :> INode) :: base.elements
                     } :> INodeImpl), tokens
 
                 | _ -> raise (SyntaxError ("malformed 'regroup' tag"))
@@ -268,25 +299,30 @@ module internal Misc =
 ///     </strong>
 /// {% endspaceless %}
 
+    [<Description("Removes whitespace characters between HTML tags.")>]
     type SpacelessTag() =
         let spaces_re = new Regex("(?'spaces'>\s+<)", RegexOptions.Compiled)
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
+                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endspaceless"]
+            
                 match token.Args with
                 | [] ->
-                    let node_list, remaining = (provider :?> IParser).Parse (Some token) tokens ["endspaceless"]
                     ({
-                        new TagNode(provider, token)
+                        new TagNode(context, token)
                         with 
                             override this.walk manager walker =
                                 let reader = 
-                                    new NDjango.ASTWalker.Reader(manager,{walker with parent=None; nodes=node_list; context=walker.context})
+                                    new NDjango.ASTWalker.Reader(manager,{walker with parent=None; nodes=nodes; context=walker.context})
                                 let buf = spaces_re.Replace(reader.ReadToEnd(), "><")
                                 {walker with buffer = buf}
-                            override this.nodes with get() = node_list
+                            override this.nodelist with get() = nodes
                     } :> INodeImpl), remaining
 
-                | _ -> raise (SyntaxError ("'spaceless' tag should not have any arguments"))
+                | _ -> raise (SyntaxError (
+                                "'spaceless' tag should not have any arguments",
+                                nodes,
+                                remaining))
                 
                 
     ///Output one of the syntax characters used to compose template tags.
@@ -305,23 +341,24 @@ module internal Misc =
     ///opencomment {# 
     ///closecomment #} 
 
+    [<Description("Outputs one of the syntax characters used to compose template tags.")>]
     type TemplateTag() =
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
                 let buf = 
                     match token.Args with
-                        | "openblock"::[] -> "{%"
-                        | "closeblock"::[] -> "%}"
-                        | "openvariable"::[] -> "{{"
-                        | "closevariable"::[] -> "}}"
-                        | "openbrace"::[] -> "{"
-                        | "closebrace"::[] -> "}"
-                        | "opencomment"::[] -> "{#"
-                        | "closecomment"::[] -> "#}"
+                        | MatchToken("openblock")::[] -> "{%"
+                        | MatchToken("closeblock")::[] -> "%}"
+                        | MatchToken("openvariable")::[] -> "{{"
+                        | MatchToken("closevariable")::[] -> "}}"
+                        | MatchToken("openbrace")::[] -> "{"
+                        | MatchToken("closebrace")::[] -> "}"
+                        | MatchToken("opencomment")::[] -> "{#"
+                        | MatchToken("closecomment")::[] -> "#}"
                         | _ -> raise (SyntaxError ("invalid format for 'template' tag"))
-                let variables = token.Args |> List.map (fun (name) -> new FilterExpression(provider, Block token, name))
+                //???let variables = token.Args |> List.map (fun (name) -> new FilterExpression(context, name))
                 ({
-                    new TagNode(provider, token)
+                    new TagNode(context, token)
                     with 
                         override this.walk manager walker =
                             {walker with buffer = buf}
@@ -338,9 +375,10 @@ module internal Misc =
     /// Above, if ``this_value`` is 175 and ``max_value`` is 200, the the image in
     /// the above example will be 88 pixels wide (because 175/200 = .875;
     /// 
+    [<Description("Calculates the ratio of a given value to a max value, and applies it to a constant.")>]
     type WidthRatioTag() =
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
 
                 let toFloat (v:obj option) =
                     match v with 
@@ -352,16 +390,20 @@ module internal Misc =
         
                 match token.Args with
                 | value::maxValue::maxWidth::[] ->
-                    let value = new FilterExpression(provider, Block token, value)
-                    let maxValue = new FilterExpression(provider, Block token, maxValue)
-                    let width = try System.Int32.Parse(maxWidth) |> float with | _  -> raise (SyntaxError ("'widthratio' 3rd argument must be integer"))
+                    let value = new FilterExpression(context, value)
+                    let maxValue = new FilterExpression(context, maxValue)
+                    let width = try System.Int32.Parse(maxWidth.RawText) |> float with | _  -> raise (SyntaxError ("'widthratio' 3rd argument must be integer"))
                     (({
-                        new TagNode(provider, token) with
+                        new TagNode(context, token) with
                             override this.walk manager walker = 
                                 let ratio = toFloat (fst <| value.Resolve walker.context false)
                                             / toFloat (fst <| maxValue.Resolve walker.context false) 
                                             * width + 0.5
                                 {walker with buffer = ratio |> int |> string}
+                                
+                            override this.elements
+                                with get()=
+                                    (value :> INode) :: (maxValue :> INode) :: base.elements
                        } :> INodeImpl), 
                        tokens)
                 | _ -> raise (SyntaxError ("'widthratio' takes three arguments"))
@@ -374,28 +416,33 @@ module internal Misc =
     ///     {% with person.some_sql_method as total %}
     ///         {{ total }} object{{ total|pluralize }}
     ///     {% endwith %}
+    [<Description("Adds a value to the context for the enclosed tags.")>]
     type WithTag() =
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
+                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endwith"]
                 match token.Args with
-                | var::"as"::name::[] ->
-                    let nodes, remaining = (provider :?> IParser).Parse (Some token) tokens ["endwith"]
-                    let expression = new FilterExpression(provider, Block token, var)
+                | var::MatchToken("as")::name::[] ->
+                    let expression = new FilterExpression(context, var)
                     (({
-                        new TagNode(provider, token) with
+                        new TagNode(context, token) with
                             override this.walk manager walker = 
                                 let context = 
                                     match fst <| expression.Resolve walker.context false with
-                                    | Some v -> walker.context.add(name, v)
+                                    | Some v -> walker.context.add(name.RawText, v)
                                     | None -> walker.context
                                 {walker with 
                                     parent=Some walker; 
                                     context = context; 
                                     nodes=nodes}
-                            override this.nodes with get() = nodes
+                            override this.nodelist = nodes
+                            override x.elements = (expression :> INode)::base.elements
                        } :> INodeImpl), 
                        remaining)
-                | _ -> raise (SyntaxError ("'with' expected format is 'value as name'"))
+                | _ -> raise (SyntaxError (
+                                "'with' expected format is 'value as name'",
+                                nodes,
+                                remaining))
 
 module Abstract =
     /// Returns an absolute URL matching given view with its parameters.
@@ -409,31 +456,39 @@ module Abstract =
     /// This tag is not registered by default as the default implementation is abstract.
     [<AbstractClass>]    
     type UrlTag() =
-        let rec parseArgs token parser args = 
-            let instantiate arg = [new FilterExpression(parser, Block token, String.trim [' '] arg)]
+        let rec parseArgs token provider args = 
+            let instantiate arg = [new FilterExpression(provider, arg)]
             match args with
-            | arg::"as"::name::[] -> instantiate arg, (Some name)
+            | arg::MatchToken("as")::name::[] -> instantiate arg, (Some name)
             | arg::[] -> instantiate arg, None
             | arg::tail ->  
-                let list, var = parseArgs token parser tail
+                let list, var = parseArgs token provider tail
                 instantiate arg @ list, var
             | _ -> [], None
     
         abstract member GenerateUrl: string * string array * IContext -> string
         
         interface ITag with 
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
                 let path, argList, var =
                     match token.Args with
                     | [] -> raise (SyntaxError ("'url' tag requires at least one parameter"))
                     | path::args -> 
-                        let argList, var = parseArgs token provider (List.fold (fun state elem -> 
-                                                                                                    match String.trim [','] elem with
-                                                                                                    | "" -> state | _ as trimmed -> trimmed::state ) [] <| List.rev args)
-                        new FilterExpression(provider, Block token, path), argList, var
+                        let argList, var = 
+                            parseArgs token context 
+                                (args |> List.rev |> 
+                                    List.fold 
+                                        (fun state elem -> 
+                                            match String.trim [','] elem.RawText with                               
+                                            | "" -> state 
+                                            | _ as trimmed -> (elem.WithValue trimmed None)::state ) 
+                                        []
+                                )
+// TODO: ExpressionToken
+                        new FilterExpression(context, path), argList, var
                 
                 (({
-                    new TagNode(provider, token) with
+                    new TagNode(context, token) with
                         override x.walk manager walker =
                             let shortResolve (expr: FilterExpression) = 
                                 match fst <| expr.Resolve walker.context false with
@@ -443,6 +498,6 @@ module Abstract =
                             let url = this.GenerateUrl((shortResolve path), List.to_array <| List.map (fun (elem: FilterExpression) -> shortResolve elem) argList, walker.context)
                             match var with 
                             | None -> { walker with buffer = url }
-                            | Some v -> { walker with context = walker.context.add(v, (url :> obj)) }
+                            | Some v -> { walker with context = walker.context.add(v.Value, (url :> obj)) }
                             } :> INodeImpl),
                     tokens)

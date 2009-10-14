@@ -41,11 +41,16 @@ module internal Filter =
         override this.walk manager walker = 
             let reader = 
                 new NDjango.ASTWalker.Reader (manager, {walker with parent=None; nodes=node_list; context=walker.context}) 
+
             match filter.ResolveForOutput manager
                      {walker with context=walker.context.add(FILTER_VARIABLE_NAME, (reader.ReadToEnd():>obj))}
                 with
             | Some w -> w
             | None -> walker
+            
+        override x.nodelist = node_list
+        
+        override x.elements = (filter :> INode) :: base.elements
 
     /// Filters the contents of the block through variable filters.
     /// 
@@ -57,14 +62,21 @@ module internal Filter =
     ///     {% filter force_escape|lower %}
     ///         This text will be HTML-escaped, and will appear in lowercase.
     ///     {% endfilter %}
+    [<Description("Filters the contents of the block through variable filters.")>]
     type FilterTag() =
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
+                let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endfilter"]
                 match token.Args with
                 | filter::[] ->
-                    let filter_expr = new FilterExpression(provider, Block token, FILTER_VARIABLE_NAME + "|" + filter)
-                    let node_list, remaining = (provider :?> IParser).Parse (Some token) tokens ["endfilter"]
-                    (new FilterNode(provider, token, filter_expr, node_list) :> INodeImpl), remaining
-                | _ -> raise (SyntaxError ("'filter' tag requires one argument"))
+// TODO: ExpressionToken
+                    let prefix = FILTER_VARIABLE_NAME + "|"
+                    let map = Some [prefix.Length, false; filter.Value.Length, true]
+                    let filter_expr = new FilterExpression(context, filter.WithValue(prefix + filter.Value) map)
+                    (new FilterNode(context, token, filter_expr, node_list) :> INodeImpl), remaining
+                | _ -> raise (SyntaxError (
+                                "'filter' tag requires one argument",
+                                node_list,
+                                remaining))
                 
                

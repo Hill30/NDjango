@@ -66,19 +66,19 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
         | Some v -> v
     
     interface ITag with
-        member x.Perform token provider tokens = 
+        member x.Perform token context tokens = 
             let parms = 
                 token.Args |>
-                List.map (fun elem -> new FilterExpression(provider, Block token, elem))
+                List.map (fun elem -> new FilterExpression(context, elem))
             
             if not (parms.Length = num_params || num_params = -1) then
                 raise (SyntaxError(sprintf "%s expects %d parameters, but was given %d." name num_params (parms.Length)))
             else
                 let nodelist, tokens =
-                    if nested then (provider :?> IParser).Parse (Some token) tokens ["end" + name]
+                    if nested then (context.Provider :?> IParser).Parse (Some token) tokens ["end" + name]
                     else [], tokens
                     
-                ({new TagNode(provider, token)
+                ({new TagNode(context, token)
                     with
                         override this.walk manager walker =
                             let resolved_parms =  resolve_all parms walker.context
@@ -86,4 +86,7 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
                                 {walker with buffer = (x.ProcessTag walker.context "" resolved_parms)}
                             else
                                 {walker with buffer = (x.ProcessTag walker.context (read_walker manager walker nodelist) resolved_parms)}
+                                
+                        override this.nodelist = nodelist
+
                 } :> INodeImpl), tokens

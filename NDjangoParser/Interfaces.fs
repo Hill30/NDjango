@@ -29,19 +29,19 @@ open NDjango
 type NodeType =
             
         /// <summary>
-        /// The whole tag.
-        /// <example>{% if somevalue %}</example>
+        /// The whole django construct.
+        /// <example>{% if somevalue %} {{ variable }} </example>
         /// </summary>
         | Construct = 0x0001
         
         /// <summary>
-        /// The markers, which frame django tag. 
-        /// <example>{%, %}</example>
+        /// The markers, which frame django construct. 
+        /// <example>{%, {{, %}, }}</example>
         /// </summary>
         | Marker = 0x0002
         
         /// <summary>
-        /// Django template tag.
+        /// Django tag name.
         /// <example> "with", "for", "ifequal"</example>
         /// </summary>
         | TagName = 0x0003
@@ -57,7 +57,7 @@ type NodeType =
         /// loop variable in the For tag.
         /// <example>loop_item</example>
         /// </summary>
-        | Variable = 0x0005
+        | VariableDefinition = 0x0005
 
         /// <summary>
         /// Expression, which consists of a reference followed by 0 or more filters
@@ -101,29 +101,23 @@ type NodeType =
         /// </summary>
         | Comment = 0x000c
 
-/// A representation of a node of the template abstract syntax tree    
-type INode =
+        /// <summary>
+        /// A special node to carrying the parsing context info for code completion
+        /// </summary>
+        | ParsingContext = 0x000d
 
-    /// TagNode type
-    abstract member NodeType: NodeType 
-    
-    /// Position of the first character of the node text
-    abstract member Position: int
-    
-    /// Length of the node text
-    abstract member Length: int
+        /// <summary>
+        /// A closing node terminating the list of the nested tags
+        /// </summary>
+        | CloseTag = 0x000e
 
-    /// a list of values allowed for the node
-    abstract member Values: string list
-    
-    /// message associated with the node
-    abstract member ErrorMessage: OutputHandling.Error
-    
-    /// TagNode description (will be shown in the tooltip)
-    abstract member Description: string
-    
-    /// node lists
-    abstract member Nodes: IDictionary<string, IEnumerable<INode>>
+/// Error message
+type Error(severity:int, message:string) =
+    /// indicates the severity of the error with 0 being the information message
+    /// negative severity is used to mark a dummy message ("No messages" message) 
+    member x.Severity = severity
+    member x.Message = message
+    static member None = new Error(-1, "") 
 
 /// A no-parameter filter
 type ISimpleFilter = 
@@ -240,29 +234,111 @@ and ITemplateManagerProvider =
 
     /// Retrieves the requested template checking first the global
     /// dictionary and validating the timestamp
-    abstract member GetTemplate: string -> (ITemplate* System.DateTime)
+    abstract member GetTemplate: string -> (ITemplate * System.DateTime)
 
     /// Retrieves the requested template without checking the 
     /// local dictionary and/or timestamp
     /// the retrieved template is placed in the dictionary replacing 
     /// the existing template with the same name (if any)
-    abstract member LoadTemplate: string -> (ITemplate* System.DateTime)
+    abstract member LoadTemplate: string -> (ITemplate * System.DateTime)
         
 /// A tag implementation
 and ITag = 
     /// Transforms a {% %} tag into a list of nodes and uncommited token list
-    abstract member Perform: Lexer.BlockToken -> ITemplateManagerProvider -> LazyList<Lexer.Token> -> (INodeImpl * LazyList<Lexer.Token>)
+    abstract member Perform: Lexer.BlockToken -> ParsingContext -> LazyList<Lexer.Token> -> (INodeImpl * LazyList<Lexer.Token>)
 
+/// Parsing context is a container for information specific to the tag being parsed
+and ParsingContext(provider: ITemplateManagerProvider, extra_tags: string list) =
+    
+    /// List (sequence) of all registered tag names. Includes all registered tags as well as 
+    member x.Tags = provider.Tags |> Map.to_seq |> Seq.map (fun tag -> tag |> fst) 
+
+    /// a list (sequence) of all closing tags for the context
+    member x.TagClosures = Seq.of_list extra_tags                    
+   
+   /// Parent provider owning the context
+    member x.Provider = provider
+   
+   /// Parent provider owning the context
+    member x.Filters = provider.Filters |> Map.to_seq |> Seq.map (fun filter -> filter |> fst)
+    
+/// A representation of a node of the template abstract syntax tree    
+type INode =
+
+    /// TagNode type
+    abstract member NodeType: NodeType 
+    
+    /// Position of the first character of the node text
+    abstract member Position: int
+    
+    /// Length of the node text
+    abstract member Length: int
+
+    /// a list of values allowed for the node
+    abstract member Values: IEnumerable<string>
+    
+    /// message associated with the node
+    abstract member ErrorMessage: Error
+    
+    /// TagNode description (will be shown in the tooltip)
+    abstract member Description: string
+    
+    /// node lists
+    abstract member Nodes: IDictionary<string, IEnumerable<INode>>
+
+/// This exception is thrown if a problem encountered while rendering the template
+/// This exception will be later caught in the ASTWalker and re-thrown as the 
+/// RenderingException
 type RenderingError (message: string, ?innerException: exn) =
         inherit System.ApplicationException(message, defaultArg innerException null)
+        
+/// The actaual redering exception. The original RenderingError exceptions are caught and re-thrown
+/// as RenderingExceptions
+type RenderingException (message: string, token:NDjango.Lexer.Token, ?innerException: exn) =
+        inherit System.ApplicationException(message + token.DiagInfo, defaultArg innerException null)
+       
+/// Exception raised when template syntax errors are encountered
+/// this exception is defined here because it its dependency on the TextToken class
+type SyntaxException (message: string, token: NDjango.Lexer.Token) =
+    inherit System.ApplicationException(message + token.DiagInfo)
+    member x.Token = token
+    member x.ErrorMessage = message  
 
-type TemplateRenderingError (message: string, token:NDjango.Lexer.TextToken, ?innerException: exn) =
-        inherit System.ApplicationException(message, defaultArg innerException null)
+/// This esception is thrown if a problem encountered while parsing the template
+/// This exception will be later caught and re-thrown as the SyntaxException
+type SyntaxError (message, nodes: seq<INodeImpl> option, pattern:INode list option, remaining: LazyList<NDjango.Lexer.Token> option) = 
+    inherit System.ApplicationException(message)
+    new (message) = new SyntaxError(message, None, None, None)
 
-type internal CompoundSyntaxError(message, nodes:INodeImpl list) =
-    inherit OutputHandling.SyntaxError(message)
+    /// constructor to be used when the error applies to 
+    /// multiple tags i.e. missing closing tag exception. Inculdes node list as an
+    /// additional parameter 
+    [<OverloadID("nodes")>]
+    new (message, nodes) = new SyntaxError(message, Some nodes, None, None)
+
+    ///constructor to be used when it is necessary 
+    ///to include nodes and remaining tokens to SyntaxError.
+    [<OverloadID("nodes, remaining")>]
+    new (message, nodes, remaining) = new SyntaxError(message, Some nodes, None, Some remaining)
+
+    [<OverloadID("remaining")>]
+    new (message, remaining) = new SyntaxError(message, None, None, Some remaining)
     
-    member x.Nodes = nodes
+    /// constructor to be used when the error applies to a partially parsed tag 
+    /// Inculdes a list of tag elements to be associated with the error
+    [<OverloadID("pattern")>]
+    new (message, pattern) = new SyntaxError(message, None, Some pattern, None)
+    
+    [<OverloadID("pattern, remaining")>]
+    new (message, pattern, remaining) = new SyntaxError(message, None, Some pattern, Some remaining)
+    
+    /// list (sequence) of nodes related to the error
+    member x.Nodes = match nodes with | Some n -> n | None -> seq []
+    
+    /// list of tag elements from the partially parsed tag
+    member x.Pattern = match pattern with | Some p -> p | None -> []
+    
+    member x.Remaining = remaining
 
 /// Tags and/or filters marked with this attribute will be registered under the name
 /// supplied by the attribute unless the name will be provided explicitly during the registartion

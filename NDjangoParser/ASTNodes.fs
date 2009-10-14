@@ -45,75 +45,78 @@ module internal ASTNodes =
 
     type SuperBlockPointer = {super:TagNode}
 
-    and SuperBlock (provider: ITemplateManagerProvider, token:BlockToken, parents: BlockNode list) =
-        inherit TagNode(provider, token)
+    and SuperBlock (context: ParsingContext, token:BlockToken, parents: BlockNode list) =
+        inherit TagNode(context, token)
         
-        let nodelist, parent = 
+        let nodes, parent = 
             match parents with
-            | h::[] -> h.Nodelist, None
-            | h::t -> h.Nodelist, Some <| new SuperBlock(provider, token,t)
+            | h::[] -> h.nodelist, None
+            | h::t -> h.nodelist, Some <| new SuperBlock(context, token,t)
             | _ -> [], None
         
         override this.walk manager walker = 
-            {walker with parent=Some walker; nodes= nodelist}
+            {walker with parent=Some walker; nodes= nodes}
             
-        override this.nodes with get() = nodelist
+        override this.nodelist with get() = nodes
         
         member this.super = 
             match parent with
             | Some v -> v
-            | None -> new SuperBlock(provider, token,[])
+            | None -> new SuperBlock(context, token,[])
         
         
-    and BlockNode(provider: ITemplateManagerProvider, token: BlockToken, name: string, nodelist: INodeImpl list, ?parent: BlockNode) =
-        inherit TagNode(provider, token)
+    and BlockNode(parsing_context: ParsingContext, token: BlockToken, name: string, nodelist: INodeImpl list, ?parent: BlockNode) =
+        inherit TagNode(parsing_context, token)
 
-        member this.MapNodes blocks =
-            match Map.tryFind this.Name blocks with
+        member x.MapNodes blocks =
+            match Map.tryFind x.Name blocks with
             | Some (children: BlockNode list) -> 
                 match children with
                 | active::parents ->
-                    active.Nodelist, (match parents with | [] -> [this] | _ -> parents), true
-                | [] -> this.Nodelist, [], true
-            | None -> this.Nodelist, [], false
+                    active.nodelist, (*[x], true //*) (match parents with | [] -> [x] | _ -> parents), true
+                | [] -> x.nodelist, [], true
+            | None -> x.nodelist, [], false
         
-        member this.Name = name
-        member this.Parent = parent
-        member internal this.Nodelist = nodelist
+        member x.Name = name
+        member x.Parent = parent
         
-        override this.walk manager walker =
+        override x.walk manager walker =
             let final_nodelist, parents, overriden =
                 match walker.context.tryfind "__blockmap" with
-                | None -> this.Nodelist, [], false
+                | None -> x.nodelist, [], false
                 | Some ext -> 
-                    this.MapNodes (ext :?> Map<string, BlockNode list>)
+                    x.MapNodes (ext :?> Map<string, BlockNode list>)
                     
             {walker with 
                 parent=Some walker; 
                 nodes=final_nodelist; 
                 context= 
                     if overriden && not (List.isEmpty parents) then
-                        walker.context.add("block", ({super= new SuperBlock(provider, token, parents)} :> obj))
+                        walker.context.add("block", ({super= new SuperBlock(parsing_context, token, parents)} :> obj))
                     else
                         walker.context
             }
             
-        override this.nodes with get() = this.Nodelist
+        override x.nodelist = nodelist
        
-    and ExtendsNode(provider: ITemplateManagerProvider, token: BlockToken, nodelist: INodeImpl list, parent: Expressions.FilterExpression) =
-        inherit TagNode(provider, token)
-            
-        /// produces a flattened list of all nodes and child nodes within a node list
+    and ExtendsNode(parsing_context: ParsingContext, token: BlockToken, nodes: INode list, parent: Expressions.FilterExpression) =
+        inherit TagNode(parsing_context, token)
+        
+        /// produces a flattened list of all nodes and child nodes within a 'node list'.
+        /// the 'node list' is a list of all nodes collected from Nodes property of the INode interface
         let rec unfold_nodes = function
-        | (h:INodeImpl)::t -> 
-            h :: unfold_nodes (h:?>Node).nodes @ unfold_nodes t
+        | (h:INode)::t -> 
+            h :: unfold_nodes 
+                (h.Nodes.Values |> Seq.cast |> Seq.map(fun (seq) -> (Seq.to_list seq)) |>
+                    List.concat |>
+                        List.filter (fun node -> match node with | :? Node -> true | _ -> false))
+                             @ unfold_nodes t
         | _ -> []
 
-        let blocks = Map.of_list 
-                     <| List.choose 
-                             (fun (node: INodeImpl) ->  match node with | :? BlockNode as block -> Some (block.Name,[block]) | _ -> None) 
-                              (unfold_nodes nodelist)
-                              
+        // even though the extends filters its node list, we still need to filter the flattened list because of nested blocks
+        let blocks = Map.of_list <| List.choose 
+                        (fun (node: INode) ->  match node with | :? BlockNode as block -> Some (block.Name,[block]) | _ -> None) 
+                        (unfold_nodes nodes)                      
 
         let add_if_missing key value map = 
             match Map.tryFind key map with

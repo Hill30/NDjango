@@ -7,22 +7,59 @@ using NDjango.UnitTests.Data;
 using NDjango.FiltersCS;
 using System.Diagnostics;
 using NUnit.Framework;
+using NDjango.Interfaces;
 
 
 namespace NDjango.UnitTests
 {
+    public struct DesignerData
+    {
+        public DesignerData(int position, int length, string[] values, int severity, string errorMessage)
+        {
+            this.Position = position;
+            this.Length = length;
+            this.Values = values;
+            this.Severity = severity;
+            this.ErrorMessage = errorMessage;
+        }
+
+        public int Position;
+        public int Length;
+        public string[] Values;
+        public int Severity;
+        public string ErrorMessage;
+    }
+
     public class TestDescriptor
     {
         public string Name { get; set; }
         public string Template { get; set; }
         public object[] ContextValues { get; set; }
         public object[] Result { get; set; }
+        public List<DesignerData> ResultForDesigner { get; set; }
         public string[] Vars { get; set; }
         ResultGetter resultGetter;
 
         public override string ToString()
         {
             return Name;
+        }
+
+        public TestDescriptor(string name, string template, List<DesignerData> designResult)
+        {
+            Name = name;
+            Template = template;
+            ResultForDesigner = designResult;
+        }
+
+        public TestDescriptor(string name, string template, object[] values, object[] result, List<DesignerData> designResult, params string[] vars)
+        {
+            Name = name;
+            Template = template;
+            ContextValues = values;
+            Result = result;
+            Vars = vars;
+            ResultForDesigner = designResult;
         }
 
         public TestDescriptor(string name, string template, object[] values, object[] result, params string[] vars)
@@ -46,10 +83,18 @@ namespace NDjango.UnitTests
         }
 
 
-        public static string runTemplate(NDjango.Interfaces.ITemplateManager manager, string templateName, IDictionary<string,object> context)
+        public string runTemplate(NDjango.Interfaces.ITemplateManager manager, string templateName, IDictionary<string,object> context)
         {
-            var template = manager.RenderTemplate(templateName, context);
-            string retStr = template.ReadToEnd();
+            Stopwatch stopwatch = new Stopwatch();
+            string retStr = "";
+            stopwatch.Start();
+            for (int i = 0; i < 1; i++)
+            {
+                var template = manager.RenderTemplate(templateName, context);
+                retStr = template.ReadToEnd();
+            }
+            using (TextWriter stream = System.IO.File.AppendText("Timers.txt"))
+                stream.WriteLine(Name + "," + stopwatch.ElapsedTicks); 
             return retStr;
         }
 
@@ -89,6 +134,12 @@ namespace NDjango.UnitTests
 
         public void Run(NDjango.Interfaces.ITemplateManager manager)
         {
+            if (ResultForDesigner != null)
+            {
+                ValidateSyntaxTree(manager);
+                return;
+            }
+
             var context = new Dictionary<string, object>();
 
             if (ContextValues != null)
@@ -113,6 +164,60 @@ namespace NDjango.UnitTests
             }
         }
 
+        private void ValidateSyntaxTree(NDjango.Interfaces.ITemplateManager manager)
+        {
+            ITemplate template = manager.GetTemplate(Template);
+            
+            //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
+            List<INode> nodes = GetNodes(template.Nodes.ToList<INodeImpl>().ConvertAll
+                (node => (INode)node)).FindAll(node =>
+                    (node.Values.ToList().Count != 0) 
+                    || (node.NodeType == NodeType.ParsingContext) 
+                    || (node.ErrorMessage.Message != ""));
+            List<DesignerData> actualResult = nodes.ConvertAll(
+                node =>
+                {
+                    List<string> contextValues = new List<string>(node.Values);
+                    if (node.NodeType == NodeType.ParsingContext)
+                    {
+                        contextValues.InsertRange(0 ,((ParserNodes.ParsingContextNode)node).Context.TagClosures);
+                        return new DesignerData(node.Position, node.Length, contextValues.ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
+                    }
+                    else
+                        return new DesignerData(node.Position, node.Length, new List<string>(node.Values).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
+                });
+            
+            for (int i = 0; i < actualResult.Count; i++)
+            {
+                if (actualResult[i].Values.Length == 0)
+                    continue;
+
+                Assert.AreEqual(actualResult[i].Length, ResultForDesigner[i].Length, "Invalid Length");
+                Assert.AreEqual(actualResult[i].Position, ResultForDesigner[i].Position, "Invalid Position");
+                Assert.AreEqual(actualResult[i].Severity, ResultForDesigner[i].Severity, "Invalid Severity");
+                Assert.AreEqual(actualResult[i].ErrorMessage, ResultForDesigner[i].ErrorMessage, "Invalid ErrorMessage");
+                Assert.AreEqual(actualResult[i].Values, ResultForDesigner[i].Values, "Invalid Values");
+            }            
+        }
+
+        //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
+        private static List<INode> GetNodes(IEnumerable<INode> nodes)
+        {
+            List<INode> result = new List<INode>();
+
+            foreach (INode ancestor in nodes)
+	        {
+                result.Add(ancestor);
+                foreach (IEnumerable<INode> list in ancestor.Nodes.Values)
+                {
+                    result.AddRange(GetNodes(list));
+                }
+	        }
+            return result;
+        }
+
+        //the same list as in Defaults.standardTags
+        
     }
 
 }

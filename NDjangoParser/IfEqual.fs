@@ -44,16 +44,17 @@ module internal IfEqual =
     ///            ...
     ///        {% endifnotequal %}
 
+    [<Description("Outputs the content of enclosed tags based on whether the values are equal.")>]
     type Tag(not:bool) =
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
                 let tag = token.Verb
-                let node_list_true, remaining = (provider :?> IParser).Parse (Some token) tokens ["else"; "end" + tag]
+                let node_list_true, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["else"; "end" + tag.RawText]
                 let node_list_false, remaining =
                     match node_list_true.[node_list_true.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
-                        if b.Verb = "else" then
-                            (provider :?> IParser).Parse (Some token) remaining ["end" + tag]
+                        if b.Verb.RawText = "else" then
+                            (context.Provider :?> IParser).Parse (Some token) remaining ["end" + tag.RawText]
                         else
                             [], remaining
                     | _ -> [], remaining
@@ -68,10 +69,10 @@ module internal IfEqual =
 
                 match token.Args with
                 | var1::var2::[] ->
-                    let var1 = new FilterExpression(provider, Block token, var1)
-                    let var2 = new FilterExpression(provider, Block token, var2)
+                    let var1 = new FilterExpression(context, var1)
+                    let var2 = new FilterExpression(context, var2)
                     ({
-                        new TagNode(provider, token)
+                        new TagNode(context, token)
                         with 
                             override this.walk manager walker =
                                 {
@@ -80,13 +81,21 @@ module internal IfEqual =
                                         parent=Some walker;
                                         nodes=getNodeList (fst (var1.Resolve walker.context true)) (fst (var2.Resolve walker.context true))
                                 }
-                        
+                                
+                            override this.elements 
+                                with get() = 
+                                    (var1 :> INode) :: (var2 :> INode) :: base.elements
+                            
                             override this.Nodes 
                                 with get() =
                                     base.Nodes 
                                         |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (node_list_true |> Seq.map (fun node -> (node :?> INode)))
                                         |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (node_list_false |> Seq.map (fun node -> (node :?> INode)))
+
                     } :> INodeImpl), remaining
-                | _ -> raise (SyntaxError (sprintf "'%s' takes two arguments" tag))
+                | _ -> raise (SyntaxError (
+                                sprintf "'%s' takes two arguments" tag.RawText,
+                                node_list_true @ node_list_false,
+                                remaining))
 
                 

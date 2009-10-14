@@ -28,6 +28,7 @@ open System.Collections
 open NDjango.Lexer
 open NDjango.Interfaces
 open NDjango.Expressions
+open NDjango.ParserNodes
 open NDjango.OutputHandling
 
 module internal If = 
@@ -140,57 +141,73 @@ module internal If =
                     | Or -> false
                     | And -> true
                 
-        override this.walk manager walker =
+        override x.walk manager walker =
             match eval_expression walker.context bool_vars with
             | true -> {walker with parent=Some walker; nodes=node_list_true}
             | false -> {walker with parent=Some walker; nodes=node_list_false}
             
-        override this.Nodes 
+        override x.Nodes 
             with get() =
                 base.Nodes 
                     |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (node_list_true |> Seq.map (fun node -> (node :?> INode)))
                     |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (node_list_false |> Seq.map (fun node -> (node :?> INode)))
     
+    [<NDjango.ParserNodes.Description("Outputs the content of enclosed tags based on expression evaluation result.")>]
     type Tag() =
         /// builds a list of FilterExpression objects for the variable components of an if statement. 
         /// The tuple returned is (not flag, FilterExpression), where not flag is true when the value
         /// is modified by the "not" keyword, and false otherwise.
-        let rec build_vars token notFlag (tokens: string list) parser (vars:(IfLinkType option)*(bool*FilterExpression) list) =
+        let rec build_vars token notFlag (tokens: TextToken list) parser (vars:(IfLinkType option)*(bool*FilterExpression) list) =
             match tokens with
-            | "not"::var::tail -> build_vars token true (var::tail) parser vars
+            | MatchToken("not")::var::tail -> build_vars token true (var::tail) parser vars
             | var::[] -> 
                 match fst vars with
-                | None -> IfLinkType.Or, [(notFlag, new FilterExpression(parser, Block token, var))]
-                | Some any -> any, snd vars @ [(notFlag, new FilterExpression(parser, Block token, var))]
-            | var::"and"::var2::tail -> 
+                | None -> IfLinkType.Or, [(notFlag, new FilterExpression(parser, var))]
+                | Some any -> any, snd vars @ [(notFlag, new FilterExpression(parser, var))]
+            | var::MatchToken("and")::var2::tail -> 
                 append_vars IfLinkType.And var token notFlag (var2::tail) parser vars 
-            | var::"or"::var2::tail -> 
+            | var::MatchToken("or")::var2::tail -> 
                 append_vars IfLinkType.Or var token notFlag (var2::tail) parser vars 
             | _ -> raise (SyntaxError ("invalid conditional expression in 'if' tag"))
             
         and append_vars linkType var
-            token notFlag (tokens: string list) parser vars =
+            token notFlag (tokens: TextToken list) parser vars =
             match fst vars with
             | Some any when any <> linkType -> raise (SyntaxError ("'if' tags can't mix 'and' and 'or'"))
             | _ -> ()
-            build_vars token false tokens parser (Some linkType, snd vars @ [(notFlag, new FilterExpression(parser, Block token, var))])
+            build_vars token false tokens parser (Some linkType, snd vars @ [(notFlag, new FilterExpression(parser, var))])
         
         
         interface ITag with 
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
 
-                let link_type, bool_vars = build_vars token false token.Args provider (None,[])
-                
-                let node_list_true, remaining = (provider :?> IParser).Parse (Some token) tokens ["else"; "endif"]
+                let node_list_true, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["else"; "endif"]
                 let node_list_false, remaining2 =
                     match node_list_true.[node_list_true.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
-                        if b.Verb = "else" then
-                            (provider :?> IParser).Parse (Some token) remaining ["endif"]
+                        if b.Verb.RawText = "else" then
+                            (context.Provider :?> IParser).Parse (Some token) remaining ["endif"]
                         else
                             [], remaining
                     | _ -> [], remaining
-
-                ((new TagNode(provider, token, bool_vars, node_list_true, node_list_false, link_type) :> NDjango.Interfaces.INodeImpl), remaining2)
+                    
+                let link_type, bool_vars = 
+                    try
+                        build_vars token false token.Args context (None,[])
+                    with
+                    | :? SyntaxError as e ->
+                            raise (SyntaxError(e.Message, 
+                                    node_list_true @ node_list_false,
+                                    remaining2))
+                    |_ -> rethrow()
+                  
+                (({
+                    new TagNode(context, token, bool_vars, node_list_true, node_list_false, link_type)
+                        with
+                            override this.elements
+                                with get()=
+                                    List.append (bool_vars |> List.map(fun (_, element) -> (element :> INode))) base.elements
+                    } :> NDjango.Interfaces.INodeImpl),
+                    remaining2)
 
 

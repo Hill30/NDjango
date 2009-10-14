@@ -27,6 +27,7 @@ open System
 open NDjango.OutputHandling
 open NDjango.Lexer
 open NDjango.Interfaces
+open NDjango.Variables
 open NDjango.Expressions
 
 module internal Cycle =
@@ -58,7 +59,7 @@ module internal Cycle =
         member this.OrigValues = origValues
         member this.Value = List.hd values
         
-    /// Cycles among the given strings each time this tag is encountered.
+    [<NDjango.ParserNodes.Description("Cycles among the given strings each time this tag is encountered.")>]
     type TagNode(provider, token, name: string, values: Variable list) =
         inherit NDjango.ParserNodes.TagNode(provider, token)
         
@@ -76,10 +77,7 @@ module internal Cycle =
                 | Some v -> Some (v :?> CycleController)
                 | None -> 
                     match values with
-                    | [] -> raise (TemplateRenderingError (
-                                    sprintf "Named cycle '%s' does not exist" name, 
-                                    (token :> TextToken)
-                                    ))
+                    | [] -> raise (RenderingError(sprintf "Named cycle '%s' does not exist" name))
                     | _ -> None
             let newc =
                 match oldc with
@@ -94,40 +92,53 @@ module internal Cycle =
                 buffer = buffer;
                 context = (walker.context.add ("$cycle" + name, (newc :> obj))).add (name, (buffer :> obj)) 
                 }
-     
+                
+        override x.elements = base.elements @ (values |> List.map(fun v -> v :> INode))
+
+    /// Note that the original django implementation returned the same instance of the 
+    /// CycleNode for each instance of a given named cycle tag. This implementation
+    /// Relies on the CycleNode instances to communicate with each other through 
+    /// the context object available at render time to synchronize their activities
     type Tag() = 
 
-            // Note that the django implementation returned the same instance of the 
-            // CycleNode for each instance of a given named cycle tag. This implementation
-            // Relies on the CycleNode instances to communicate with each other through 
-            // the context object available at render time to synchronize their activities
-        let checkForOldSyntax value = 
-            if (String.IsNullOrEmpty value) then false
-            else match value.[0] with
+        let checkForOldSyntax (value:TextToken) = 
+            if (String.IsNullOrEmpty value.RawText) then false
+            else match value.RawText.[0] with
                     | '"' -> false
                     | '\'' -> false
-                    | _ when value.Contains(",") -> true
+                    | _ when value.RawText.Contains(",") -> true
                     | _ -> false
                             
-        let normalize values =
-            if List.exists checkForOldSyntax values then
-                let compacted = List.fold (fun status value -> status + value) "" values
-                List.map (fun value -> "'" + value + "'" ) (String.split [','] compacted)   
-            else
-                values
                 
         interface NDjango.Interfaces.ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
+            
+                let oldstyle_re 
+                    = new System.Text.RegularExpressions
+                        .Regex("[^,]")
+
+                let normalize (values: TextToken list) =
+                    if List.exists checkForOldSyntax values then
+                        // Create a new token covering the text span from the beginning
+                        // of the first parameter till the end of the last one
+                        let start = values.Head.Location.Offset
+                        let end_location = values.[values.Length-1].Location
+                        let t1 = token.CreateToken(start - token.Location.Offset, end_location.Offset + end_location.Length - start)
+                        t1.Tokenize oldstyle_re |>
+                        List.map (fun t -> t.WithValue ("'" + t.Value + "'") (Some [1,false;t.Value.Length,true;1,false]))
+                    else
+                        values
+
                 let name, values =
                     match List.rev token.Args with
-                    | [] -> raise (SyntaxError ("'cycle' tag requires at least one argument"))
-                    | name::"as"::values ->
-                        (name, values |> List.rev |> normalize)
+                    | name::MatchToken("as")::values1 ->
+                        name.RawText, values1 |> List.rev |> normalize
                     | _ ->
-                        let values = token.Args |> normalize
-                        if values.Length = 1 then (values.[0], [])
-                        else ("$Anonymous$Cycle", values)
+                        match token.Args |> normalize with
+                        | [] -> raise (SyntaxError ("'cycle' tag requires at least one argument"))
+                        | name::[] -> name.RawText, []
+                        | _ as values -> "$Anonymous$Cycle", values
                         
-                let values = List.map (fun v -> new Variable(provider, Block token, v)) values
-                ((new TagNode(provider, token, name, values) :> NDjango.Interfaces.INodeImpl), tokens)
+                let values = List.map (fun v -> new Variable(context, v)) values
+                ((new TagNode(context, token, name, values) :> NDjango.Interfaces.INodeImpl), tokens)
 

@@ -9,7 +9,7 @@ namespace NDjango.UnitTests
 {
     public partial class Tests
     {
-        [Test, TestCaseSource("GetReproducedIssues")]
+ //       [Test, TestCaseSource("GetReproducedIssues")]
         public void ReproducedIssues(TestDescriptor test)
         {
             test.Run(manager);

@@ -36,6 +36,7 @@
     <Reference Include="FSharp.Core, Version=1.9.6.2, Culture=neutral, PublicKeyToken=a19089b1c74d0809, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\FSharp-1.9.6.2\bin\FSharp.Core.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
+      <Private>True</Private>
     </Reference>
     <Reference Include="nunit.framework, Version=2.5.0.9015, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\..\..\..\..\Program Files\NUnit 2.5\bin\net-2.0\framework\nunit.framework.dll</HintPath>
@@ -66,6 +67,7 @@
     <Compile Include="TestDescriptor.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Tests\BasicSyntax.cs" />
+    <Compile Include="Tests\Designer.cs" />
     <Compile Include="Tests\Filters.cs" />
     <Compile Include="Tests\MiscellaneousTags.cs" />
     <Compile Include="Tests\LoopTags.cs" />
@@ -89,11 +91,11 @@
     <Content Include="Tests\Templates\SimpleSub1.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NDjangoParser\NDjangoParser.fsproj">
+    <ProjectReference Include="..\NDjangoParser\NDjangoParser2008.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
       <Name>NDjangoParser</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters.csproj">
+    <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters2008.csproj">
       <Project>{89DC9575-C706-4D0D-944A-79E5865FFE88}</Project>
       <Name>NDjangoParserFilters</Name>
     </ProjectReference>

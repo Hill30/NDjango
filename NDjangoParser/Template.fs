@@ -69,13 +69,8 @@ module internal Template =
             
     /// Implements the template (ITemplate interface)
     and internal Impl(provider : ITemplateManagerProvider, template: TextReader) =
-
-        let node_list = (provider :?> IParser).ParseTemplate template
-
-//            // this will cause the TextReader to be closed when the template goes out of scope
-//            use template = template
-//            fst <| (provider :?> IParser).Parse (NDjango.Lexer.tokenize template) []
         
+        let node_list = (provider :?> IParser).ParseTemplate template
         interface ITemplate with
             member this.Walk manager context=
                 new NDjango.ASTWalker.Reader (

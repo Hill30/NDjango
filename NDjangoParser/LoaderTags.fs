@@ -34,14 +34,20 @@ open NDjango.Expressions
 module internal LoaderTags =
 
     /// Define a block that can be overridden by child templates.
+    [<Description("Defines a block that can be overridden by child templates.")>]
     type BlockTag() =
         interface ITag with
-            member this.Perform token provider tokens =
+            member this.Perform token context tokens =
                 match token.Args with 
                 | name::[] -> 
-                    let node_list, remaining = (provider :?> IParser).Parse (Some token) tokens ["endblock"; "endblock " + name]
-                    (new BlockNode(provider, token, name, node_list) :> INodeImpl), remaining
-                | _ -> raise (SyntaxError ("block tag takes only one argument"))
+                    let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endblock"; "endblock " + name.RawText]
+                    (new BlockNode(context, token, name.RawText, node_list) :> INodeImpl), remaining
+                | _ ->
+                    let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endblock"]
+                    raise (SyntaxError("block tag takes only one argument", 
+                            node_list,
+                            remaining))
+                
 
     /// Signal that this template extends a parent template.
     /// 
@@ -50,18 +56,51 @@ module internal LoaderTags =
     /// or ``{% extends variable %}`` uses the value of ``variable`` as either the
     /// name of the parent template to extend (if it evaluates to a string) or as
     /// the parent tempate itelf (if it evaluates to a Template object).
+    [<Description("Signals that this template extends a parent template.")>]
     type ExtendsTag() =
         interface ITag with
-            member this.Perform token provider tokens = 
+            member this.Perform token context tokens = 
+                let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens []
                 match token.Args with
                 | parent::[] -> 
-                    let node_list, remaining = (provider :?> IParser).Parse (Some token) tokens []
                     
+                    /// expression yielding the name of the parent block
                     let parent_name_expr = 
-                        new FilterExpression(provider, Block token, parent)
+                        new FilterExpression(context, parent)
                         
-                    (new ExtendsNode(provider, token, node_list, parent_name_expr) :> INodeImpl), LazyList.empty<Token>()
-                | _ -> raise (SyntaxError ("extends tag takes only one argument"))
+                    /// a list of all blocks in the template starting with the extends tag
+                    let node_list = 
+                        node_list |> List.choose 
+                            (fun node ->
+                                match node with
+                                /// we need ParsingContextNode in the nodelist for code completion issues
+                                | :? ParsingContextNode -> Some node
+                                | :? BlockNode -> Some node
+                                | :? INode when (node :?> INode).NodeType = NodeType.Text -> Some node
+                                | _ -> 
+                                    if (context.Provider.Settings.[NDjango.Constants.EXCEPTION_IF_ERROR] :?> bool)
+                                    then None
+                                    else
+                                        Some ({new ErrorNode
+                                                (Block(token), 
+                                                 new Error(1, "All tags except 'block' tag inside inherited template are ignored"))
+                                                 with
+                                                    override x.nodelist = [node]
+                                                   } :> INodeImpl)
+                            )
+                    
+                    let (nodes : INode list) = List.map(fun (node : INodeImpl) -> node :?> INode) node_list
+                    
+                    (({
+                        new ExtendsNode(context, token, nodes, parent_name_expr) with
+                            override this.elements = (parent_name_expr :> INode) :: base.elements
+                            override this.nodelist = node_list
+                       } :> INodeImpl), 
+                       remaining)
+                | _ -> raise (SyntaxError (
+                                 "extends tag takes only one argument",
+                                 node_list,
+                                 remaining))
 
     /// Loads a template and renders it with the current context. This is a way of "including" other templates within a template.
     ///
@@ -85,20 +124,24 @@ module internal LoaderTags =
     /// Hello, {{ person }}
     /// See also: {% ssi %}.
 
+    [<Description("Loads and renders a template.")>]
     type IncludeTag() =
 
         interface ITag with
-            member this.Perform token provider tokens = 
+            member this.Perform token context tokens = 
                 match token.Args with
                 | name::[] -> 
                     let template_name = 
-                        new FilterExpression(provider, Block token, name)
+                        new FilterExpression(context, name)
                     ({
                         //todo: we're not producing a node list here. may have to revisit
-                        new TagNode(provider, token) 
+                        new TagNode(context, token) 
                         with
                             override this.walk manager walker = 
                                 {walker with parent=Some walker; nodes=(get_template manager template_name walker.context).Nodes}
+                            override this.elements 
+                                with get()=
+                                    (template_name :> INode) :: base.elements
                     } :> INodeImpl), tokens
                 | _ -> raise (SyntaxError ("'include' tag takes only one argument"))
 
@@ -134,16 +177,18 @@ module internal LoaderTags =
                 else (new SsiNode(provider, token, TextReader templateReader, loader) :> INodeImpl) :: walker.nodes
             {walker with buffer = buffer; nodes=nodes}
 
+    [<Description("Outputs the contents of a given file into the page.")>]
     type SsiTag() =
 
         interface ITag with
-            member this.Perform token provider tokens = 
+            member this.Perform token context tokens = 
                 match token.Args with
-                | path::[] -> (new SsiNode(provider, token, Path path, provider.Loader.GetTemplate) :> INodeImpl), tokens
-                | path::"parsed"::[] ->
-                    let templateRef = FilterExpression (provider, Block token, "\"" + path + "\"")
+                | path::[] -> (new SsiNode(context, token, Path path.Value, context.Provider.Loader.GetTemplate) :> INodeImpl), tokens
+                | path::MatchToken("parsed")::[] ->
+// TODO: ExpressionToken
+                    let templateRef = FilterExpression (context, path.WithValue("\"" + path.Value + "\"") (Some [1,false;path.Value.Length,true;1,false]))
                     ({
-                        new TagNode(provider, token) 
+                        new TagNode(context, token) 
                         with
                             override this.walk manager walker = 
                                 {walker with parent=Some walker; nodes=(get_template manager templateRef walker.context).Nodes}

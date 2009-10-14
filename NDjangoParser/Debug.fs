@@ -26,16 +26,15 @@ open System.Text.RegularExpressions
 open System.Collections
 open NDjango.Lexer
 open NDjango.Interfaces
+open NDjango.ParserNodes
 
 module internal Debug =
         
     /// Produces debug information
-    type TagNode(provider: ITemplateManagerProvider, t: BlockToken) =
-        inherit NDjango.ParserNodes.TagNode(provider, t)
+    type TagNode(parsing_context: ParsingContext, t: BlockToken) =
+        inherit NDjango.ParserNodes.TagNode(parsing_context, t)
 
         override this.walk manager walker = 
-            let output = new System.Text.StringBuilder()
-            
             {walker with buffer = walker.context.ToString()}
      
                     

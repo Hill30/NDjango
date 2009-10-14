@@ -29,8 +29,8 @@
             <Component Id="NDjangoAssemblies" Guid="94965855-72E6-4B54-AA9F-E1DB5263F89D">
               <File Id="ASPMVCIntegration.dll" Name="$(var.ASPMVCIntegration.TargetFileName)" Source="$(var.ASPMVCIntegration.TargetPath)" />
               <File Id="NDjango.BistroIntegration.dll" Name="$(var.BistroIntegration.TargetFileName)" Source="$(var.BistroIntegration.TargetPath)" />
-              <File Id="NDjango.Core.dll" Name="$(var.NDjangoParser.TargetFileName)" Source="$(var.NDjangoParser.TargetPath)" />
-              <File Id="NDjango.Filters.dll" Name="$(var.NDjangoParserFilters.TargetFileName)" Source="$(var.NDjangoParserFilters.TargetPath)" />
+              <File Id="NDjango.Core.dll" Name="$(var.NDjangoParser2008.TargetFileName)" Source="$(var.NDjangoParser2008.TargetPath)" />
+              <File Id="NDjango.Filters.dll" Name="$(var.NDjangoParserFilters2008.TargetFileName)" Source="$(var.NDjangoParserFilters2008.TargetPath)" />
             </Component>
             <Component Id="Readme" Guid="39D6280B-D600-4A8E-A929-62578C3CA890">
               <File Id="Readme.txt" Name="Readme.txt" Source="Readme.txt" />

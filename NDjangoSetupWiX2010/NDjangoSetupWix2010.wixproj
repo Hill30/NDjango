@@ -1,34 +1,26 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>3.0</ProductVersion>
-    <ProjectGuid>{7edcf53c-2150-4a6f-a60d-4b0870922ee2}</ProjectGuid>
+    <ProductVersion>3.5</ProductVersion>
+    <ProjectGuid>{121fda60-757a-4f44-8f1c-6edab80b6102}</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>NDjango</OutputName>
+    <OutputName>NDjangoSetupWix2010</OutputName>
     <OutputType>Package</OutputType>
-    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.0\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.5\Wix2010.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.5\Wix2010.targets</WixTargetsPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <OutputPath>bin\</OutputPath>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <DefineConstants>Debug</DefineConstants>
-    <LinkerAdditionalOptions>-fv</LinkerAdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <OutputPath>bin\</OutputPath>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Setup.wxs" />
-  </ItemGroup>
-  <ItemGroup>
-    <WixExtension Include="WixNetFxExtension">
-      <HintPath>$(WixExtDir)\WixNetFxExtension.dll</HintPath>
-    </WixExtension>
-    <WixExtension Include="WixUIExtension">
-      <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
-    </WixExtension>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Integration\ASP.MVC\ASPMVCIntegration.csproj">
@@ -41,16 +33,27 @@
       <Project>{2a3cc2fe-ab0e-44f6-b1cb-3290581da442}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters.csproj">
-      <Name>NDjangoParserFilters</Name>
+    <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters2010.csproj">
+      <Name>NDjangoParserFilters2010</Name>
       <Project>{89dc9575-c706-4d0d-944a-79e5865ffe88}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\NDjangoParser\NDjangoParser.fsproj">
-      <Name>NDjangoParser</Name>
+    <ProjectReference Include="..\NDjangoParser\NDjangoParser2010.fsproj">
+      <Name>NDjangoParser2010</Name>
       <Project>{b75384c4-c545-4511-a7fe-93d438b8afa4}</Project>
       <Private>True</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixUtilExtension">
+      <HintPath>..\..\..\Program Files\Windows Installer XML v3.5\bin\WixUtilExtension</HintPath>
+    </WixExtension>
+    <WixExtension Include="WixNetFxExtension">
+      <HintPath>..\..\..\Program Files\Windows Installer XML v3.5\bin\WixNetFxExtension</HintPath>
+    </WixExtension>
+    <WixExtension Include="WixUIExtension">
+      <HintPath>..\..\..\Program Files\Windows Installer XML v3.5\bin\WixUIExtension</HintPath>
+    </WixExtension>
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <!--
@@ -61,8 +64,4 @@
 	<Target Name="AfterBuild">
 	</Target>
 	-->
-  <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
-  </PropertyGroup>
 </Project>
