@@ -1,7 +1,6 @@
 NDjango Requirements:
- *NET Framework 3.5 SP1
- *Visual Studio 2008
- *F# CTP v.1.9.6.16 (You can download it from:  http://download.microsoft.com/download/F/7/4/F74A3170-261C-4E8F-B1A8-2E352C61A89B/InstallFSharp.msi)
+ *NET Framework 4.0
+ *Visual Studio 2010 is required for NDjango Editor
 
 New in 0.9.5.0
  *New NDjango Editor for Microsoft Visual Studio 2010 beta 1. 
