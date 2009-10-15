@@ -164,3 +164,8 @@ module Constants =
     /// List of nodes representing the <b>empty</b> branch of the for tag
     /// </summary>
     let NODELIST_FOR_EMPTY = "for.empty.children";
+
+    /// <summary>
+    /// List of nodes blocks in the inherited template
+    /// </summary>
+    let NODELIST_EXTENDS_BLOCKS = "extends.blocks";

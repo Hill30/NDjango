@@ -52,9 +52,8 @@ module public ParserNodes =
         default  x.walk manager walker = walker
 
         /// List of child nodes used by the tags with a single list of child nodes e.g. spaceless, with or escape
-        /// this list is also used by the extends tag to build a list of tags substitution
         abstract member nodelist: INodeImpl list
-        default x.nodelist with get() = []
+        default x.nodelist = []
         
         /// Methods/Properties for the INode interface
         /// Node type - only nodes of NodeType.Construct are important for rendering.
@@ -64,11 +63,10 @@ module public ParserNodes =
         /// A dictionary of all lists of child nodes
         /// by iterating through the dictionary a complete list of all elements and child nodes can be retrieved
         abstract member Nodes: Map<string, IEnumerable<INode>>
-        default x.Nodes 
-            with get() =
-                new Map<string, IEnumerable<INode>>([]) 
-                    |> Map.add Constants.NODELIST_TAG_CHILDREN (x.nodelist |> Seq.map (fun node -> (node :?> INode)))
-                    |> Map.add Constants.NODELIST_TAG_ELEMENTS (x.elements :> IEnumerable<INode>)
+        default x.Nodes =
+            new Map<string, IEnumerable<INode>>([]) 
+                |> Map.add Constants.NODELIST_TAG_CHILDREN (x.nodelist |> Seq.map (fun node -> (node :?> INode)))
+                |> Map.add Constants.NODELIST_TAG_ELEMENTS (x.elements :> IEnumerable<INode>)
         
         /// A list of nodes representing django construct elements including construct markers, tag name , variable, etc.
         abstract member elements: INode list

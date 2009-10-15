@@ -131,6 +131,10 @@ module internal ASTNodes =
                 add_if_missing key value
             | [] -> primary
             
+        override x.Nodes =
+            base.Nodes 
+                |> Map.add (NDjango.Constants.NODELIST_EXTENDS_BLOCKS) (Seq.of_list nodes)
+
         override this.walk manager walker =
             let context = 
                 match walker.context.tryfind "__blockmap" with

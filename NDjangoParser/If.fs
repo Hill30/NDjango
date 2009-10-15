@@ -146,11 +146,10 @@ module internal If =
             | true -> {walker with parent=Some walker; nodes=node_list_true}
             | false -> {walker with parent=Some walker; nodes=node_list_false}
             
-        override x.Nodes 
-            with get() =
-                base.Nodes 
-                    |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (node_list_true |> Seq.map (fun node -> (node :?> INode)))
-                    |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (node_list_false |> Seq.map (fun node -> (node :?> INode)))
+        override x.Nodes =
+            base.Nodes 
+                |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (node_list_true |> Seq.map (fun node -> (node :?> INode)))
+                |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (node_list_false |> Seq.map (fun node -> (node :?> INode)))
     
     [<NDjango.ParserNodes.Description("Outputs the content of enclosed tags based on expression evaluation result.")>]
     type Tag() =
