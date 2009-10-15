@@ -130,7 +130,8 @@ module internal ASTNodes =
                 join_replace primary t |>
                 add_if_missing key value
             | [] -> primary
-            
+                                        
+        override x.elements = (parent :> INode) :: base.elements
         override x.Nodes =
             base.Nodes 
                 |> Map.add (NDjango.Constants.NODELIST_EXTENDS_BLOCKS) (Seq.of_list nodes)

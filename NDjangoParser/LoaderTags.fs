@@ -91,11 +91,7 @@ module internal LoaderTags =
                     
                     let (nodes : INode list) = List.map(fun (node : INodeImpl) -> node :?> INode) node_list
                     
-                    (({
-                        new ExtendsNode(context, token, nodes, parent_name_expr) with
-                            override this.elements = (parent_name_expr :> INode) :: base.elements
-                            override this.nodelist = node_list
-                       } :> INodeImpl), 
+                    ((new ExtendsNode(context, token, nodes, parent_name_expr) :> INodeImpl), 
                        remaining)
                 | _ -> raise (SyntaxError (
                                  "extends tag takes only one argument",
