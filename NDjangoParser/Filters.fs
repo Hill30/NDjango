@@ -178,7 +178,7 @@ module internal Filters =
                                     sprintf "%s%s%s" lead middle trail
                 else str
     
-        let words_split_re = new Regex("\\s+")
+        let words_split_re = new Regex("(\\s+)")
         let words = words_split_re.Split(url)
         let wordsList = [for word in words do yield word] |> List.map (ProcessUrlizeString trimCount)
         String.Join (String.Empty,List.to_array wordsList)

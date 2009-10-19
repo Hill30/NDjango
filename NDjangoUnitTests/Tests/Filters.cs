@@ -741,6 +741,11 @@ namespace NDjango.UnitTests
             ////u'123'
 
 
+            lst.Add(new TestDescriptor("urlize-filter08", "{% autoescape off %}{{value|urlize}}{% endautoescape %}", ContextObjects.p("value", "hello world http://www.hello.com"), ContextObjects.p("hello world <a href=\"http://www.hello.com\">http://www.hello.com</a>")));
+            ////>>> urlize(123)
+            ////u'123'
+
+
             lst.Add(new TestDescriptor("urlizetrunc-fitler01", "{% autoescape off %}{{value|urlizetrunc:20}}{% endautoescape %}",
                                        ContextObjects.p("value", "http://short.com/"),
                                        ContextObjects.p("<a href=\"http://short.com/\">http://short.com/</a>")));
@@ -754,6 +759,7 @@ namespace NDjango.UnitTests
             ////u'<a href="http://www.google.co.uk/search?hl=en&q=some+long+url&btnG=Search&meta=" rel="nofollow">http://www.google...</a>'
 
             string uri = "http://31characteruri.com/test/";
+            string uri2 = "this is a test text\r\n http://31characteruri.com/test/ and this is another test text";
 
 
             lst.Add(new TestDescriptor("urlizetrunc-fitler03", "{% autoescape off %}{{value|urlizetrunc:31}}{% endautoescape %}",
@@ -766,14 +772,30 @@ namespace NDjango.UnitTests
                            ContextObjects.p("value", uri),
                            ContextObjects.p("<a href=\"http://31characteruri.com/test/\">http://31characteruri.com/t...</a>")));
 
+
+            lst.Add(new TestDescriptor("urlizetrunc-fitler05", "{% autoescape off %}{{value|urlizetrunc:30}}{% endautoescape %}",
+                           ContextObjects.p("value", uri),
+                           ContextObjects.p("<a href=\"http://31characteruri.com/test/\">http://31characteruri.com/t...</a>")));
+
             ////>>> urlizetrunc(uri, 30)
             ////u'<a href="http://31characteruri.com/test/" rel="nofollow">http://31characteruri.com/t...</a>'
             
-            lst.Add(new TestDescriptor("urlizetrunc-fitler05", "{% autoescape off %}{{value|urlizetrunc:2}}{% endautoescape %}",
+            lst.Add(new TestDescriptor("urlizetrunc-fitler06", "{% autoescape off %}{{value|urlizetrunc:2}}{% endautoescape %}",
                            ContextObjects.p("value", uri),
                            ContextObjects.p("<a href=\"http://31characteruri.com/test/\">...</a>")));
             ////>>> urlizetrunc(uri, 2)
             ////u'<a href="http://31characteruri.com/test/" rel="nofollow">...</a>'
+
+
+            lst.Add(new TestDescriptor("urlizetrunc-filter07", "{% autoescape off %}{{value|urlizetrunc:2}}{% endautoescape %}",
+                            ContextObjects.p("value", uri2),
+                            ContextObjects.p("this is a test text\r\n <a href=\"http://31characteruri.com/test/\">...</a> and this is another test text")));
+
+            lst.Add(new TestDescriptor("urlizetrunc-filter08", "{% autoescape off %}{{value|urlizetrunc:12}}{% endautoescape %}",
+                            ContextObjects.p("value", uri2),
+                            ContextObjects.p("this is a test text\r\n <a href=\"http://31characteruri.com/test/\">http://31...</a> and this is another test text")));
+
+
 
             lst.Add(new TestDescriptor("wordwrap-filter01", "{% autoescape off %}{{value|wordwrap:14}}{% endautoescape %}",
                                        ContextObjects.p("value",
