@@ -69,7 +69,7 @@ namespace NDjango.Designer.CodeCompletion
         protected IEnumerable<Completion> BuildCompletions(IEnumerable<string> values, string prefix, string suffix)
         {
             foreach (string value in values)
-                yield return new Completion(value, prefix + value + suffix, value);
+                yield return new Completion(value, prefix + value + suffix, value, null, null);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace NDjango.Designer.CodeCompletion
                 //if (prefix.Length > 1)
                 //    return completions.Where(c => c.DisplayText.StartsWith(prefix.Substring(0, prefix.Length - 1))).ToList();
                 //else
-                return completions;
+                    return completions;
             }
         }
 

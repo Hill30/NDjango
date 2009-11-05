@@ -33,7 +33,8 @@ open Utilities
 
 module internal Filters = 
     
-    type IEscapeFilter =
+    type IEscapeFilter = interface end
+
     
     /// Escapes a string's HTML. Specifically, it makes these replacements:
     ///    * < is converted to &lt;
@@ -107,7 +108,7 @@ module internal Filters =
                         if Seq.isEmpty words then ""
                         elif limit = 0 then "..."
                         else 
-                            let m = words |> Seq.hd 
+                            let m = words |> Seq.head 
                             let s = value.[start..(m.Index + m.Length)-1]
                             s + truncate (limit-1) (m.Index + m.Length) (Seq.skip 1 words)
                     wsRegex.Matches value |> Seq.cast |> truncate limit 0 :> obj
@@ -127,7 +128,7 @@ module internal Filters =
         let ProcessUrlizeString (trimlimit : int option) (str : string) =
             let LEADING_PUNCTUATION  = ["\\("; "<"; "&lt;"]
             let TRAILING_PUNCTUATION = ["\\."; ","; "\\)"; ">"; "\\n"; "&gt;"]
-            let punctuation_re_input = Printf.sprintf "^(?<lead>(?:%s)*)(?<middle>.*?)(?<trail>(?:%s)*)$" (String.Join("|",List.to_array LEADING_PUNCTUATION) ) (String.Join("|", List.to_array TRAILING_PUNCTUATION) ) 
+            let punctuation_re_input = Printf.sprintf "^(?<lead>(?:%s)*)(?<middle>.*?)(?<trail>(?:%s)*)$" (String.Join("|",List.toArray LEADING_PUNCTUATION) ) (String.Join("|", List.toArray TRAILING_PUNCTUATION) ) 
             let punctuation_re = new Regex ( punctuation_re_input , RegexOptions.ExplicitCapture  )
             let simple_email_re = new Regex (@"^\S+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$")
 
@@ -181,7 +182,7 @@ module internal Filters =
         let words_split_re = new Regex("(\\s+)")
         let words = words_split_re.Split(url)
         let wordsList = [for word in words do yield word] |> List.map (ProcessUrlizeString trimCount)
-        String.Join (String.Empty,List.to_array wordsList)
+        String.Join (String.Empty,List.toArray wordsList)
 
     /// Converts URLs in plain text into clickable links.
     ///
@@ -316,7 +317,7 @@ module internal Filters =
             member x.PerformWithParam (value, arg) = 
                 match value with 
                     | :? IEnumerable ->
-                        let strArr = Seq.map (fun (item: Object)  -> (Convert.ToString (item)) ) (Seq.cast (value :?> IEnumerable) ) |> Seq.to_array 
+                        let strArr = Seq.map (fun (item: Object)  -> (Convert.ToString (item)) ) (Seq.cast (value :?> IEnumerable) ) |> Seq.toArray 
                         String.Join (Convert.ToString arg, strArr) :> obj
                     | _ -> raise (System.Exception("Type not supported"))
                     
@@ -403,7 +404,7 @@ module internal Filters =
                     | :? IEnumerable ->
                         let value = (value :?> IEnumerable) |> Seq.cast
                         let value = Seq.sortBy (fun (elem: IDictionary<string,IComparable>) -> elem.[arg]) value
-                        let value = Seq.to_list value |> List.rev
+                        let value = Seq.toList value |> List.rev
                         value :> obj
                     | _ -> 
                         value
@@ -471,7 +472,7 @@ module internal Filters =
              ('J', '5'); ('M', '6'); ('L', '5'); ('O', '6'); ('N', '6'); ('P', '7');
              ('S', '7'); ('R', '7'); ('U', '8'); ('T', '8'); ('W', '9'); ('V', '8');
              ('Y', '9'); ('X', '9')             
-             ] |> Map.of_list
+             ] |> Map.ofList
         interface ISimpleFilter with
             member x.Perform value = 
                 let getNumFromChar (inputChar:char) = 

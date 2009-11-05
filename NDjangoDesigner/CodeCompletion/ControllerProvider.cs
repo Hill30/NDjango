@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 using NDjango.Designer.Parsing;
 using Microsoft.VisualStudio.Editor;
 
@@ -38,7 +37,7 @@ namespace NDjango.Designer.CodeCompletion
     internal class ControllerProvider : IIntellisenseControllerProvider
     {
         [Import]
-        internal ICompletionBrokerMapService CompletionBrokerMapService { get; set; }
+        internal ICompletionBroker CompletionBroker { get; set; }
 
         [Import]
         internal INodeProviderBroker nodeProviderBroker { get; set; }
@@ -46,22 +45,11 @@ namespace NDjango.Designer.CodeCompletion
         [Import]
         internal IVsEditorAdaptersFactoryService adaptersFactory { get; set; }
         
-        public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers, IEnvironment context)
+        public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers)
         {
-
-            bool brokerCreated = false;
-            foreach (ITextBuffer subjectBuffer in subjectBuffers)
-            {
-                if (nodeProviderBroker.IsNDjango(subjectBuffer, context))
-                    brokerCreated |= (CompletionBrokerMapService.GetBrokerForTextView(textView, subjectBuffer) != null);
-            }
-
-            // There may not be a broker for any of the subject buffers for this text view.  This can happen if there are no providers available.
-            if (brokerCreated)
-            {
-                return new Controller(this, subjectBuffers, textView, context);
-            }
-
+            foreach (ITextBuffer buffer in subjectBuffers)
+                if (nodeProviderBroker.IsNDjango(buffer))
+                    return new Controller(this, buffer, textView);
             return null;
         }
     }

@@ -1,6 +1,9 @@
 NDjango Requirements:
  *NET Framework 4.0
- *Visual Studio 2010 is required for NDjango Editor
+ *Visual Studio 2010 beta 2 is required for NDjango Editor
+
+New in 0.9.6.0 *NDjango Editor for Microsoft Visual Studio 2010 beta 2.
+ *Ndjango.Core and NDjango.Filters are now bound to the new FSharp.Core version 4.0 and FSharp.PowerPack version 1.9.7.8.
 
 New in 0.9.5.0
  *New NDjango Editor for Microsoft Visual Studio 2010 beta 1. 

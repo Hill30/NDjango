@@ -62,10 +62,10 @@ module internal ASTWalker =
 //                            System.Diagnostics.Debug.WriteLine ("walking " + node.Token.DiagInfo )
                         walker <- node.walk manager {walker with nodes = nodes; buffer=""; bufferIndex = 0}
                     with
-                        // intercept rendering errors and rethrow them with additional diagnostic info
+                        // intercept rendering errors and reraise them with additional diagnostic info
                         | :? RenderingError as r -> 
                             raise (new RenderingException(r.Message, node.Token, r.InnerException)) 
-                        | _ -> rethrow() 
+                        | _ -> reraise() 
                     // call itself on the new walker
                     getChar()
             else

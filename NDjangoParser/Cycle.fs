@@ -57,7 +57,7 @@ module internal Cycle =
 
         member this.Values = values
         member this.OrigValues = origValues
-        member this.Value = List.hd values
+        member this.Value = List.head values
         
     [<NDjango.ParserNodes.Description("Cycles among the given strings each time this tag is encountered.")>]
     type TagNode(provider, token, name: string, values: Variable list) =
@@ -67,8 +67,8 @@ module internal Cycle =
             match controller with
                 | None -> new CycleController(values, values)
                 | Some c -> 
-                    match List.tl c.Values with
-                        | head::tail -> new CycleController(List.tl c.Values, c.OrigValues)
+                    match List.tail c.Values with
+                        | head::tail -> new CycleController(List.tail c.Values, c.OrigValues)
                         | [] -> new CycleController (c.OrigValues, c.OrigValues)
 
         override this.walk manager walker = 
@@ -83,8 +83,8 @@ module internal Cycle =
                 match oldc with
                     | None -> new CycleController(values, values)
                     | Some c -> 
-                        match List.tl c.Values with
-                            | head::tail -> new CycleController(List.tl c.Values, c.OrigValues)
+                        match List.tail c.Values with
+                            | head::tail -> new CycleController(List.tail c.Values, c.OrigValues)
                             | [] -> new CycleController (c.OrigValues, c.OrigValues)
 
             let buffer = newc.Value.Resolve(walker.context) |> fst |> string

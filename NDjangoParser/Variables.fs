@@ -208,7 +208,7 @@ module Variables =
             match var with
             | Some v -> 
                 try
-                    let var_list = List.of_array (v.Split(Constants.VARIABLE_ATTRIBUTE_SEPARATOR.ToCharArray()))
+                    let var_list = List.ofArray (v.Split(Constants.VARIABLE_ATTRIBUTE_SEPARATOR.ToCharArray()))
                     var_list |> 
                         List.iter 
                             (fun v ->
@@ -225,7 +225,7 @@ module Variables =
                         raise (SyntaxException(ex.Message, Text token))
                     else
                         new Error(2, ex.Message), None
-                | _ -> rethrow()
+                | _ -> reraise()
             | None -> error, None
         
         let clean_nulls  = function
@@ -243,9 +243,9 @@ module Variables =
             | Some lkp ->
                 let result =
                     match 
-                        match context.tryfind (List.hd lkp) with
+                        match context.tryfind (List.head lkp) with
                         | Some v -> 
-                            match List.tl lkp with
+                            match List.tail lkp with
                             // make sure we don't end up with a 'Some null'
                             | [] -> Some v |> clean_nulls
                             | list -> 

@@ -42,10 +42,10 @@ module Expressions =
         let name_node = 
             new FilterNameNode (
                 expression_token.CreateToken(filter_name),
-                context.Provider.Filters |> Map.to_seq |> Seq.map (fun f -> fst f) 
+                context.Provider.Filters |> Map.toSeq |> Seq.map (fun f -> fst f) 
             )
             
-        let args = filter_match.Groups.["arg"].Captures |> Seq.cast |> Seq.to_list 
+        let args = filter_match.Groups.["arg"].Captures |> Seq.cast |> Seq.toList 
                 |> List.map 
                     (fun (c) ->
                         new Variable(context, expression_token.CreateToken(c))
@@ -67,7 +67,7 @@ module Expressions =
                     raise (SyntaxException(ex.Message, Text filter_token))
                 else
                     new Error(2, ex.Message), None
-            | _ -> rethrow()
+            | _ -> reraise()
 
         member x.Perform (context, input) =
             match filter with
@@ -80,7 +80,7 @@ module Expressions =
                         // we don't have to check for the presence of a default value here, as parse time
                         // check enforces that filters without defaults do not get called without parameters
                         | [] -> std.DefaultValue
-                        | _ -> (args |> List.hd).Resolve context |> fst
+                        | _ -> (args |> List.head).Resolve context |> fst
                     std.PerformWithParam(input, param)
                 | _ as simple -> simple.Perform input
             
@@ -101,7 +101,7 @@ module Expressions =
             member x.ErrorMessage = error
             member x.Description = ""
             member x.Nodes = 
-                Map.of_list[(Constants.NODELIST_TAG_ELEMENTS, x.elements)] 
+                Map.ofList[(Constants.NODELIST_TAG_ELEMENTS, x.elements)] 
                     :> IDictionary<string, IEnumerable<INode>>
 
     /// Represents a django expression. An experssion consists of a reference followed by 
@@ -147,7 +147,7 @@ module Expressions =
                             raise (SyntaxException(ex.Message, Text expression))
                         else
                             mtch.Index+mtch.Length, new Error(2, ex.Message), variable, filters
-                    | _ -> rethrow()
+                    | _ -> reraise()
                 ) 
                 (0, Error.None, None, [])
         
@@ -182,7 +182,7 @@ module Expressions =
                             if ignoreFailures then
                                 (None, false)
                             else
-                                rethrow()
+                                reraise()
                  | None ->
                     raise (SyntaxException(error.Message, Text expression))
             
@@ -241,7 +241,7 @@ module Expressions =
             /// node list consists of the variable node and the list of the filter nodes
             member x.Nodes =
                 let elements = 
-                    filters |> Seq.of_list |> Seq.map (fun f -> f:>INode) 
+                    filters |> Seq.ofList |> Seq.map (fun f -> f:>INode) 
                 let elements =
                     match variable with
                     | Some v -> [(v :> INode)] |> Seq.append elements

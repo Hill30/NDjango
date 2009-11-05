@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 10
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoDesigner", "NDjangoDesigner\NDjangoDesigner.csproj", "{3AC5B05C-E4FF-4C90-89CA-A1158F0815E5}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NDjangoParser", "NDjangoParser\NDjangoParser2010.fsproj", "{B75384C4-C545-4511-A7FE-93D438B8AFA4}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NDjangoParser2010", "NDjangoParser\NDjangoParser2010.fsproj", "{B75384C4-C545-4511-A7FE-93D438B8AFA4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateViewer", "TemplateViewer\TemplateViewer.csproj", "{A86880CF-C073-40B0-9FDC-B8641F99260F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoParserFilters", "NDjangoParserFilters\NDjangoParserFilters2010.csproj", "{89DC9575-C706-4D0D-944A-79E5865FFE88}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoParserFilters2010", "NDjangoParserFilters\NDjangoParserFilters2010.csproj", "{89DC9575-C706-4D0D-944A-79E5865FFE88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

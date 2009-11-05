@@ -5,7 +5,6 @@ using System.Text;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 using Microsoft.VisualStudio.Text;
 
 namespace NDjango.Designer.Parsing
@@ -15,7 +14,7 @@ namespace NDjango.Designer.Parsing
     [ContentType(Constants.NDJANGO)]
     class ActiveViewMonitor : IWpfTextViewCreationListener
     {
-        public void TextViewCreated(IWpfTextView textView, IEnvironment context)
+        public void TextViewCreated(IWpfTextView textView)
         {
             textView.GotAggregateFocus += new EventHandler(textView_GotAggregateFocus);
         }

@@ -110,7 +110,7 @@ namespace NDjango.Designer.Parsing
                 djangoDiagnostics.OutputTaskItemString(
                     node.ErrorMessage.Message + "\n",
                     VSTASKPRIORITY.TP_HIGH,
-                    VSTASKCATEGORY.CAT_BUILDCOMPILE,
+                    VSTASKCATEGORY.CAT_USER,
                     "",
                     (int)_vstaskbitmap.BMP_COMPILE,
                     filePath,

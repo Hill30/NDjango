@@ -23,7 +23,6 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 using NDjango.Designer.Parsing;
 
 namespace NDjango.Designer.Tags
@@ -40,9 +39,9 @@ namespace NDjango.Designer.Tags
         [Import]
         internal INodeProviderBroker nodeProviderBroker { get; set; }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer, IEnvironment context) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            if (nodeProviderBroker.IsNDjango(buffer, context))
+            if (nodeProviderBroker.IsNDjango(buffer))
                 return (ITagger<T>)new Tagger(nodeProviderBroker, buffer);
             else
                 return null;

@@ -127,7 +127,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
     let lockProvider = new obj()
 
     /// global map of loaded templates shared among all template managers
-    let templates = ref Map.Empty
+    let templates = ref Map.empty
 
     /// function used to validate if a template needs to be reloaded
     /// it is calculated when the template manager provider is created
@@ -158,7 +158,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                                          :: syntax_error.Pattern @ base.elements
                                     /// Add parsed nodes, gathered from syntax_error to the nodelist of
                                     /// this ErrorNode
-                                    override x.nodelist = List.of_seq syntax_error.Nodes
+                                    override x.nodelist = List.ofSeq syntax_error.Nodes
                             } :> INodeImpl), 
                         match syntax_error.Remaining with
                         | Some remaining -> remaining
@@ -176,7 +176,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             then
                 raise (SyntaxException(syntax_error.Message, Block blockToken))
             else
-                Some ( List.of_seq syntax_error.Nodes @
+                Some ( List.ofSeq syntax_error.Nodes @
                         [({
                             new ErrorNode(Block blockToken, new Error(2, syntax_error.Message))
                                 with
@@ -236,7 +236,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                     | Some result -> 
                         let node, remainder = result
                         node, remainder
-                    | None -> rethrow()
+                    | None -> reraise()
         | Lexer.Comment comment -> 
             // include it in the output to cover all scenarios, but don't actually bring the comment across
             // the default behavior of the walk override is to return the same walker
@@ -246,7 +246,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
         
         | Lexer.Error error ->
             if (settings.[Constants.EXCEPTION_IF_ERROR] :?> bool)
-                then raise (SyntaxException(error.ErrorMessage, Error error))
+                then raise (SyntaxException(error.ErrorMessage, Token.Error error))
             ({
                         new ErrorNode(token, new Error(2, error.ErrorMessage))
                             with
@@ -376,7 +376,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             
             // take a note of the current position - this will be the
             // start position for the parsing context being built
-            let start_pos = (tokens |> LazyList.hd).Position
+            let start_pos = (tokens |> LazyList.head).Position
             
             // do the parsing. If an exception is thrown we still need 
             // a list of all nodes with as much info about the template 
@@ -388,7 +388,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                 | _ as ex -> 
                     match generate_diag_for_tag ex parent context tokens with
                     | Some result -> result
-                    | None -> rethrow()
+                    | None -> reraise()
 
             match nodes with
             // no nodes - empty template. I do not think it can happen, still...

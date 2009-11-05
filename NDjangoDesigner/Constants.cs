@@ -91,7 +91,6 @@ namespace NDjango.Designer
         {
             public NDjangoMarkerFormat()
             {
-                ForegroundColor = Colors.Red;
                 BackgroundColor = Colors.Yellow;
             }
         }

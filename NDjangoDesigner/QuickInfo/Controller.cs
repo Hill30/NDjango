@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using System.Windows.Input;
 using NDjango.Interfaces;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 
 namespace NDjango.Designer.QuickInfo
 {
@@ -40,10 +39,9 @@ namespace NDjango.Designer.QuickInfo
     class Controller : IIntellisenseController
     {
         private ControllerProvider provider;
-        private IList<ITextBuffer> subjectBuffers;
+        private ITextBuffer buffer;
         private ITextView textView;
         private IQuickInfoSession activeSession;
-        private IEnvironment context;
 
         /// <summary>
         /// Creates a new controller
@@ -52,12 +50,11 @@ namespace NDjango.Designer.QuickInfo
         /// <param name="subjectBuffers"></param>
         /// <param name="textView"></param>
         /// <param name="brokerMapService"></param>
-        public Controller(ControllerProvider provider, IList<ITextBuffer> subjectBuffers, ITextView textView, IEnvironment context)
+        public Controller(ControllerProvider provider, ITextBuffer buffer, ITextView textView)
         {
             this.provider = provider;
-            this.subjectBuffers = subjectBuffers;
+            this.buffer = buffer;
             this.textView = textView;
-            this.context = context;
 
             textView.MouseHover += new EventHandler<MouseHoverEventArgs>(textView_MouseHover);
 
@@ -76,23 +73,20 @@ namespace NDjango.Designer.QuickInfo
             SnapshotPoint? point = e.TextPosition.GetPoint(
                 textBuffer => 
                     (
-                        subjectBuffers.Contains(textBuffer)
-                        && provider.nodeProviderBroker.IsNDjango(textBuffer, context)
-                        && provider.brokerMapService.GetBrokerForTextView(textView, textBuffer) != null
+                        buffer == textBuffer
                                 // only text buffers require expilicit session activation
                                 // XML and HTML already have quickInfo session activation code
                                 // adding our own would cause 'double vision' - our source would be hit
                                 // by our session as well as by the standard one
-                        && textBuffer.ContentType.TypeName == "text"
+                        && textBuffer.ContentType.TypeName == "plaintext"
                     )
                 ,PositionAffinity.Predecessor);
             
             if (point.HasValue)
             {
-                IQuickInfoBroker broker = provider.brokerMapService.GetBrokerForTextView(textView, point.Value.Snapshot.TextBuffer);
                 ITrackingPoint triggerPoint = point.Value.Snapshot.CreateTrackingPoint(point.Value.Position, PointTrackingMode.Positive);
 
-                activeSession = broker.CreateQuickInfoSession(triggerPoint, true);
+                activeSession = provider.quickInfoBroker.CreateQuickInfoSession(textView, triggerPoint, true);
                 activeSession.Start();
             }
         }

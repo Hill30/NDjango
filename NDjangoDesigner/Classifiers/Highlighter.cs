@@ -5,9 +5,9 @@ using System.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 using NDjango.Designer.Parsing;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace NDjango.Designer.Classifiers
 {
@@ -16,7 +16,7 @@ namespace NDjango.Designer.Classifiers
     [ContentType(Constants.NDJANGO)] 
     internal sealed class Highlighter : IWpfTextViewCreationListener
     {
-        public void TextViewCreated(IWpfTextView textView, IEnvironment context)
+        public void TextViewCreated(IWpfTextView textView)
         {
             textView.Caret.PositionChanged += new EventHandler<CaretPositionChangedEventArgs>(Caret_PositionChanged);
         }

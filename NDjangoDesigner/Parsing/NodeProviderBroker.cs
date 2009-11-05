@@ -26,7 +26,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -40,7 +39,7 @@ namespace NDjango.Designer.Parsing
     internal interface INodeProviderBroker
     {
         NodeProvider GetNodeProvider(ITextBuffer buffer);
-        bool IsNDjango(ITextBuffer buffer, IEnvironment context);
+        bool IsNDjango(ITextBuffer buffer);
     }
 
     /// <summary>
@@ -107,20 +106,19 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns><b>true</b> if this is a ndjango buffer</returns>
-        public bool IsNDjango(ITextBuffer buffer, IEnvironment context)
+        public bool IsNDjango(ITextBuffer buffer)
         {
-            // we do not need to mess with the text buffers for tooltips
-            var formatMap = new VariableDescription();
-            formatMap.Name = "FormatMap";
-            var formatMapName = context.Get(formatMap);
-            if (Convert.ToString(formatMapName) == "tooltip")
-                return false;
 
             switch (buffer.ContentType.TypeName)
             {
-                case "text":
+                case "plaintext":
                 case "HTML":
                 case "XML":
+                    // there is no file associated with the buffer
+                    // it looks like a buffer created for a tool tip 
+                    // we do not need to mess with those
+                    if (!buffer.Properties.ContainsProperty(typeof(ITextDocument)))
+                        return false;
                     return true;
                 default: return false;
             }

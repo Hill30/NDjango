@@ -45,7 +45,7 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
                     match fst <| e.Resolve context true with
                     | None -> null
                     | Some v -> v) |>
-        List.to_array
+        List.toArray
 
     /// Evaluates the contents of the nodelist against the given walker. This function
     /// effectively parses the nested tags within the simple tag.

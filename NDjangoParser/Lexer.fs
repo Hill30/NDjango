@@ -359,16 +359,16 @@ module Lexer =
                 with
                 | :? LexerError as ex -> 
                     Error (new ErrorToken(text, ex.Message, location))
-                | _ -> rethrow()
+                | _ -> reraise()
         
         /// <summary>
         /// 
         /// </summary>
         interface IEnumerator<Token seq> with
-            member this.Current = Seq.of_list current
+            member this.Current = Seq.ofList current
         
         interface IEnumerator with
-            member this.Current = Seq.of_list current :> obj
+            member this.Current = Seq.ofList current :> obj
             
             member this.MoveNext() =
                 match tail with
@@ -386,7 +386,7 @@ module Lexer =
                     tail <- t
                     let in_tag = ref true
                     // convert strings to tokens
-                    current <- strings |> List.of_array |> List.map (create_token in_tag)
+                    current <- strings |> List.ofArray |> List.map (create_token in_tag)
                     true
                 
             /// we cannot reset the enumerator, because resetting the template text reader
@@ -408,4 +408,4 @@ module Lexer =
     /// Produces a sequence of token objects based on the template text
     /// </summary>
     let internal tokenize (template:TextReader) =
-        LazyList.of_seq <| Seq.fold (fun (s:Token seq) (item:Token seq) -> Seq.append s item) (seq []) (new Tokenizer(template))
+        LazyList.ofSeq <| Seq.fold (fun (s:Token seq) (item:Token seq) -> Seq.append s item) (seq []) (new Tokenizer(template))

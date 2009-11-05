@@ -21,7 +21,6 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using NDjango.Designer.Parsing;
@@ -37,10 +36,10 @@ namespace NDjango.Designer.CodeCompletion
         [Import]
         internal INodeProviderBroker nodeProviderBroker { get; set; }
 
-        public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer, IEnvironment environment)
+        public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)
         {
-            if (nodeProviderBroker.IsNDjango(textBuffer, environment))
-                return new Source(nodeProviderBroker);
+            if (nodeProviderBroker.IsNDjango(textBuffer))
+                return new Source(nodeProviderBroker, textBuffer);
             return null;
         }
     }

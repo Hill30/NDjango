@@ -42,12 +42,8 @@
       <SpecificVersion>True</SpecificVersion>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FSharp.PowerPack, Version=3.9.9.995, Culture=neutral, PublicKeyToken=a19089b1c74d0809">
-      <Name>FSharp.PowerPack</Name>
-      <AssemblyName>FSharp.PowerPack.dll</AssemblyName>
-      <SpecificVersion>True</SpecificVersion>
-      <HintPath>..\..\..\..\Program Files\Microsoft F#\v4.0\FSharp.PowerPack.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="FSharp.PowerPack">
+      <HintPath>c:\Program Files\FSharp-1.9.7.8\bin\FSharp.PowerPack.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />

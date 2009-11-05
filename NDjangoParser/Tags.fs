@@ -45,7 +45,7 @@ module internal Misc =
                 let fail (fail_token:TextToken) =
                         raise (SyntaxError(
                                 "invalid arguments for 'Autoescape' tag", 
-                                Some (Seq.of_list nodes),
+                                Some (Seq.ofList nodes),
                                 Some [(new KeywordNode(fail_token, ["on";"off"]) :> INode)],
                                 Some remaining
                                 ))
@@ -66,7 +66,7 @@ module internal Misc =
                                 nodes=nodes}
                         override x.nodelist with get() = nodes
                         override x.elements =
-                            (new KeywordNode(List.hd token.Args, ["on";"off"]) :> INode)
+                            (new KeywordNode(List.head token.Args, ["on";"off"]) :> INode)
                                 ::base.elements
                    } :> INodeImpl), 
                    remaining)
@@ -495,7 +495,7 @@ module Abstract =
                                 | Some v -> Convert.ToString(v)
                                 | None -> System.String.Empty
 
-                            let url = this.GenerateUrl((shortResolve path), List.to_array <| List.map (fun (elem: FilterExpression) -> shortResolve elem) argList, walker.context)
+                            let url = this.GenerateUrl((shortResolve path), List.toArray <| List.map (fun (elem: FilterExpression) -> shortResolve elem) argList, walker.context)
                             match var with 
                             | None -> { walker with buffer = url }
                             | Some v -> { walker with context = walker.context.add(v.Value, (url :> obj)) }

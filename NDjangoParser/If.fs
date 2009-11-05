@@ -198,7 +198,7 @@ module internal If =
                             raise (SyntaxError(e.Message, 
                                     node_list_true @ node_list_false,
                                     remaining2))
-                    |_ -> rethrow()
+                    |_ -> reraise()
                   
                 (({
                     new TagNode(context, token, bool_vars, node_list_true, node_list_false, link_type)

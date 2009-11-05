@@ -135,10 +135,11 @@ module internal For =
                         match size with
                         | Some s -> s
                         | None -> 0
-                    revcounter0 = -1 +
-                        match size with
-                        | Some s -> s
-                        | None -> 0
+                    revcounter0 = 
+                        -1 +
+                            match size with
+                            | Some s -> s
+                            | None -> 0
                     first = true;
                     last = false;
                     parentloop = context
@@ -195,11 +196,11 @@ module internal For =
                         {walker with 
                             parent = Some walker; 
                             nodes = bodyNodes @ [(Repeater(provider, token, Seq.skip 1 enumerator, createWalker false) :> NDjango.Interfaces.INodeImpl)];
-                            context = enumerator |> Seq.hd |> createContext first walker
+                            context = enumerator |> Seq.head |> createContext first walker
                             }
                     
                     if reversed then
-                        loop |> Seq.cast |> Seq.to_list |> List.rev |> createWalker true walker
+                        loop |> Seq.cast |> Seq.toList |> List.rev |> createWalker true walker
                     else
                         loop |> Seq.cast |> createWalker true walker
                 
@@ -253,7 +254,7 @@ module internal For =
                                         List.append node_list_body node_list_empty,
                                         remaining2))
                 let enumExpr = FilterExpression(context, enumerator)
-                let variables = variables |> List.rev |>  List.fold (fun l item -> (List.append l (Array.to_list( item.RawText.Split([|','|], StringSplitOptions.RemoveEmptyEntries))))) []  
+                let variables = variables |> List.rev |>  List.fold (fun l item -> (List.append l (Array.toList( item.RawText.Split([|','|], StringSplitOptions.RemoveEmptyEntries))))) []  
                 
 
                 (({

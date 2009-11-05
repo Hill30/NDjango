@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using NDjango.Interfaces;
 using Microsoft.VisualStudio.Text;
 using NDjango.Designer.Parsing;
+using System.Collections.ObjectModel;
 
 namespace NDjango.Designer.QuickInfo
 {
@@ -35,11 +36,12 @@ namespace NDjango.Designer.QuickInfo
     /// </summary>
     class Source : IQuickInfoSource
     {
-        private INodeProviderBroker nodeProviderBroker;
-
-        public Source(INodeProviderBroker nodeProviderBroker)
+        private NodeProvider nodeProvider;
+        private ITextBuffer textBuffer;
+        public Source(INodeProviderBroker nodeProviderBroker, ITextBuffer textBuffer)
         {
-            this.nodeProviderBroker = nodeProviderBroker;
+            this.textBuffer = textBuffer;
+            nodeProvider = nodeProviderBroker.GetNodeProvider(textBuffer);
         }
         /// <summary>
         /// Generates the tooltip text 
@@ -51,14 +53,13 @@ namespace NDjango.Designer.QuickInfo
         /// when mouse cursor leaves the 'applicable to' span. The size of the span is
         /// calculated based on the size of the nodes supplying the info to be shown
         /// </remarks>
-        public object GetToolTipContent(IQuickInfoSession session, out ITrackingSpan applicableToSpan)
+        public ReadOnlyCollection<object> GetToolTipContent(IQuickInfoSession session, out ITrackingSpan applicableToSpan)
         {
             StringBuilder message = new StringBuilder();
-            int position = session.SubjectBuffer.CurrentSnapshot.Length;
+            int position = textBuffer.CurrentSnapshot.Length;
             int length = 0;
 
-            SnapshotPoint point = session.TriggerPoint.GetPoint(session.TriggerPoint.TextBuffer.CurrentSnapshot);
-            NodeProvider nodeProvider = nodeProviderBroker.GetNodeProvider(point.Snapshot.TextBuffer);
+            SnapshotPoint point = session.GetTriggerPoint(textBuffer).GetPoint(textBuffer.CurrentSnapshot);
 
             List<DesignerNode> quickInfoNodes = nodeProvider
                 .GetNodes(point, node => node.NodeType != NodeType.ParsingContext);
@@ -87,13 +88,13 @@ namespace NDjango.Designer.QuickInfo
                 session.Properties.AddProperty(typeof(Source), null);
             }
 
-            applicableToSpan = session.SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(
+            applicableToSpan = session.TextView.TextBuffer.CurrentSnapshot.CreateTrackingSpan(
                 position,
                 length,
                 Microsoft.VisualStudio.Text.SpanTrackingMode.EdgeExclusive);
 
             if (message.Length > 0)
-                return message.ToString();
+                return new ReadOnlyCollection<object>(new string[] { message.ToString() });
             else
                 return null;
         }

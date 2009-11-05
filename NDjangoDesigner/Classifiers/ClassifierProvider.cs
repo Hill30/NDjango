@@ -23,7 +23,6 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 using NDjango.Designer.Parsing;
 
 namespace NDjango.Designer.Classifiers
@@ -50,9 +49,9 @@ namespace NDjango.Designer.Classifiers
         /// <param name="textBuffer"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public IClassifier GetClassifier(ITextBuffer textBuffer, IEnvironment context)
+        public IClassifier GetClassifier(ITextBuffer textBuffer)
         {
-            if (nodeProviderBroker.IsNDjango(textBuffer, context))
+            if (nodeProviderBroker.IsNDjango(textBuffer))
                 return new Classifier(nodeProviderBroker, classificationTypeRegistry, textBuffer);
             else
                 return null;

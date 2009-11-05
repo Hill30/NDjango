@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{89DC9575-C706-4D0D-944A-79E5865FFE88}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -31,9 +31,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=1.9.6.16, Culture=neutral, PublicKeyToken=a19089b1c74d0809, processorArchitecture=MSIL">
-      <Private>True</Private>
+    <Reference Include="FSharp.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Program Files\FSharp-1.9.7.8\\bin\FSharp.Core.dll</HintPath>
     </Reference>
+    <Reference Include="FSharp.PowerPack, Version=1.9.7.8, Culture=neutral, PublicKeyToken=a19089b1c74d0809, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>

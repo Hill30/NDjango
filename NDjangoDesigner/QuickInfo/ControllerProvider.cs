@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using NDjango.Designer.Parsing;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 
 namespace NDjango.Designer.QuickInfo
 {
@@ -37,28 +36,17 @@ namespace NDjango.Designer.QuickInfo
     internal class ControllerProvider : IIntellisenseControllerProvider
     {
 
-        [Import(typeof(IQuickInfoBrokerMapService))]
-        internal IQuickInfoBrokerMapService brokerMapService { get; set; }
+        [Import]
+        internal IQuickInfoBroker quickInfoBroker { get; set; }
 
         [Import]
         internal INodeProviderBroker nodeProviderBroker { get; set; }
 
-        public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers, IEnvironment context)
+        public IIntellisenseController TryCreateIntellisenseController(ITextView textView, IList<ITextBuffer> subjectBuffers)
         {
-
-            bool brokerCreated = false;
-            foreach (ITextBuffer subjectBuffer in subjectBuffers)
-            {
-                if (nodeProviderBroker.IsNDjango(subjectBuffer, context))
-                    brokerCreated |= (brokerMapService.GetBrokerForTextView(textView, subjectBuffer) != null);
-            }
-
-            // There may not be a broker for any of the subject buffers for this text view.  This can happen if there are no providers available.
-            if (brokerCreated)
-            {
-                return new Controller(this, subjectBuffers, textView, context);
-            }
-
+            foreach (ITextBuffer buffer in subjectBuffers)
+                if (nodeProviderBroker.IsNDjango(buffer))
+                    return new Controller(this, buffer, textView);
             return null;
         }
     }

@@ -107,14 +107,14 @@ module internal ASTNodes =
         let rec unfold_nodes = function
         | (h:INode)::t -> 
             h :: unfold_nodes 
-                (h.Nodes.Values |> Seq.cast |> Seq.map(fun (seq) -> (Seq.to_list seq)) |>
+                (h.Nodes.Values |> Seq.cast |> Seq.map(fun (seq) -> (Seq.toList seq)) |>
                     List.concat |>
                         List.filter (fun node -> match node with | :? Node -> true | _ -> false))
                              @ unfold_nodes t
         | _ -> []
 
         // even though the extends filters its node list, we still need to filter the flattened list because of nested blocks
-        let blocks = Map.of_list <| List.choose 
+        let blocks = Map.ofList <| List.choose 
                         (fun (node: INode) ->  match node with | :? BlockNode as block -> Some (block.Name,[block]) | _ -> None) 
                         (unfold_nodes nodes)                      
 
@@ -134,12 +134,12 @@ module internal ASTNodes =
         override x.elements = (parent :> INode) :: base.elements
         override x.Nodes =
             base.Nodes 
-                |> Map.add (NDjango.Constants.NODELIST_EXTENDS_BLOCKS) (Seq.of_list nodes)
+                |> Map.add (NDjango.Constants.NODELIST_EXTENDS_BLOCKS) (Seq.ofList nodes)
 
         override this.walk manager walker =
             let context = 
                 match walker.context.tryfind "__blockmap" with
-                | Some v -> walker.context.add ("__blockmap", (join_replace (v:?> Map<_,_>) (Map.to_list blocks) :> obj))
+                | Some v -> walker.context.add ("__blockmap", (join_replace (v:?> Map<_,_>) (Map.toList blocks) :> obj))
                 | None -> walker.context.add ("__blockmap", (blocks :> obj))
        
             {walker with nodes=(get_template manager parent context).Nodes; context = context}

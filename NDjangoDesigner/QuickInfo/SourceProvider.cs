@@ -20,7 +20,6 @@
  ***************************************************************************/
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -37,10 +36,10 @@ namespace NDjango.Designer.QuickInfo
         [Import]
         internal INodeProviderBroker nodeProviderBroker { get; set; }
 
-        public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer, IEnvironment environment)
+        public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
-            if (nodeProviderBroker.IsNDjango(textBuffer, environment))
-                return new Source(nodeProviderBroker);
+            if (nodeProviderBroker.IsNDjango(textBuffer))
+                return new Source(nodeProviderBroker, textBuffer);
             return null;
         }
 

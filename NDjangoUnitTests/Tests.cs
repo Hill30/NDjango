@@ -117,16 +117,16 @@ this is inner2
             Regex r = new Regex(@"(""(?:[^""\\]*(?:\\.[^""\\]*)*)""|'(?:[^'\\]*(?:\\.[^'\\]*)*)'|[^\s]+)", RegexOptions.Compiled);
             MatchCollection m = r.Matches(@"'\'funky\' style'");
             
-            Func<string[], FSStringList> of_array = (array) => ListModule.of_array<string>(array);
+            Func<string[], FSStringList> of_array = (array) => ListModule.OfArray<string>(array);
 
             Func<FSStringList, string[]> to_string_array = (string_list) =>
             {
                 var tl = string_list;
                 var res = new StringList();
-                while (ListModule.length<string>(tl) > 0)
+                while (ListModule.Length<string>(tl) > 0)
                 {
-                    res.Add(ListModule.hd<string>(tl));
-                    tl = ListModule.tl<string>(tl);
+                    res.Add(ListModule.Head<string>(tl));
+                    tl = ListModule.Tail<string>(tl);
                 }
 
                 return res.ToArray();
@@ -164,16 +164,16 @@ this is inner2
         //[Test, TestCaseSource("split_token_tests")]
         public void TestSplitContent(StringTest test)
         {
-            Func<string[], FSStringList> of_array = (array) => ListModule.of_array<string>(array);
+            Func<string[], FSStringList> of_array = (array) => ListModule.OfArray<string>(array);
 
             Func<FSStringList, string[]> to_string_array = (string_list) =>
             {
                 var tl = string_list;
                 var res = new StringList();
-                while (ListModule.length<string>(tl) > 0)
+                while (ListModule.Length<string>(tl) > 0)
                 {
-                    res.Add(ListModule.hd<string>(tl));
-                    tl = ListModule.tl<string>(tl);
+                    res.Add(ListModule.Head<string>(tl));
+                    tl = ListModule.Tail<string>(tl);
                 }
 
                 return res.ToArray();

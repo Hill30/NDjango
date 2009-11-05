@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 10
+# Visual Studio 2010
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NDjangoParser2010", "..\NDjangoParser\NDjangoParser2010.fsproj", "{B75384C4-C545-4511-A7FE-93D438B8AFA4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoParserFilters2010", "..\NDjangoParserFilters\NDjangoParserFilters2010.csproj", "{89DC9575-C706-4D0D-944A-79E5865FFE88}"
@@ -41,8 +41,8 @@ Global
 		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Release|x86.ActiveCfg = Release|Any CPU
 		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|Any CPU.Build.0 = Release|Any CPU
@@ -51,8 +51,8 @@ Global
 		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|x86.ActiveCfg = Release|Any CPU
 		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Release|Any CPU.Build.0 = Release|Any CPU
@@ -61,8 +61,8 @@ Global
 		{2A3CC2FE-AB0E-44F6-B1CB-3290581DA442}.Release|x86.ActiveCfg = Release|Any CPU
 		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Release|Any CPU.Build.0 = Release|Any CPU

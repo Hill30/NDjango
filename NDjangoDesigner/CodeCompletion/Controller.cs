@@ -24,7 +24,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ApplicationModel.Environments;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
@@ -40,11 +39,10 @@ namespace NDjango.Designer.CodeCompletion
     /// </summary>
     class Controller : IIntellisenseController, IOleCommandTarget
     {
-        private IList<ITextBuffer> subjectBuffers;
-        private ITextView subjectTextView;
+        private ITextBuffer buffer;
+        private ITextView textView;
         private IWpfTextView WpfTextView;
         private ICompletionSession activeSession;
-        private IEnvironment context;
         private ControllerProvider provider;
         private int triggerPosition;
         private ITrackingSpan completionSpan;
@@ -57,12 +55,11 @@ namespace NDjango.Designer.CodeCompletion
         /// <param name="subjectBuffers"></param>
         /// <param name="subjectTextView"></param>
         /// <param name="context"></param>
-        public Controller(ControllerProvider provider, IList<ITextBuffer> subjectBuffers, ITextView subjectTextView, IEnvironment context)
+        public Controller(ControllerProvider provider, ITextBuffer buffer, ITextView subjectTextView)
         {
             this.provider = provider;
-            this.subjectBuffers = subjectBuffers;
-            this.subjectTextView = subjectTextView;
-            this.context = context;
+            this.buffer = buffer;
+            this.textView = subjectTextView;
 
             WpfTextView = subjectTextView as IWpfTextView;
             if (WpfTextView != null)
@@ -83,15 +80,11 @@ namespace NDjango.Designer.CodeCompletion
         {
             // Make sure that this event happened on the same text view to which we're attached.
             ITextView textView = sender as ITextView;
-            if (this.subjectTextView != textView)
+            if (this.textView != textView)
                 return;
 
             if (activeSession == null)
                 return;
-
-            ITrackingSpan span;
-            activeSession.Properties.TryGetProperty<ITrackingSpan>(typeof(Controller), out span);
-            string str = span.GetText(span.TextBuffer.CurrentSnapshot);
 
             switch (e.Key)
             {
@@ -136,7 +129,7 @@ namespace NDjango.Designer.CodeCompletion
         {
             // Make sure that this event happened on the same text view to which we're attached.
             ITextView textView = sender as ITextView;
-            if (this.subjectTextView != textView)
+            if (this.textView != textView)
                 return;
 
             // if there is a session already leave it be
@@ -145,13 +138,7 @@ namespace NDjango.Designer.CodeCompletion
 
             // determine which subject buffer is affected by looking at the caret position
             SnapshotPoint? caret = textView.Caret.Position.Point.GetPoint
-                (textBuffer => 
-                    (
-                        subjectBuffers.Contains(textBuffer) 
-                        && provider.nodeProviderBroker.IsNDjango(textBuffer, context)
-                        && provider.CompletionBrokerMapService.GetBrokerForTextView(textView, textBuffer) != null
-                    ),
-                    PositionAffinity.Predecessor);
+                (textBuffer => buffer == textBuffer, PositionAffinity.Predecessor);
 
             // return if no suitable buffer found
             if (!caret.HasValue)
@@ -168,7 +155,6 @@ namespace NDjango.Designer.CodeCompletion
                 return;
             
             // the invocation occurred in a subject buffer of interest to us
-            ICompletionBroker broker = provider.CompletionBrokerMapService.GetBrokerForTextView(textView, subjectBuffer);
             triggerPosition = caretPoint.Position;
             ITrackingPoint triggerPoint = caretPoint.Snapshot.CreateTrackingPoint(triggerPosition, PointTrackingMode.Negative);
             completionSpan = caretPoint.Snapshot.CreateTrackingSpan(caretPoint.Position, 0, SpanTrackingMode.EdgeInclusive);
@@ -177,7 +163,7 @@ namespace NDjango.Designer.CodeCompletion
             attachKeyboardFilter();
 
             // Create a completion session
-            activeSession = broker.CreateCompletionSession(triggerPoint, true);
+            activeSession = provider.CompletionBroker.CreateCompletionSession(textView, triggerPoint, true);
 
             // Put the completion context and original (empty) completion span
             // on the session so that it can be used by the completion source
@@ -222,7 +208,7 @@ namespace NDjango.Designer.CodeCompletion
 
         public void DisconnectSubjectBuffer(ITextBuffer subjectBuffer)
         {
-            WpfTextView = subjectTextView as IWpfTextView;
+            WpfTextView = textView as IWpfTextView;
             if (WpfTextView != null)
             {
                 WpfTextView.VisualElement.KeyDown -= new System.Windows.Input.KeyEventHandler(VisualElement_KeyDown);
@@ -233,12 +219,12 @@ namespace NDjango.Designer.CodeCompletion
 
         private void attachKeyboardFilter()
         {
-            ErrorHandler.ThrowOnFailure(provider.adaptersFactory.GetViewAdapter(subjectTextView).AddCommandFilter(this, out oldFilter));
+            ErrorHandler.ThrowOnFailure(provider.adaptersFactory.GetViewAdapter(textView).AddCommandFilter(this, out oldFilter));
         }
 
         private void detachKeyboardFilter()
         {
-            ErrorHandler.ThrowOnFailure(provider.adaptersFactory.GetViewAdapter(subjectTextView).RemoveCommandFilter(this));
+            ErrorHandler.ThrowOnFailure(provider.adaptersFactory.GetViewAdapter(textView).RemoveCommandFilter(this));
         }
 
         // The ugly COM code below is the heavy heritage from the "old style" editor integration
