@@ -23,7 +23,6 @@
 namespace NDjango
 
 open System.Collections.Generic
-open OutputHandling
 open Lexer
 open NDjango.Interfaces
 open Expressions

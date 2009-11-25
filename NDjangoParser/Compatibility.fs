@@ -25,7 +25,6 @@ namespace NDjango.Compatibility
 
 open NDjango.Lexer
 open NDjango.Interfaces
-open NDjango.OutputHandling
 open NDjango.Expressions
 open NDjango.ParserNodes
 

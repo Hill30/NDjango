@@ -29,7 +29,6 @@ open NDjango.Lexer
 open NDjango.Interfaces
 open NDjango.Expressions
 open NDjango.ParserNodes
-open NDjango.OutputHandling
 
 module internal If = 
     /// The ``{% if %}`` tag evaluates a variable, and if that variable is "true"

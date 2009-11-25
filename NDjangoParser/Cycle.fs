@@ -24,7 +24,6 @@ namespace NDjango.Tags
 
 open System
 
-open NDjango.OutputHandling
 open NDjango.Lexer
 open NDjango.Interfaces
 open NDjango.Variables

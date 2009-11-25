@@ -139,7 +139,6 @@ type ITemplateLoader =
     /// returns true if the specified template was modified since the specified time
     abstract member IsUpdated: path:string * timestamp:System.DateTime -> bool
     
-    
 /// An execution context container. This interface defines a set of methods necessary 
 /// for templates and external entities to exchange information.
 type IContext =
@@ -154,6 +153,8 @@ type IContext =
     
     /// Returns a new Context with the specified Autoescape mode
     abstract member WithAutoescape: bool -> IContext
+    
+    abstract member Translate: obj -> obj
 
 /// Single threaded template manager. Caches templates it renders in a non-synchronized dictionary
 /// should be used only to service rendering requests from a single thread
@@ -241,7 +242,7 @@ and ITemplateManagerProvider =
     /// the retrieved template is placed in the dictionary replacing 
     /// the existing template with the same name (if any)
     abstract member LoadTemplate: string -> (ITemplate * System.DateTime)
-        
+    
 /// A tag implementation
 and ITag = 
     /// Transforms a {% %} tag into a list of nodes and uncommited token list

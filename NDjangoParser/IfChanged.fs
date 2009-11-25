@@ -27,7 +27,6 @@ open NDjango.Interfaces
 open NDjango.ParserNodes
 open NDjango.Variables
 open NDjango.Expressions
-open NDjango.OutputHandling
 
 module internal IfChanged =
 

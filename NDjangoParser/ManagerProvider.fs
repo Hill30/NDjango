@@ -30,7 +30,6 @@ open NDjango.Tags.Misc
 open NDjango.ASTNodes
 open NDjango.ParserNodes
 open NDjango.Expressions
-open NDjango.OutputHandling
 
 type Filter = {name:string; filter:ISimpleFilter}
 
@@ -110,15 +109,19 @@ type private DefaultLoader() =
                 
         member this.IsUpdated (source, timestamp) = File.GetLastWriteTime(source) > timestamp
             
-///
+///<summary>
 /// Manager Provider object serves as a container for all the environment variables controlling 
-/// template processing. Various methods of the object provide different ways to change them, 
+/// template processing. 
+///</summary>
+///<remarks>
+/// Various methods of the object provide different ways to change them, 
 /// namely add tag and/or filter definitions, change settings or switch the loader. All such 
-/// DO NOT affect the provider they are called on, but rather create a new clean provider 
+/// methods DO NOT affect the provider they are called on, but rather create a new clean provider 
 /// instance with modified variables. 
 /// Method GetManager on the provider can be used to create an instance of TemplateManager
 /// TemplateManagers can be used to render templates. 
 /// All methods and properties of the Manager Provider use locking as necessary and are thread safe.
+///</remarks> 
 type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:ITemplateLoader) =
     
     let (++) map (key: 'a, value: 'b) = Map.add key value map

@@ -106,15 +106,17 @@ module internal Template =
             externalContext.ToString() + "\r\n---- NDjango Context ----\r\nSettings:\r\n" + autoescape + "Variables:\r\n" + vars
 
         interface IContext with
-            member this.add(pair) =
+            member x.add(pair) =
                 new Context(externalContext, Map.add (fst pair) (snd pair) variables, autoescape) :> IContext
                 
-            member this.tryfind(name) =
+            member x.tryfind(name) =
                 match variables.TryFind(name) with
                 | Some v -> Some v
                 | None -> None 
                 
-            member this.Autoescape = autoescape
+            member x.Autoescape = autoescape
 
-            member this.WithAutoescape(value) =
+            member x.WithAutoescape(value) =
                 new Context(externalContext, variables, value) :> IContext
+                
+            member x.Translate value = value

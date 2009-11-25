@@ -28,7 +28,6 @@ open NDjango.Lexer
 open NDjango.Interfaces
 open NDjango.ParserNodes
 open NDjango.ASTNodes
-open NDjango.OutputHandling
 open NDjango.Expressions
 
 module internal Filter =

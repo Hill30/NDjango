@@ -58,6 +58,9 @@ namespace NDjango.UnitTests
             lst.Add(new TestDescriptor("for 08", "{% for FirstName, LastName in athleteList %}{% if forloop.last %}{{ FirstName }} {{ LastName }}{% endif %}{% endfor %}",
                 ContextObjects.p("athleteList", new string[][] { new string[] { "Michael", "Jordan" }, new string[] { "Magic", "Johnson" } }),
                 ContextObjects.p("Magic Johnson")));
+            lst.Add(new TestDescriptor("for 09", "{% for i in test %}run {{ forloop.counter }}:{% for j in test%}i={{forloop.parentloop.counter}},j={{forloop.counter}};{% endfor %}{% endfor %}", 
+                ContextObjects.p("test", ContextObjects.range(2)),
+                ContextObjects.p("run 1:i=1,j=1;i=1,j=2;run 2:i=2,j=1;i=2,j=2;")));
 
             // ifchanged tag
             lst.Add(new TestDescriptor("ifchanged 01", "{% for i in test %}{% ifchanged %}nothing changed{%else%}same {% endifchanged %}{{ forloop.counter }},{% endfor %}", ContextObjects.p("test", ContextObjects.range(5)), ContextObjects.p("nothing changed1,same 2,same 3,same 4,same 5,")));

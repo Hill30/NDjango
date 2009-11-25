@@ -31,7 +31,6 @@ open NDjango.Interfaces
 open NDjango.Variables
 open NDjango.Expressions
 open NDjango.ParserNodes
-open NDjango.OutputHandling
 
 module internal For =
 
@@ -98,7 +97,7 @@ module internal For =
         revcounter0: int
         first:       bool
         last:        bool
-        parentloop:  ForContext option
+        parentloop:  obj
         }
         
             
@@ -117,14 +116,14 @@ module internal For =
         /// for the loop. The third parameter (context) is a context for the 
         /// parent loop if this is the first iteration of the loop
         /// or the conetxt from the previous iteration
-        let createVars (first:bool) (size:int option) (context:obj option) =
+        let createVars (first:bool) (size:int option) (context:obj) =
             let context = 
                 match context with
-                | None -> None
-                | Some o -> 
+                | null -> null
+                | _ as o -> 
                     match o with
-                    | :? ForContext as c -> Some c
-                    | _ -> None 
+                    | :? ForContext as c -> c :> obj
+                    | _ -> null 
 
             match first with
             | true -> 
@@ -146,8 +145,7 @@ module internal For =
                 }
             | false ->
                 match context with
-                | None -> raise (new RenderingError("Context should always be available after the first iteration"))
-                | Some context ->
+                | :? ForContext as context ->
                     {
                         counter = context.counter+1;
                         counter0 = context.counter0+1;
@@ -160,6 +158,7 @@ module internal For =
                             | None -> false
                         parentloop = context.parentloop
                     }
+                | _ -> raise (new RenderingError("Context should always be available after the first iteration"))
                
         override this.walk manager walker = 
                 
@@ -190,7 +189,12 @@ module internal For =
                                             context.add(var, value))
                                         walker.context
                         
-                        c.add("forloop", (walker.context.tryfind "forloop" |> createVars first size :> obj))
+                        c.add("forloop", 
+                            ( (match walker.context.tryfind "forloop" with
+                                  | Some forContext -> forContext
+                                  | None -> null  
+                                  )
+                                |> createVars first size :> obj))
                         
                     let rec createWalker (first:bool) (walker:Walker) (enumerator: obj seq) =
                         {walker with 

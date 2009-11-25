@@ -28,7 +28,6 @@ open System.Collections.Generic
 open System.Reflection
 
 open NDjango.Interfaces
-open OutputHandling
 open Utilities
 open Lexer
 
@@ -171,6 +170,53 @@ module Variables =
             | Some v -> resolve_members v (tail)
             | None -> None
 
+    type private LiteralValue(value, translator:IContext->obj->obj) =
+        member x.Resolve(context) = (value |> translator context, false)
+            
+    type private VariableReference (context:ParsingContext, reference:string, translator:IContext->obj->obj) =
+
+        let var_list = List.ofArray (reference.Split(Constants.VARIABLE_ATTRIBUTE_SEPARATOR.ToCharArray()))
+        let a = 
+            var_list |> 
+                List.iter 
+                    (fun v ->
+                        if v = "" || v.StartsWith("-") || v.StartsWith("_") 
+                        then 
+                            raise (SyntaxError 
+                                    (sprintf "Variables and attributes may not be empty, begin with underscores or minus (-) signs: '%s'" v))
+                )
+
+        let template_string_if_invalid = context.Provider.Settings.TryFind(Constants.TEMPLATE_STRING_IF_INVALID)
+        
+        member x.Resolve(context:IContext) = 
+            let result =
+                match 
+                    match context.tryfind (List.head var_list) with
+                    | Some v -> 
+                        match List.tail var_list with
+                        | [] -> Some v 
+                        | list -> 
+                            resolve_members v (list) 
+                    | None -> None
+                    with
+                | Some v1 when v1 <> null -> v1
+                | _ -> 
+                    match template_string_if_invalid with
+                    | Some o -> o
+                    | None -> "" :> obj
+            (result |> translator context, context.Autoescape)
+
+
+    /// Discriminating union representing a variable
+    /// can be either a Literal or a Reference            
+    type private VariableContent =
+    | Literal of LiteralValue
+    | Reference of VariableReference
+        member x.Resolve context =
+            match x with
+            | Literal ltr -> ltr.Resolve context
+            | Reference lkp -> lkp.Resolve context
+
     /// <summary>
     /// A template variable, resolvable against a given context. The variable may be
     /// a hard-coded string (if it begins and ends with single or double quote
@@ -193,73 +239,44 @@ module Variables =
     /// </remarks>
     type Variable(context: ParsingContext, token:Lexer.TextToken) =
 
-        /// Returns a tuple of (var * value * needs translation)
-        let find_literal = function
-            | Utilities.Int i -> (None, Some (i :> obj), false)
-            | Utilities.Float f -> (None, Some (f :> obj), false)
-            | _ as v -> OutputHandling.strip_markers v
+        /// <summary>
+        /// builds a VariableContent object out of the string. The object may or may not require translation
+        /// </summary>        
+        let build_string_variable text (translator:IContext->obj->obj) = 
+            match text with
+            | Utilities.String s -> Literal (new LiteralValue(s.Replace("\\'", "'").Replace("\\\"", "\"") :> obj, translator))
+            | _ -> Reference (new VariableReference(context, text, translator))
+            
+        let dummy_translate = fun (context:IContext) value -> value
+            
+        let translate = fun (context:IContext) value -> value |> context.Translate
 
-        let var, literal, translate = find_literal token.Value
+        let error, content = 
+            try
+                let content =
+                    match token.Value with
+                    | Utilities.Int i -> Literal (new LiteralValue(i :> obj, dummy_translate))
+                    | Utilities.Float f -> Literal (new LiteralValue(f :> obj, dummy_translate))
+                    | Utilities.IsI18N s -> build_string_variable s translate
+                    | _ as s -> build_string_variable s dummy_translate
+                (Error.None, content)
+            with
+            | :? SyntaxError as ex -> 
+                if (context.Provider.Settings.[Constants.EXCEPTION_IF_ERROR] :?> bool)
+                then
+                    raise (SyntaxException(ex.Message, Text token))
+                else
+                    new Error(2, ex.Message), Literal (new LiteralValue(null, dummy_translate))
+            | _ -> reraise()
         
-        // So far no errors
-        let error = Error.None
-        
-        let error, lookups = 
-            match var with
-            | Some v -> 
-                try
-                    let var_list = List.ofArray (v.Split(Constants.VARIABLE_ATTRIBUTE_SEPARATOR.ToCharArray()))
-                    var_list |> 
-                        List.iter 
-                            (fun v ->
-                                if v = "" || v.StartsWith("-") || v.StartsWith("_") 
-                                then 
-                                    raise (SyntaxError 
-                                            (sprintf "Variables and attributes may not be empty, begin with underscores or minus (-) signs: '%s'" v))
-                        )
-                    error, Some var_list  
-                with
-                | :? SyntaxError as ex -> 
-                    if (context.Provider.Settings.[Constants.EXCEPTION_IF_ERROR] :?> bool)
-                    then
-                        raise (SyntaxException(ex.Message, Text token))
-                    else
-                        new Error(2, ex.Message), None
-                | _ -> reraise()
-            | None -> error, None
-        
-        let clean_nulls  = function
-        | Some v as orig -> if v = null then None else orig
-        | None -> None
-        
-        let template_string_if_invalid = context.Provider.Settings.TryFind(Constants.TEMPLATE_STRING_IF_INVALID)
-
         /// <summary>
         /// Resolves this variable against a given context
+        /// the tuple returned consists of the value as the first item in the tuple
+        /// and a boolean indicating whether the value needs escaping 
         /// </summary>
-        member this.Resolve (context: IContext) =
-            match lookups with
-            | None -> (literal.Value, false)
-            | Some lkp ->
-                let result =
-                    match 
-                        match context.tryfind (List.head lkp) with
-                        | Some v -> 
-                            match List.tail lkp with
-                            // make sure we don't end up with a 'Some null'
-                            | [] -> Some v |> clean_nulls
-                            | list -> 
-                                resolve_members v (list) |> clean_nulls
-                        | None -> None
-                        with
-                    | Some v1 -> v1
-                    | None -> 
-                        match template_string_if_invalid with
-                        | Some o -> o
-                        | None -> "" :> obj
-                (result, context.Autoescape)
+        member this.Resolve (context: IContext) = content.Resolve context
 
-        member this.IsLiteral with get() = lookups.IsNone
+        member this.IsLiteral = match content with | Literal l -> true | _ -> false
 
         interface INode with            
             member x.NodeType = NodeType.Reference 

@@ -67,7 +67,7 @@ module internal Filters =
     ///results. Normally, you want to use the escape filter.
     type ForceEscapeFilter() = 
         interface ISimpleFilter with
-            member x.Perform value = OutputHandling.escape (Convert.ToString (value)):> obj
+            member x.Perform value = escape (Convert.ToString (value)):> obj
         
     /// Converts to lowercase, removes non-word characters (alphanumerics and underscores) 
     ///and converts spaces to hyphens. Also strips leading and trailing whitespace.
