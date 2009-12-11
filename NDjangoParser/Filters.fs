@@ -97,9 +97,8 @@ module internal Filters =
     type TruncateWords() =
         let wsRegex = Regex("\S([,\.\s]+|\z)", RegexOptions.Compiled)
         interface IFilter with
-            member x.DefaultValue 
-                with get() = null
-            member x.Perform value = raise (System.Exception("Not implemented."))
+            member x.DefaultValue = null
+            member x.Perform value = raise (RenderingError("TruncateWords requires a parameter"))
             member x.PerformWithParam (value, arg) = 
                 let success, limit = get_int arg
                 if success then
@@ -205,9 +204,8 @@ module internal Filters =
     ///If value is "Check out www.djangoproject.com", the output would be 'Check out <a href="http://www.djangoproject.com">www.djangopr...</a>'.                
     type UrlizeTruncFilter() =
         interface IFilter with
-            member x.DefaultValue 
-                with get() = null
-            member x.Perform value = raise (System.Exception("Not implemented."))
+            member x.DefaultValue = null
+            member x.Perform value = raise (RenderingError("UrlizeTruncFilter requires a parameter"))
             member x.PerformWithParam (value, arg) = 
                 let strVal = Convert.ToString (value)
                 let success, limit = get_int arg
@@ -256,9 +254,8 @@ module internal Filters =
             (outStr,wrapSize, charsAmount)     
             
         interface IFilter with
-            member x.DefaultValue 
-                with get() = null
-            member x.Perform value = raise (System.Exception("Not implemented."))
+            member x.DefaultValue = null
+            member x.Perform value = raise (RenderingError("WordWrapFilter requires a parameter"))
             member x.PerformWithParam (value, arg) = 
                 let strVal = Convert.ToString (value)
                 let success, limit = get_int arg
@@ -311,15 +308,14 @@ module internal Filters =
     ///If value is the list ['a', 'b', 'c'], the output will be the string "a // b // c".
     type JoinFilter() =
         interface IFilter with
-            member x.DefaultValue 
-                with get() = null        
-            member x.Perform value = raise (System.Exception("Not implemented."))
+            member x.DefaultValue = null        
+            member x.Perform value = raise (RenderingError("JoinFilter requires a parameter"))
             member x.PerformWithParam (value, arg) = 
                 match value with 
                     | :? IEnumerable ->
                         let strArr = Seq.map (fun (item: Object)  -> (Convert.ToString (item)) ) (Seq.cast (value :?> IEnumerable) ) |> Seq.toArray 
                         String.Join (Convert.ToString arg, strArr) :> obj
-                    | _ -> raise (System.Exception("Type not supported"))
+                    | _ -> raise (new RenderingError("Type not supported"))
                     
     /// Given a string mapping values for true, false and (optionally) None, returns one of those strings according to the value:
     ///
@@ -332,9 +328,8 @@ module internal Filters =
     ///Note: Does NOT work for None at this time.
     type YesNoFilter() =
         interface IFilter with
-            member x.DefaultValue 
-                with get() = "yes,no,maybe" :> obj
-            member x.Perform value = raise (System.Exception("Not implemented."))
+            member x.DefaultValue = "yes,no,maybe" :> obj
+            member x.Perform value = raise (RenderingError("YesNoFilter requires a parameter"))
             member x.PerformWithParam (value,arg) = 
                 let strYesNoMaybe = String.split [','] (Convert.ToString (arg))
                 if strYesNoMaybe.Length < 2 then
@@ -377,9 +372,8 @@ module internal Filters =
     ///
     type DictSortFilter() = 
         interface IFilter with
-            member x.DefaultValue 
-                with get() = null
-            member x.Perform value = raise (System.Exception("Not implemented."))
+            member x.DefaultValue = null
+            member x.Perform value = raise (RenderingError("DictSortFilter requires a parameter"))
             member x.PerformWithParam (value, arg) = 
                 let arg = Convert.ToString (arg)
                 match value with
@@ -395,9 +389,8 @@ module internal Filters =
     ///in reverse order.                    
     type DictSortReversedFilter() = 
         interface IFilter with
-            member x.DefaultValue 
-                with get() = null
-            member x.Perform value = raise (System.Exception("Not implemented."))
+            member x.DefaultValue = null
+            member x.Perform value = raise (RenderingError("DictSortReversedFilter requires a parameter"))
             member x.PerformWithParam (value, arg) = 
                 let arg = Convert.ToString (arg)
                 match value with
@@ -432,9 +425,8 @@ module internal Filters =
     
     type PluralizeFilter() =
         interface IFilter with
-            member x.DefaultValue 
-                with get() = "s" :> obj
-            member x.Perform value = raise (System.Exception("Not implemented."))
+            member x.DefaultValue = "s" :> obj
+            member x.Perform value = raise (RenderingError("PluralizeFilter requires a parameter"))
             member x.PerformWithParam (value, arg) = 
                 let strPlurals = String.split [','] (Convert.ToString (arg))
                 if strPlurals.Length > 2 then
@@ -486,9 +478,8 @@ module internal Filters =
     ///If value is None, use given default.
     type DefaultIfNoneFilter() = 
         interface IFilter with
-            member x.DefaultValue 
-                with get() = null
-            member x.Perform value = raise (System.Exception("Not implemented."))
+            member x.DefaultValue = null
+            member x.Perform value = raise (RenderingError("DefaultIfNoneFilter requires a parameter"))
             member x.PerformWithParam (value, arg) = 
                 let objNull = None :> obj
                 if (objNull = value) then 

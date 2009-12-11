@@ -154,6 +154,8 @@ type IContext =
     /// Returns a new Context with the specified Autoescape mode
     abstract member WithAutoescape: bool -> IContext
     
+    /// Translation routine - when applied to the value returns it translated 
+    /// to the language for the user
     abstract member Translate: obj -> obj
 
 /// Single threaded template manager. Caches templates it renders in a non-synchronized dictionary
@@ -245,7 +247,16 @@ and ITemplateManagerProvider =
     
 /// A tag implementation
 and ITag = 
+    ///<summary>
     /// Transforms a {% %} tag into a list of nodes and uncommited token list
+    ///</summary>
+    ///<param name="token">token for the tag name</param>
+    ///<param name="context">the parsing context for the token</param>
+    ///<param name="tokens">the remainder of the token list</param>
+    ///<returns>
+    /// a tuple consisting of the INodeImpl object representing the result of node parsing as the first element
+    /// followed by the the remainder of the token list with all the token related to the node removed
+    ///</returns>
     abstract member Perform: Lexer.BlockToken -> ParsingContext -> LazyList<Lexer.Token> -> (INodeImpl * LazyList<Lexer.Token>)
 
 /// Parsing context is a container for information specific to the tag being parsed

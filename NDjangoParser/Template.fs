@@ -88,10 +88,11 @@ module internal Template =
                     }) :> System.IO.TextReader
                 
             member this.Nodes = node_list
-            
-    and
-        private Context (externalContext, variables, autoescape: bool) =
+    
+    /// implements the rendering context (IContext interface)        
+    and private Context (externalContext, variables, autoescape: bool) =
 
+        /// used in the Debug tag to display the content of the current context
         override this.ToString() =
             
             let autoescape = "autoescape = " + autoescape.ToString() + "\r\n"

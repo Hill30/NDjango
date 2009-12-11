@@ -860,7 +860,7 @@ namespace NDjango.UnitTests
 
             lst.Add(new TestDescriptor("join-filter02", "{{value|join:\"glue\"}}",
                             ContextObjects.p("value", 345),
-                            ContextObjects.p(typeof(System.Exception))));
+                            ContextObjects.p(typeof(NDjango.Interfaces.RenderingException))));
 
 
             lst.Add(new TestDescriptor("yesno-filter01", "{{value|yesno}}",

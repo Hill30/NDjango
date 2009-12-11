@@ -53,6 +53,10 @@ namespace NDjango.UnitTests
             lst.Add(new TestDescriptor("basic-syntax10", "{{ var.otherclass.method }}", ContextObjects.p("var", new ContextObjects.SomeClass()),
                 ContextObjects.p("OtherClass.method"), "var.otherclass.method"));
 
+            // Multiple levels of attribute access are allowed
+            lst.Add(new TestDescriptor("basic-syntax10-l", "{{ var.classList.0.method }} {% for oc in var.classList %}{{forloop.counter}} = {{oc.method}};{%endfor%}", ContextObjects.p("var", new ContextObjects.SomeClass()),
+                ContextObjects.p("Instance 1 1 = Instance 1;2 = Instance 2;"), "var.otherclass.method"));
+
             // Fail silently when a variable's attribute isn't found
             lst.Add(new TestDescriptor("basic-syntax11", "{{ var.blech }}", ContextObjects.p("var", new ContextObjects.SomeClass()), ContextObjects.p("", "INVALID")));
 

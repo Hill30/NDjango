@@ -28,13 +28,17 @@ open NDjango.Interfaces
 open NDjango.Expressions
 open NDjango.ParserNodes
 
-/// Abstract tag implementation designed for consumption outside of F#. This class
-/// will handle interaction with the expression system and the parser, providing
+///<summary>
+/// Abstract tag implementation designed for consumption outside of F#. 
+///</summary>
+///<remarks>
+/// This class will handle interaction with the expression system and the parser, providing
 /// the abstract 'ProcessTag' method with the execution-time values of the supplied
 /// parameters, along with the fully resolved text of the nested value (if in nested mode).
 /// Concrete implementations are required to define a 0-parameter constructor, and
 /// pass in relevant values for 'nested' and 'name'. The value of 'name' must match
 /// the name the tag is registered under, but is only applicable when 'nested' is true.
+///</remarks>
 [<AbstractClass>]
 type public SimpleTag(nested:bool, name:string, num_params:int) =
     /// Resolves all expressions in the list against the context
@@ -47,7 +51,7 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
         List.toArray
 
     /// Evaluates the contents of the nodelist against the given walker. This function
-    /// effectively parses the nested tags within the simple tag.
+    /// effectively renders the nested tags within the simple tag.
     let read_walker manager walker nodelist =
         let reader = 
             new NDjango.ASTWalker.Reader (manager, {walker with parent=None; nodes=nodelist; context=walker.context})

@@ -8,7 +8,21 @@ namespace NDjango.UnitTests.Data
 {
     class ContextObjects
     {
-        public class OtherClass { public string method() { return "OtherClass.method"; } }
+        public class OtherClass 
+        {
+            string value = "OtherClass.method";
+            public OtherClass() { }
+            public OtherClass(string value)
+            {
+                this.value = value;
+            }
+
+
+            public string method() 
+            { 
+                return value; 
+            } 
+        }
 
         public class SomeClass
         {
@@ -18,6 +32,8 @@ namespace NDjango.UnitTests.Data
             public object method2(object o) { return o; }
             public string method3() { throw new Exception(); }
             public string method4() { throw new ApplicationException(); }
+
+            public List<OtherClass> classList = new List<OtherClass>(new OtherClass[] { new OtherClass("Instance 1"), new OtherClass("Instance 2") });
         }
 
         public static object[] p(params object[] prs) { return prs; }
