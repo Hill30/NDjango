@@ -50,8 +50,6 @@ module internal Template =
             if (provider.Settings.[Constants.RELOAD_IF_UPDATED] :?> bool) then provider.Loader.IsUpdated
             else (fun (name,ts) -> false) 
         
-        member x.Provider = provider
-        
         interface ITemplateManager with
             member x.RenderTemplate (name, context) =
                 ((x :>ITemplateManager).GetTemplate name).Walk x context
@@ -68,7 +66,7 @@ module internal Template =
         
             
     /// Implements the template (ITemplate interface)
-    and internal Impl(provider : ITemplateManagerProvider, template: TextReader) =
+    and internal Impl(provider : ITemplateManagerProvider, template: TextReader, a) =
         
         let node_list = (provider :?> IParser).ParseTemplate template
         interface ITemplate with
@@ -83,14 +81,15 @@ module internal Template =
                         new Context(
                             context, 
                             (new Map<string,obj>(context |> Seq.map (fun item-> (item.Key, item.Value)))),
-                            ((manager :?> Manager).Provider.Settings.[Constants.DEFAULT_AUTOESCAPE] :?> bool)
+                            provider.Settings.[Constants.DEFAULT_AUTOESCAPE] :?> bool,
+                            provider.CreateTranslator "EN-US"
                             )
                     }) :> System.IO.TextReader
                 
             member this.Nodes = node_list
     
     /// implements the rendering context (IContext interface)        
-    and private Context (externalContext, variables, autoescape: bool) =
+    and private Context (externalContext, variables, autoescape: bool, translator: string -> string) =
 
         /// used in the Debug tag to display the content of the current context
         override this.ToString() =
@@ -108,7 +107,7 @@ module internal Template =
 
         interface IContext with
             member x.add(pair) =
-                new Context(externalContext, Map.add (fst pair) (snd pair) variables, autoescape) :> IContext
+                new Context(externalContext, Map.add (fst pair) (snd pair) variables, autoescape, translator) :> IContext
                 
             member x.tryfind(name) =
                 match variables.TryFind(name) with
@@ -118,6 +117,6 @@ module internal Template =
             member x.Autoescape = autoescape
 
             member x.WithAutoescape(value) =
-                new Context(externalContext, variables, value) :> IContext
+                new Context(externalContext, variables, value, translator) :> IContext
                 
-            member x.Translate value = value
+            member x.Translate value = value |> translator

@@ -249,7 +249,10 @@ module Variables =
             
         let dummy_translate = fun (context:IContext) value -> value
             
-        let translate = fun (context:IContext) value -> value |> context.Translate
+        let translate = fun (context:IContext) (value:obj) -> 
+            match value with
+            | :? string as s -> context.Translate s :> obj
+            | _ -> value
 
         let error, content = 
             try

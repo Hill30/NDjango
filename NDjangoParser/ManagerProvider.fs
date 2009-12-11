@@ -98,6 +98,9 @@ module Defaults =
             ++ (Constants.RELOAD_IF_UPDATED, (true :> obj))
             ++ (Constants.EXCEPTION_IF_ERROR, (true :> obj))
             ++ (Constants.TEMPLATE_STRING_IF_INVALID, ("" :> obj))
+            
+    let internal defaultDictionary =
+        new Map<string, string>([])
 
 type private DefaultLoader() =
     interface ITemplateLoader with
@@ -122,7 +125,7 @@ type private DefaultLoader() =
 /// TemplateManagers can be used to render templates. 
 /// All methods and properties of the Manager Provider use locking as necessary and are thread safe.
 ///</remarks> 
-type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:ITemplateLoader) =
+type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:ITemplateLoader, dictionary) =
     
     let (++) map (key: 'a, value: 'b) = Map.add key value map
 
@@ -311,32 +314,32 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                 seek_internal parse_until tokens
     
     public new () =
-        new TemplateManagerProvider(Defaults.defaultSettings, Defaults.standardTags, Defaults.standardFilters, new DefaultLoader())
+        new TemplateManagerProvider(Defaults.defaultSettings, Defaults.standardTags, Defaults.standardFilters, new DefaultLoader(), Defaults.defaultDictionary)
         
-    member x.WithSetting name value = new TemplateManagerProvider( settings++(name, value), tags, filters, loader)
+    member x.WithSetting name value = new TemplateManagerProvider( settings++(name, value), tags, filters, loader, dictionary)
     
-    member x.WithTag name tag = new TemplateManagerProvider(settings, tags++(name, tag) , filters, loader)
+    member x.WithTag name tag = new TemplateManagerProvider(settings, tags++(name, tag) , filters, loader, dictionary)
 
-    member x.WithFilter name filter = new TemplateManagerProvider(settings, tags, filters++(name, filter) , loader)
+    member x.WithFilter name filter = new TemplateManagerProvider(settings, tags, filters++(name, filter) , loader, dictionary)
     
     member x.WithSettings new_settings = 
         new TemplateManagerProvider(
             new_settings |> Seq.fold (fun settings setting -> settings++(setting.name, setting.value) ) settings
-            , tags, filters, loader)
+            , tags, filters, loader, dictionary)
     
     member x.WithTags (new_tags : Tag seq) = 
         new TemplateManagerProvider(settings, 
             new_tags |> Seq.fold (fun tags tag -> tags++(tag.name, tag.tag)) tags
-            , filters, loader)
+            , filters, loader, dictionary)
 
     member x.WithFilters (new_filters : Filter seq)  = 
         new TemplateManagerProvider(settings, tags, 
             new_filters |> Seq.fold (fun filters filter -> Map.add filter.name filter.filter filters) filters
-            , loader)
+            , loader, dictionary)
     
-    member x.WithLoader new_loader = new TemplateManagerProvider(settings, tags, filters, new_loader)
+    member x.WithLoader new_loader = new TemplateManagerProvider(settings, tags, filters, new_loader, dictionary)
     
-    member public x.GetNewManager() = new Template.Manager(x, !templates) :> ITemplateManager
+    member public x.GetNewManager() = lock lockProvider (fun() -> new Template.Manager(x, !templates) :> ITemplateManager)
     
     interface ITemplateManagerProvider with
 
@@ -368,6 +371,12 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
         member x.Settings = settings
         
         member x.Loader = loader
+        
+        member x.CreateTranslator language = 
+            fun value -> 
+                match dictionary.TryFind value with
+                | Some v -> v
+                | None -> value
 
     interface IParser with
         

@@ -156,7 +156,7 @@ type IContext =
     
     /// Translation routine - when applied to the value returns it translated 
     /// to the language for the user
-    abstract member Translate: obj -> obj
+    abstract member Translate: string -> string
 
 /// Single threaded template manager. Caches templates it renders in a non-synchronized dictionary
 /// should be used only to service rendering requests from a single thread
@@ -231,6 +231,9 @@ and ITemplateManagerProvider =
 
     /// current configuration settings
     abstract member Settings: Map<string, obj>
+    
+    /// translation dictionary
+    abstract member CreateTranslator: string-> (string->string)
 
     /// current template loader
     abstract member Loader: ITemplateLoader
