@@ -98,9 +98,10 @@ module Defaults =
             ++ (Constants.RELOAD_IF_UPDATED, (true :> obj))
             ++ (Constants.EXCEPTION_IF_ERROR, (true :> obj))
             ++ (Constants.TEMPLATE_STRING_IF_INVALID, ("" :> obj))
+            ++ (Constants.USE_I18N, (false :> obj))
             
     let internal defaultDictionary =
-        new Map<string, string>([])
+        new Map<string, Map<string,string>>([])
 
 type private DefaultLoader() =
     interface ITemplateLoader with
@@ -195,10 +196,15 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                         | Some remaining -> remaining
                         | None -> tokens
                         )
-        |_  -> None    
-    /// parses a single token, returning an AST TagNode list. this function may advance the token stream if an 
-    /// element consuming multiple tokens is encountered. In this scenario, the TagNode list returned will
-    /// contain nodes for all of the advanced tokens.
+        |_  -> None
+        
+    ///<summary>        
+    /// Parses a single token, returning an AST TagNode list. 
+    ///</summary>
+    ///<remarks>
+    /// This function may advance the token stream if an element consuming multiple tokens is encountered. 
+    /// In this scenario, the TagNode list returned will contain nodes for all of the advanced tokens.
+    ///</remarks>
     let parse_token (context:ParsingContext) tokens token = 
 
         match token with
@@ -372,11 +378,34 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
         
         member x.Loader = loader
         
-        member x.CreateTranslator language = 
-            fun value -> 
-                match dictionary.TryFind value with
-                | Some v -> v
-                | None -> value
+        member x.CreateTranslator language =
+            if settings.[Constants.USE_I18N] :?> bool then
+                try
+                    let local_culture = System.Globalization.CultureInfo.GetCultureInfo(language) 
+                    match dictionary.TryFind local_culture.Name with
+                    | Some local_dictionary -> 
+                        let neutral_culture = local_culture.Parent
+                        match dictionary.TryFind neutral_culture.Name with
+                        | Some neutral_dictionary ->
+                            fun value -> 
+                                match local_dictionary.TryFind value with
+                                | Some v -> v
+                                | None -> 
+                                    match neutral_dictionary.TryFind value with
+                                    | Some v -> v
+                                    | None -> value
+                        | None ->
+                            fun value -> 
+                                match local_dictionary.TryFind value with
+                                | Some v -> v
+                                | None -> value
+                    | None -> fun value -> value
+                with
+                | _ -> fun value -> value
+            else
+                fun value -> value
+            
+                
 
     interface IParser with
         

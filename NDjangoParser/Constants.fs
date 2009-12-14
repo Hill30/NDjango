@@ -135,6 +135,13 @@ module Constants =
     let EXCEPTION_IF_ERROR = "settings.EXCEPTION_IF_ERROR"
     
     /// <summary>
+    /// Flag indicating whether internationalization support should be enabled
+    /// set it to 'false' to avoid overhead introduced by transaltion dictionary processing
+    /// </summary>
+    let USE_I18N = "settings.USE_I18N"
+
+
+    /// <summary>
     /// List nodes representing the elements of the tag itself, including 
     /// markers, tag name, tag paremeters, etc
     /// </summary>

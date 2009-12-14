@@ -66,7 +66,7 @@ module internal Template =
         
             
     /// Implements the template (ITemplate interface)
-    and internal Impl(provider : ITemplateManagerProvider, template: TextReader, a) =
+    and internal Impl(provider : ITemplateManagerProvider, template: TextReader) =
         
         let node_list = (provider :?> IParser).ParseTemplate template
         interface ITemplate with
@@ -82,7 +82,7 @@ module internal Template =
                             context, 
                             (new Map<string,obj>(context |> Seq.map (fun item-> (item.Key, item.Value)))),
                             provider.Settings.[Constants.DEFAULT_AUTOESCAPE] :?> bool,
-                            provider.CreateTranslator "EN-US"
+                            provider.CreateTranslator "en-US"
                             )
                     }) :> System.IO.TextReader
                 

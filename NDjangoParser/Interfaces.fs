@@ -232,7 +232,7 @@ and ITemplateManagerProvider =
     /// current configuration settings
     abstract member Settings: Map<string, obj>
     
-    /// translation dictionary
+    /// Creates a translator for a given language
     abstract member CreateTranslator: string-> (string->string)
 
     /// current template loader
