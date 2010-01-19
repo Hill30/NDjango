@@ -40,5 +40,15 @@ namespace NDjango.Designer.CodeCompletion
 
         protected override int FilterOffset { get { return 1; } }
 
+
+        protected override IEnumerable<Completion> BuildNodeCompletions()
+        {
+            return BuildCompletions(Node.ParsingContext.Tags);
+        }
+
+        protected override IEnumerable<Completion> BuildNodeCompletionBuilders()
+        {
+            return BuildCompletions(Node.ParsingContext.TagClosures);
+        }
     }
 }

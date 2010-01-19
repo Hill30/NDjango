@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Text;
 using NDjango.Designer.Parsing;
 using System.Windows.Input;
 using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
 
 namespace NDjango.Designer.CodeCompletion
 {
@@ -19,7 +20,7 @@ namespace NDjango.Designer.CodeCompletion
     /// which is any context where one word (alphanumeric sequence) can be replaced by another word.
     /// Every context specific class has to implement its own Create method
     /// </remarks>
-    class CompletionSet : Microsoft.VisualStudio.Language.Intellisense.CompletionSet
+    abstract class CompletionSet : Microsoft.VisualStudio.Language.Intellisense.CompletionSet
     {
 
         /// <summary>
@@ -28,7 +29,8 @@ namespace NDjango.Designer.CodeCompletion
         /// </summary>
         private ITrackingSpan filterSpan;
         private DesignerNode node;
-        private List<Completion> completions;
+        private ObservableCollection<Completion> completions;
+        private List<Completion> nodeCompletions;
         private List<Completion> completionBuilders;
 
         /// <summary>
@@ -61,15 +63,39 @@ namespace NDjango.Designer.CodeCompletion
         {
             get { return new List<Completion>(BuildCompletions(node.Values, "", "")); }
         }
+
         protected virtual List<Completion> NodeCompletionBuilders { get { return new List<Completion>(); } }
         protected virtual int FilterOffset { get { return 0; } }
 
-        /// Returns the list of completion builders for the node. Called only once the first time
-        /// the list is accessed
+        /// <summary>
+        /// Builds a list of completions out if the list of values
+        /// </summary>
+        /// <param name="values">The list of values</param>
+        /// <param name="prefix"></param>
+        /// <param name="suffix"></param>
+        /// <returns></returns>
+        /// <remarks>All values in the list are prepended with the prefix and appended with the suffix</remarks>
         protected IEnumerable<Completion> BuildCompletions(IEnumerable<string> values, string prefix, string suffix)
         {
             foreach (string value in values)
                 yield return new Completion(value, prefix + value + suffix, value, null, null);
+        }
+
+        /// <summary>
+        /// Supplies the list of completions for the node. Called only once the first time
+        /// the list is accessed
+        /// </summary>
+        /// <returns></returns>
+        protected abstract IEnumerable<Completion> BuildNodeCompletions();
+
+        /// <summary>
+        /// Supplies the list of completion builders for the node. Called only once the first time
+        /// the list is accessed
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IEnumerable<Completion> BuildNodeCompletionBuilders()
+        {
+            return new List<Completion>();
         }
 
         /// <summary>
@@ -115,18 +141,60 @@ namespace NDjango.Designer.CodeCompletion
                     );
         }
 
-       public override sealed IList<Completion> Completions
+        public override sealed IList<Completion> Completions
         {
             get
             {
                 if (completions == null)
-                    completions = NodeCompletions;
-                //string prefix = getPrefix();
-                //if (prefix.Length > 1)
-                //    return completions.Where(c => c.DisplayText.StartsWith(prefix.Substring(0, prefix.Length - 1))).ToList();
-                //else
-                    return completions;
+                {
+                    nodeCompletions = new List<Completion>(BuildNodeCompletions());
+                    completions = new ObservableCollection<Completion>();
+                }
+                string prefix = getPrefix();
+                var filteredList = nodeCompletions;
+                if (prefix.Length > 1)
+                    filteredList = nodeCompletions.Where(c => c.DisplayText.StartsWith(prefix.Substring(0, prefix.Length - 1))).ToList();
+                
+                int cIndex = 0, fIndex = 0;
+                int cPos = 0, fPos = 0;
+                bool cOver = false, fOver = false;
+
+                while (true)
+                {
+                    if (fOver || cIndex < fIndex)
+                    {
+                        completions.RemoveAt(cPos);
+                        cIndex = get_index(completions[cPos], cIndex);
+                    }
+                    if (!fOver && cIndex > fIndex)
+                        completions.Insert(cPos++, filteredList[fPos]); 
+                    if (cIndex == fIndex)
+                    {
+                        if (cPos < completions.Count)
+                            cIndex = get_index(completions[cPos++], cIndex);
+                        else
+                            cOver = true;
+                        if (fPos < filteredList.Count)
+                            fIndex = get_index(filteredList[fPos++], fIndex);
+                        else
+                            fOver = true;
+                    }
+                    if (cOver && fOver)
+                        break;
+                }
+
+                //foreach (Completion c in
+                //                (prefix.Length > 1)
+                //                ? (nodeCompletions.Where(c => c.DisplayText.StartsWith(prefix.Substring(0, prefix.Length - 1))).ToList())
+                //                : nodeCompletions)
+                //    completions.Add(c);
+                return completions;
             }
+        }
+
+        private int get_index(Completion completion, int start)
+        {
+            return nodeCompletions.IndexOf(completion);
         }
 
         public override sealed IList<Completion> CompletionBuilders
@@ -134,7 +202,7 @@ namespace NDjango.Designer.CodeCompletion
             get
             {
                 if (completionBuilders == null)
-                    completionBuilders = NodeCompletionBuilders;
+                    completionBuilders = new List<Completion>(BuildNodeCompletionBuilders());
                 return completionBuilders;
             }
         }

@@ -39,5 +39,10 @@ namespace NDjango.Designer.CodeCompletion
         {
             return BuildCompletions(values, "{ ", "");
         }
+
+        protected override IEnumerable<Completion> BuildNodeCompletions()
+        {
+            return BuildCompletions(new List<string>(new string[] { " }}" }));
+        }
     }
 }

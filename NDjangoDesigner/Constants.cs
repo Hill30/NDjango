@@ -33,7 +33,7 @@ namespace NDjango.Designer
         /// the actual filtering of the content types is done in the IsNDjango method 
         /// on the parser
 
-        internal const string NDJANGO = "text"; //"ndjango";
+        internal const string NDJANGO = "plaintext"; //"ndjango";
 
         /// <summary>
         /// Classifier definition for selected tags 

@@ -91,7 +91,8 @@ namespace NDjango.Designer.CodeCompletion
                         return null;
                     if (node.NodeType == NodeType.TagName)
                         return new TagNameCompletionSet(node, point);
-                    return new CompletionSet(node, point);
+//                    return new CompletionSet(node, point);
+                    return null;
 
                 default:
                     return null;
