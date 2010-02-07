@@ -137,6 +137,8 @@ module public ParserNodes =
     /// Value list node is a node carrying a list of values which will be used by code completion
     /// it can be used either directly or through several node classes inherited from the Value list node
     type ValueListNode(nodeType, token: Token, values)  =
+
+        override x.ToString() = token.TextToken.RawText
             
         interface INode with
             member x.NodeType = nodeType 

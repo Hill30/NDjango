@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using NDjango.Interfaces;
 using System.Runtime.InteropServices;
 using NDjango.Designer.Parsing;
+using NDjango.Designer.CodeCompletion.CompletionSets;
 
 namespace NDjango.Designer.CodeCompletion
 {
@@ -149,11 +150,8 @@ namespace NDjango.Designer.CodeCompletion
             var subjectBuffer = caretPoint.Snapshot.TextBuffer;
 
             CompletionContext completionContext = 
-                CompletionSet.GetCompletionContext(e.Key, subjectBuffer, caretPoint.Position);
+                AbstractCompletionSet.GetCompletionContext(e.Key, subjectBuffer, caretPoint.Position);
 
-            if (completionContext == CompletionContext.None)
-                return;
-            
             // the invocation occurred in a subject buffer of interest to us
             triggerPosition = caretPoint.Position;
             ITrackingPoint triggerPoint = caretPoint.Snapshot.CreateTrackingPoint(triggerPosition, PointTrackingMode.Negative);

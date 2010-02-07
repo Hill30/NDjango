@@ -32,6 +32,15 @@ open NDjango.Expressions
 
 module internal LoaderTags =
 
+    type TemplateNameExpression(context:ParsingContext, expression: TextToken) =
+        inherit FilterExpression (context, expression)
+
+        interface INode with            
+                     
+            /// TagNode type = Expression
+            member x.NodeType = NodeType.TemplateName
+
+
     /// Define a block that can be overridden by child templates.
     [<Description("Defines a block that can be overridden by child templates.")>]
     type BlockTag() =
@@ -63,9 +72,9 @@ module internal LoaderTags =
                 match token.Args with
                 | parent::[] -> 
                     
-                    /// expression yielding the name of the parent block
+                    /// expression yielding the name of the parent template
                     let parent_name_expr = 
-                        new FilterExpression(context, parent)
+                        new TemplateNameExpression(context, parent)
                         
                     /// a list of all blocks in the template starting with the extends tag
                     let node_list = 
@@ -127,7 +136,7 @@ module internal LoaderTags =
                 match token.Args with
                 | name::[] -> 
                     let template_name = 
-                        new FilterExpression(context, name)
+                        new TemplateNameExpression(context, name)
                     ({
                         //todo: we're not producing a node list here. may have to revisit
                         new TagNode(context, token) 

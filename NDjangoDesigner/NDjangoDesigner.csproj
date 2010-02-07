@@ -107,9 +107,11 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Classifiers\Highlighter.cs" />
-    <Compile Include="CodeCompletion\CompletionSets\CompletionSet.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\AbstractCompletionSet.cs" />
     <Compile Include="CodeCompletion\CompletionSets\FilterCompletionSet.cs" />
     <Compile Include="CodeCompletion\CompletionSets\TagNameCompletionSet.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\TemplateNameCompletionSet.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\ValueCompletionSet.cs" />
     <Compile Include="CodeCompletion\CompletionSets\VariableCompletionSet.cs" />
     <Compile Include="CodeCompletion\Controller.cs" />
     <Compile Include="CodeCompletion\ControllerProvider.cs" />

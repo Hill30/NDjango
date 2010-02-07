@@ -8,8 +8,9 @@ using NDjango.Designer.Parsing;
 using System.Windows.Input;
 using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
-namespace NDjango.Designer.CodeCompletion
+namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
     /// <summary>
     /// Collection of the values to choose from in the code completion dialog
@@ -20,7 +21,7 @@ namespace NDjango.Designer.CodeCompletion
     /// which is any context where one word (alphanumeric sequence) can be replaced by another word.
     /// Every context specific class has to implement its own Create method
     /// </remarks>
-    abstract class CompletionSet : Microsoft.VisualStudio.Language.Intellisense.CompletionSet
+    abstract class AbstractCompletionSet : Microsoft.VisualStudio.Language.Intellisense.CompletionSet
     {
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace NDjango.Designer.CodeCompletion
         /// </summary>
         private ITrackingSpan filterSpan;
         private DesignerNode node;
-        private ObservableCollection<Completion> completions;
+        private CompletionList completions;
         private List<Completion> nodeCompletions;
         private List<Completion> completionBuilders;
 
@@ -38,7 +39,7 @@ namespace NDjango.Designer.CodeCompletion
         /// </summary>
         /// <param name="node"></param>
         /// <param name="point"></param>
-        internal CompletionSet(DesignerNode node, SnapshotPoint point)
+        internal AbstractCompletionSet(DesignerNode node, SnapshotPoint point)
             : base("Django Completions", null, null, null)
         {
             // calculate the span to be replaced with user selection
@@ -53,18 +54,14 @@ namespace NDjango.Designer.CodeCompletion
             this.node = node;
         }
 
+        /// <summary>
+        /// The node this completion set is associated with
+        /// </summary>
         protected DesignerNode Node { get { return node; } }
 
         /// <summary>
-        /// Returns the list of completions for the node. Called only once the first time
-        /// the list is accessed
+        /// Starting position of the part of the input string to be used to filter the completions
         /// </summary>
-        protected virtual List<Completion> NodeCompletions 
-        {
-            get { return new List<Completion>(BuildCompletions(node.Values, "", "")); }
-        }
-
-        protected virtual List<Completion> NodeCompletionBuilders { get { return new List<Completion>(); } }
         protected virtual int FilterOffset { get { return 0; } }
 
         /// <summary>
@@ -78,7 +75,7 @@ namespace NDjango.Designer.CodeCompletion
         protected IEnumerable<Completion> BuildCompletions(IEnumerable<string> values, string prefix, string suffix)
         {
             foreach (string value in values)
-                yield return new Completion(value, prefix + value + suffix, value, null, null);
+                yield return new Completion(value, prefix + value + suffix, null, null, null);
         }
 
         /// <summary>
@@ -141,6 +138,17 @@ namespace NDjango.Designer.CodeCompletion
                     );
         }
 
+        class CompletionList : List<Completion>, INotifyCollectionChanged
+        {
+            public void RaiseCollectionChanged()
+            {
+                if (CollectionChanged != null)
+                    CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+
+            public event NotifyCollectionChangedEventHandler CollectionChanged;
+        }
+
         public override sealed IList<Completion> Completions
         {
             get
@@ -148,53 +156,32 @@ namespace NDjango.Designer.CodeCompletion
                 if (completions == null)
                 {
                     nodeCompletions = new List<Completion>(BuildNodeCompletions());
-                    completions = new ObservableCollection<Completion>();
+                    completions = new CompletionList();
                 }
+
                 string prefix = getPrefix();
-                var filteredList = nodeCompletions;
-                if (prefix.Length > 1)
-                    filteredList = nodeCompletions.Where(c => c.DisplayText.StartsWith(prefix.Substring(0, prefix.Length - 1))).ToList();
-                
-                int cIndex = 0, fIndex = 0;
-                int cPos = 0, fPos = 0;
-                bool cOver = false, fOver = false;
-
-                while (true)
+                int cPos = 0;
+                foreach (var c in nodeCompletions)
                 {
-                    if (fOver || cIndex < fIndex)
-                    {
-                        completions.RemoveAt(cPos);
-                        cIndex = get_index(completions[cPos], cIndex);
-                    }
-                    if (!fOver && cIndex > fIndex)
-                        completions.Insert(cPos++, filteredList[fPos]); 
-                    if (cIndex == fIndex)
-                    {
-                        if (cPos < completions.Count)
-                            cIndex = get_index(completions[cPos++], cIndex);
+                    if (to_be_included(prefix, c))
+                        if (cPos < completions.Count && completions[cPos] == c)
+                            cPos++;
                         else
-                            cOver = true;
-                        if (fPos < filteredList.Count)
-                            fIndex = get_index(filteredList[fPos++], fIndex);
-                        else
-                            fOver = true;
-                    }
-                    if (cOver && fOver)
-                        break;
+                            completions.Insert(cPos++, c);
+                    else
+                        if (cPos < completions.Count && completions[cPos] == c)
+                            completions.RemoveAt(cPos);
                 }
-
-                //foreach (Completion c in
-                //                (prefix.Length > 1)
-                //                ? (nodeCompletions.Where(c => c.DisplayText.StartsWith(prefix.Substring(0, prefix.Length - 1))).ToList())
-                //                : nodeCompletions)
-                //    completions.Add(c);
+                completions.RaiseCollectionChanged();
                 return completions;
             }
         }
 
-        private int get_index(Completion completion, int start)
+        private bool to_be_included(string prefix, Completion c)
         {
-            return nodeCompletions.IndexOf(completion);
+            if (prefix.Length < 2)
+                return true;
+            return c.DisplayText.StartsWith(prefix.Substring(0, prefix.Length - 1));
         }
 
         public override sealed IList<Completion> CompletionBuilders
@@ -314,7 +301,7 @@ namespace NDjango.Designer.CodeCompletion
 
                 default:
                     if (Char.IsLetterOrDigit(triggerChars[0]))
-                        return CompletionContext.Other;
+                        return CompletionContext.Word;
                     return CompletionContext.None;
             }
 
@@ -343,12 +330,12 @@ namespace NDjango.Designer.CodeCompletion
         Variable,
 
         /// <summary>
-        /// Other is a context covering typeing inside a word - a tag name, a filter name a keyword, etc
+        /// Other is a context covering typing inside a word - a tag name, a filter name a keyword, etc
         /// </summary>
-        Other,
+        Word,
 
         /// <summary>
-        /// This is not a code completion context no list will be provided
+        /// This is not a recognized code completion context
         /// </summary>
         None
     }

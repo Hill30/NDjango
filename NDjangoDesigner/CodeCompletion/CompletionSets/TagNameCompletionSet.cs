@@ -6,24 +6,16 @@ using NDjango.Designer.Parsing;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace NDjango.Designer.CodeCompletion
+namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
-    class TagNameCompletionSet : CompletionSet
+    /// <summary>
+    /// Represents a list of completions for available tag names
+    /// </summary>
+    class TagNameCompletionSet : AbstractCompletionSet
     {
         internal TagNameCompletionSet(DesignerNode node, SnapshotPoint point)
             : base(node, point)
-        {
-        }
-
-        protected override List<Completion> NodeCompletions
-        {
-            get { return new List<Completion>(BuildCompletions(Node.ParsingContext.Tags)); }
-        }
-
-        protected override List<Completion> NodeCompletionBuilders
-        {
-            get { return new List<Completion>(BuildCompletions(Node.ParsingContext.TagClosures)); }
-        }
+        { }
 
         private IEnumerable<Completion> BuildCompletions(IEnumerable<string> values)
         {

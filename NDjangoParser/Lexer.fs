@@ -287,7 +287,7 @@ module Lexer =
         | Error of ErrorToken
         | Text of TextToken
         
-        member private x.TextToken = 
+        member x.TextToken = 
             match x with
             | Block b -> b :> TextToken
             | Error e -> e :> TextToken

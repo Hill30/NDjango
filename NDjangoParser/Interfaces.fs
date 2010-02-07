@@ -111,6 +111,11 @@ type NodeType =
         /// </summary>
         | CloseTag = 0x000e
 
+        /// <summary>
+        /// a special expression node representing the template name
+        /// </summary>
+        | TemplateName = 0x000f
+
 /// Error message
 type Error(severity:int, message:string) =
     /// indicates the severity of the error with 0 being the information message

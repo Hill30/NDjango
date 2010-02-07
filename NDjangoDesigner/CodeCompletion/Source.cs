@@ -27,6 +27,7 @@ using System.Collections.ObjectModel;
 using NDjango.Interfaces;
 using NDjango.Designer.Parsing;
 using VSCompletionSet = Microsoft.VisualStudio.Language.Intellisense.CompletionSet;
+using NDjango.Designer.CodeCompletion.CompletionSets;
 
 namespace NDjango.Designer.CodeCompletion
 {
@@ -60,10 +61,7 @@ namespace NDjango.Designer.CodeCompletion
 
             SnapshotPoint point = session.GetTriggerPoint(textBuffer).GetPoint(textBuffer.CurrentSnapshot);
 
-            List<DesignerNode> nodes = nodeProvider
-                    .GetNodes(point, n => n.Values.GetEnumerator().MoveNext());
-
-            CompletionSet set = CreateCompletionSet(context, nodes, point);
+            CompletionSet set = CreateCompletionSet(context, point);
 
             if (set == null)
                 return null;
@@ -72,32 +70,35 @@ namespace NDjango.Designer.CodeCompletion
 
         }
 
-        private CompletionSet CreateCompletionSet(CompletionContext context, List<DesignerNode> nodes, SnapshotPoint point)
+        private CompletionSet CreateCompletionSet(CompletionContext context, SnapshotPoint point)
         {
             switch (context)
             {
                 case CompletionContext.Tag:
-                    return TagCompletionSet.Create(nodes, point);
+                    return TagCompletionSet.Create(nodeProvider, point);
 
                 case CompletionContext.Variable:
-                    return VariableCompletionSet.Create(nodes, point);
+                    return VariableCompletionSet.Create(nodeProvider, point);
 
                 case CompletionContext.FilterName:
-                    return FilterCompletionSet.Create(nodes, point);
+                    return FilterCompletionSet.Create(nodeProvider, point);
 
-                case CompletionContext.Other:
+                case CompletionContext.Word:
+                    // Get the list of all nodes with non-empty value lists
+                    List<DesignerNode> nodes = nodeProvider.GetNodes(point, n => n.Values.GetEnumerator().MoveNext());
+                    // out of the list get the last node which is not a parsing context
                     DesignerNode node = nodes.FindLast(n => n.NodeType != NodeType.ParsingContext);
                     if (node == null)
-                        return null;
+                        break;
                     if (node.NodeType == NodeType.TagName)
                         return new TagNameCompletionSet(node, point);
-//                    return new CompletionSet(node, point);
-                    return null;
+                    return new ValueCompletionSet(node, point);
 
                 default:
-                    return null;
-
+                    break;
             }
+
+            return TemplateNameCompletionSet.Create(nodeProvider, point);
         }
     }
 }

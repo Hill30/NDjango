@@ -6,13 +6,21 @@ using NDjango.Designer.Parsing;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace NDjango.Designer.CodeCompletion
+namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
-    class TagCompletionSet : CompletionSet
+    /// <summary>
+    /// Reperesents a list of completions for tags as a whole
+    /// </summary>
+    class TagCompletionSet : AbstractCompletionSet
     {
-        internal static CompletionSet Create(List<DesignerNode> nodes, SnapshotPoint point)
+
+        internal static CompletionSet Create(NodeProvider nodeProvider, SnapshotPoint point)
         {
-            DesignerNode node = nodes.FindLast(n => n.NodeType == NDjango.Interfaces.NodeType.ParsingContext);
+            DesignerNode node = 
+                // Get the list of all nodes with non-empty value lists
+                nodeProvider.GetNodes(point, n => n.Values.GetEnumerator().MoveNext())
+                // out of the list get the last parsing context
+                .FindLast(n => n.NodeType == NDjango.Interfaces.NodeType.ParsingContext);
             if (node == null)
                 return null;
             return new TagCompletionSet(node, point);
@@ -20,18 +28,7 @@ namespace NDjango.Designer.CodeCompletion
 
         private TagCompletionSet(DesignerNode node, SnapshotPoint point)
             : base (node, point)
-        {
-        }
-
-        protected override List<Completion> NodeCompletions
-        {
-            get { return new List<Completion>(BuildCompletions(Node.ParsingContext.Tags)); }
-        }
-
-        protected override List<Completion> NodeCompletionBuilders
-        {
-            get { return new List<Completion>(BuildCompletions(Node.ParsingContext.TagClosures)); }
-        }
+        { }
 
         private IEnumerable<Completion> BuildCompletions(IEnumerable<string> values)
         {
@@ -39,7 +36,6 @@ namespace NDjango.Designer.CodeCompletion
         }
 
         protected override int FilterOffset { get { return 1; } }
-
 
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {

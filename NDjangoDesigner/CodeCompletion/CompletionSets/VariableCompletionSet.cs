@@ -6,13 +6,17 @@ using NDjango.Designer.Parsing;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace NDjango.Designer.CodeCompletion
+namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
-    class VariableCompletionSet : CompletionSet
+    class VariableCompletionSet : AbstractCompletionSet
     {
-        internal static CompletionSet Create(List<DesignerNode> nodes, SnapshotPoint point)
+        internal static CompletionSet Create(NodeProvider nodeProvider, SnapshotPoint point)
         {
-            DesignerNode node = nodes.FindLast(n => n.NodeType == NDjango.Interfaces.NodeType.ParsingContext);
+            DesignerNode node = 
+                // Get the list of all nodes with non-empty value lists
+                nodeProvider.GetNodes(point, n => n.Values.GetEnumerator().MoveNext())
+                // out of the list get the last parsing context
+                .FindLast(n => n.NodeType == NDjango.Interfaces.NodeType.ParsingContext);
             if (node == null)
                 return null;
             return new VariableCompletionSet(node, point);
@@ -25,14 +29,6 @@ namespace NDjango.Designer.CodeCompletion
         public override void SelectBestMatch()
         {
             SelectionStatus = new CompletionSelectionStatus(Completions[0], false, true);
-        }
-
-        protected override List<Completion> NodeCompletions
-        {
-            get
-            {
-                return new List<Completion>(BuildCompletions(new List<string> ( new string[] {" }}"})));
-            }
         }
 
         private IEnumerable<Completion> BuildCompletions(IEnumerable<string> values)
