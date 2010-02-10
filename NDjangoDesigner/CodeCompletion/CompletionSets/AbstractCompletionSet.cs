@@ -24,6 +24,19 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
     abstract class AbstractCompletionSet : Microsoft.VisualStudio.Language.Intellisense.CompletionSet
     {
 
+        internal static CompletionSet Create<T>
+            (NodeProvider nodeProvider, SnapshotPoint point, Predicate<DesignerNode> filter)
+            where T : AbstractCompletionSet, new()
+        {
+            // Get a list of all nodes of template name type
+            var node = nodeProvider.GetNodes(point, filter).FindLast(n => true);
+            if (node == null)
+                return null;
+            var result = new T();
+            result.Initialize(node, point);
+            return result;
+       }
+
         /// <summary>
         /// Span tracking filter to be applied to the value list as the user types.
         /// Starts at the beginning of the word and ends at the left most position of the user input
@@ -41,6 +54,14 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// <param name="point"></param>
         internal AbstractCompletionSet(DesignerNode node, SnapshotPoint point)
             : base("Django Completions", null, null, null)
+        {
+            Initialize(node, point);
+        }
+
+        protected AbstractCompletionSet()
+            : base("Django Completions", null, null, null) { }
+        
+        protected virtual void Initialize(DesignerNode node, SnapshotPoint point)
         {
             // calculate the span to be replaced with user selection
             Span span = new Span(point.Position, 0);

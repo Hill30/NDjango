@@ -21,6 +21,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using System.Collections.ObjectModel;
@@ -75,13 +76,22 @@ namespace NDjango.Designer.CodeCompletion
             switch (context)
             {
                 case CompletionContext.Tag:
-                    return TagCompletionSet.Create(nodeProvider, point);
+                    return AbstractCompletionSet.Create<TagCompletionSet>(
+                        nodeProvider, point,
+                        n => n.NodeType == NodeType.ParsingContext
+                            );
 
                 case CompletionContext.Variable:
-                    return VariableCompletionSet.Create(nodeProvider, point);
+                    return AbstractCompletionSet.Create<VariableCompletionSet>(
+                        nodeProvider, point, 
+                        n => n.NodeType == NodeType.ParsingContext
+                            );
 
                 case CompletionContext.FilterName:
-                    return FilterCompletionSet.Create(nodeProvider, point);
+                    return AbstractCompletionSet.Create<FilterCompletionSet>(
+                        nodeProvider, point, 
+                        n => n.NodeType == NodeType.ParsingContext
+                            );
 
                 case CompletionContext.Word:
                     // Get the list of all nodes with non-empty value lists
@@ -98,7 +108,16 @@ namespace NDjango.Designer.CodeCompletion
                     break;
             }
 
-            return TemplateNameCompletionSet.Create(nodeProvider, point);
+            return null;
+            // for now let us leave the template names alone
+            //return AbstractCompletionSet.Create<TemplateNameCompletionSet>(
+            //    nodeProvider, point,
+            //    n =>
+            //        n.NodeType == NodeType.TemplateName
+            //        && string_delimiters.Contains(n.SnapshotSpan.GetText()[0])
+            //        );
         }
+
+        readonly static char[] string_delimiters = { '"', '\'' };
     }
 }

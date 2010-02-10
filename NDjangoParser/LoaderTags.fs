@@ -52,7 +52,7 @@ module internal LoaderTags =
                     (new BlockNode(context, token, name.RawText, node_list) :> INodeImpl), remaining
                 | _ ->
                     let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endblock"]
-                    raise (SyntaxError("block tag takes only one argument", 
+                    raise (SyntaxError("block tag requires exactly one argument", 
                             node_list,
                             remaining))
                 
@@ -102,7 +102,7 @@ module internal LoaderTags =
                     ((new ExtendsNode(context, token, nodes, parent_name_expr) :> INodeImpl), 
                        remaining)
                 | _ -> raise (SyntaxError (
-                                 "extends tag takes only one argument",
+                                 "extends tag requires exactly one argument",
                                  node_list,
                                  remaining))
 
