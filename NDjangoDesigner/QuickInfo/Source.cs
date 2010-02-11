@@ -43,17 +43,8 @@ namespace NDjango.Designer.QuickInfo
             this.textBuffer = textBuffer;
             nodeProvider = nodeProviderBroker.GetNodeProvider(textBuffer);
         }
-        /// <summary>
-        /// Generates the tooltip text 
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="applicableToSpan"></param>
-        /// <returns></returns>
-        /// <remarks>the quick info session will be automatically dismissed
-        /// when mouse cursor leaves the 'applicable to' span. The size of the span is
-        /// calculated based on the size of the nodes supplying the info to be shown
-        /// </remarks>
-        public ReadOnlyCollection<object> GetToolTipContent(IQuickInfoSession session, out ITrackingSpan applicableToSpan)
+
+        public void AugmentQuickInfoSession(IQuickInfoSession session, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
         {
             StringBuilder message = new StringBuilder();
             int position = textBuffer.CurrentSnapshot.Length;
@@ -94,9 +85,10 @@ namespace NDjango.Designer.QuickInfo
                 Microsoft.VisualStudio.Text.SpanTrackingMode.EdgeExclusive);
 
             if (message.Length > 0)
-                return new ReadOnlyCollection<object>(new string[] { message.ToString() });
-            else
-                return null;
+                quickInfoContent.Add(message.ToString());
         }
+
+        public void Dispose()
+        { }
     }
 }

@@ -1,4 +1,5 @@
-﻿ 
+﻿
+namespace NDJango 
 
 open System.Reflection;
 

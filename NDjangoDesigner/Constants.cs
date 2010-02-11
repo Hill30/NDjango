@@ -95,10 +95,10 @@ namespace NDjango.Designer
             }
         }
 
-        internal class ErrorTag : SquiggleTag
-        {
-            public ErrorTag()
-                : base("error") { }
-        }
+        //internal class ErrorTag : SquiggleTag
+        //{
+        //    public ErrorTag()
+        //        : base("error") { }
+        //}
     }
 }

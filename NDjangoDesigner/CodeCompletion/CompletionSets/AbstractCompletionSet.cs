@@ -53,13 +53,13 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// <param name="node"></param>
         /// <param name="point"></param>
         internal AbstractCompletionSet(DesignerNode node, SnapshotPoint point)
-            : base("Django Completions", null, null, null)
+            : base("Django Completions", "Django Completions", null, null, null)
         {
             Initialize(node, point);
         }
 
         protected AbstractCompletionSet()
-            : base("Django Completions", null, null, null) { }
+            : base("Django Completions", "Django Completions", null, null, null) { }
         
         protected virtual void Initialize(DesignerNode node, SnapshotPoint point)
         {

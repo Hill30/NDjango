@@ -33,7 +33,7 @@ namespace NDjango.Designer.Tags
     /// <remarks> Imports parser object in order to generate tokenizer for tagger</remarks>
     [Export(typeof(ITaggerProvider))]
     [ContentType(Constants.NDJANGO)]
-    [TagType(typeof(SquiggleTag))]
+    [TagType(typeof(ErrorTag))]
     class TaggerProvider : ITaggerProvider
     {
         [Import]

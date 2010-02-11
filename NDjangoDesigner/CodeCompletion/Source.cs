@@ -45,31 +45,24 @@ namespace NDjango.Designer.CodeCompletion
             this.textBuffer = textBuffer;
             nodeProvider = nodeProviderBroker.GetNodeProvider(textBuffer);
         }
-        /// <summary>
-        /// Gets the completion information
-        /// </summary>
-        /// <param name="session"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// The location of the textspan to be replaced with 
-        /// the selection so that the entire word would be replaced
-        /// </remarks>
-        public ReadOnlyCollection<VSCompletionSet> GetCompletionInformation(ICompletionSession session)
+        public void AugmentCompletionSession(ICompletionSession session, IList<VSCompletionSet> completionSets)
         {
             CompletionContext context;
             if (!session.Properties.TryGetProperty<CompletionContext>(typeof(CompletionContext), out context))
-                return null;
+                return;
 
             SnapshotPoint point = session.GetTriggerPoint(textBuffer).GetPoint(textBuffer.CurrentSnapshot);
 
             CompletionSet set = CreateCompletionSet(context, point);
 
             if (set == null)
-                return null;
+                return;
 
-            return new ReadOnlyCollection<VSCompletionSet> (new CompletionSet[] { set });
-
+            completionSets.Add(set);
         }
+
+        public void Dispose()
+        { }
 
         private CompletionSet CreateCompletionSet(CompletionContext context, SnapshotPoint point)
         {
@@ -83,13 +76,13 @@ namespace NDjango.Designer.CodeCompletion
 
                 case CompletionContext.Variable:
                     return AbstractCompletionSet.Create<VariableCompletionSet>(
-                        nodeProvider, point, 
+                        nodeProvider, point,
                         n => n.NodeType == NodeType.ParsingContext
                             );
 
                 case CompletionContext.FilterName:
                     return AbstractCompletionSet.Create<FilterCompletionSet>(
-                        nodeProvider, point, 
+                        nodeProvider, point,
                         n => n.NodeType == NodeType.ParsingContext
                             );
 
@@ -119,5 +112,6 @@ namespace NDjango.Designer.CodeCompletion
         }
 
         readonly static char[] string_delimiters = { '"', '\'' };
+
     }
 }

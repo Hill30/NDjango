@@ -27,7 +27,7 @@ using NDjango.Designer.Parsing;
 
 namespace NDjango.Designer.Tags
 {
-    class Tagger : ITagger<Constants.ErrorTag>
+    class Tagger : ITagger<ErrorTag>
     {
         private NodeProvider nodeProvider;
 
@@ -48,14 +48,14 @@ namespace NDjango.Designer.Tags
         /// </summary>
         /// <param name="spans"></param>
         /// <returns></returns>
-        public IEnumerable<ITagSpan<Constants.ErrorTag>> GetTags(Microsoft.VisualStudio.Text.NormalizedSnapshotSpanCollection spans)
+        public IEnumerable<ITagSpan<ErrorTag>> GetTags(Microsoft.VisualStudio.Text.NormalizedSnapshotSpanCollection spans)
         {
             foreach (SnapshotSpan span in spans)
             {
                 foreach (DesignerNode node in nodeProvider.GetNodes(span, node => node.NodeType != NDjango.Interfaces.NodeType.ParsingContext))
                 {
                     if (node.ErrorMessage.Severity > -1)
-                        yield return new TagSpan<Constants.ErrorTag>(node.SnapshotSpan, new Constants.ErrorTag());
+                        yield return new TagSpan<ErrorTag>(node.SnapshotSpan, new ErrorTag());
                 }
             }
         }

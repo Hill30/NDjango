@@ -296,7 +296,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
        | LazyList.Nil ->  
             if not <| List.isEmpty parse_until 
                 then raise (SyntaxError(fail_closing parse_until, nodes, tokens))
-            (nodes, LazyList.empty<Lexer.Token>())
+            (nodes, LazyList.empty<Lexer.Token>)
        | LazyList.Cons(token, tokens) -> 
             match token with 
             | Lexer.Block block when parse_until |> List.exists (terminals block).Equals ->
