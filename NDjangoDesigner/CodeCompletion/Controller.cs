@@ -185,14 +185,15 @@ namespace NDjango.Designer.CodeCompletion
         void OnActiveSessionCommitted(object sender, System.EventArgs e)
         {
             detachKeyboardFilter();
-            string just_inserted = activeSession.SelectedCompletionSet.SelectionStatus.Completion.InsertionText;
-            if (just_inserted.EndsWith("%}") || just_inserted.EndsWith("}}"))
-            {
-                var textView = activeSession.TextView;
-                textView.Caret.MoveToPreviousCaretPosition();
-                textView.Caret.MoveToPreviousCaretPosition();
-                textView.Caret.MoveToPreviousCaretPosition();
-            }
+            var pos = activeSession.TextView.Caret.Position.BufferPosition;
+            if (pos.Position > 1)
+                if ((pos-1).GetChar() == '}' && ((pos-2).GetChar() == '}' || (pos-2).GetChar() == '%'))
+                {
+                    var textView = activeSession.TextView;
+                    textView.Caret.MoveToPreviousCaretPosition();
+                    textView.Caret.MoveToPreviousCaretPosition();
+                    textView.Caret.MoveToPreviousCaretPosition();
+                }
             activeSession = null;
         }
 
