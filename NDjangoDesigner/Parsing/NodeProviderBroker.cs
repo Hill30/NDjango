@@ -191,7 +191,6 @@ namespace NDjango.Designer.Parsing
                 return default(T);
 
             T result = (T)Marshal.GetObjectForIUnknown(ptrObject);
-            Marshal.Release(ptrObject);
 
             return result;
         }
