@@ -24,7 +24,8 @@ namespace NDjango.Designer.Classifiers
         void Caret_PositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
             NodeProvider provider;
-            if (!e.TextView.TextBuffer.Properties.TryGetProperty(typeof(NodeProvider), out provider))
+            ITextBuffer buffer = e.TextView.TextBuffer;
+            if (!buffer.Properties.TryGetProperty(typeof(NodeProvider), out provider))
                 return;
             Highlight(provider, e.NewPosition);
         }

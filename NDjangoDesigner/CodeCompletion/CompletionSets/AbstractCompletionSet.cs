@@ -161,10 +161,27 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 
         class CompletionList : List<Completion>, INotifyCollectionChanged
         {
+            bool isModified = false;
             public void RaiseCollectionChanged()
             {
+                if (!isModified)
+                    return;
+
+                isModified = false;
                 if (CollectionChanged != null)
                     CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+
+            new public void Insert(int index, Completion item)
+            {
+                base.Insert(index, item);
+                isModified = true;
+            }
+
+            new public void RemoveAt(int index)
+            {
+                base.RemoveAt(index);
+                isModified = true;
             }
 
             public event NotifyCollectionChangedEventHandler CollectionChanged;

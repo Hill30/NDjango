@@ -29,12 +29,6 @@ namespace NDjango.Designer
 {
     static class Constants
     {
-        /// NDJANGO content type is defined to be just text - pretty much any text
-        /// the actual filtering of the content types is done in the IsNDjango method 
-        /// on the parser
-
-        internal const string NDJANGO = "plaintext"; //"ndjango";
-
         /// <summary>
         /// Classifier definition for selected tags 
         /// </summary>
@@ -95,10 +89,16 @@ namespace NDjango.Designer
             }
         }
 
-        //internal class ErrorTag : SquiggleTag
-        //{
-        //    public ErrorTag()
-        //        : base("error") { }
-        //}
+        /// NDJANGO content type is defined to be just text - pretty much any text
+        /// the actual filtering of the content types is done in the IsNDjango method 
+        /// on the parser
+
+        internal const string NDJANGO = "plaintext";
+
+//        [Export]
+//        [Name(NDJANGO)]
+//        [BaseDefinition("plaintext")]
+//        [BaseDefinition("HTML")]
+        internal static ContentTypeDefinition TestContentTypeDefinition;
     }
 }
