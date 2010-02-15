@@ -26,8 +26,8 @@ namespace NDjango.UnitTests
             lst.Add(new TestDescriptor("basic-syntax01", "something cool", null, ContextObjects.p("something cool")));
             // Variables should be replaced with their value in the current context
             lst.Add(new TestDescriptor("basic-syntax02", "{{ headline }}", ContextObjects.p("headline", "Success"), ContextObjects.p("Success"),"headline"));
-
-            lst.Add(new TestDescriptor("basic-syntax02", "{{ headline }}", ContextObjects.p("headline", Guid.NewGuid()), ContextObjects.p("Success"), "headline"));
+            Guid guid = Guid.NewGuid();
+            lst.Add(new TestDescriptor("basic-syntax02", "{{ headline }}", ContextObjects.p("headline", guid), ContextObjects.p(guid.ToString()), "headline"));
 
             // More than one replacement variable is allowed in a template
             lst.Add(new TestDescriptor("basic-syntax03", "{{ first }} --- {{ second }}", ContextObjects.p("first", 1, "second", 2), 
