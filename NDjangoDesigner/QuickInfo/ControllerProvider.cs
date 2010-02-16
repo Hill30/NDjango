@@ -32,7 +32,8 @@ namespace NDjango.Designer.QuickInfo
     [Export(typeof(IIntellisenseControllerProvider))]
     [Name("NDjango Completion Controller")]
     [Order]
-    [ContentType(Constants.NDJANGO)]
+    [ContentType(Constants.NDJANGO_TEXT)]
+    [ContentType(Constants.NDJANGO_HTML)]
     internal class ControllerProvider : IIntellisenseControllerProvider
     {
 

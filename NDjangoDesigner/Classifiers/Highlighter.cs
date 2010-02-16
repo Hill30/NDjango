@@ -13,7 +13,8 @@ namespace NDjango.Designer.Classifiers
 {
     [Export(typeof(IWpfTextViewCreationListener))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    [ContentType(Constants.NDJANGO)] 
+    [ContentType(Constants.NDJANGO_TEXT)]
+    [ContentType(Constants.NDJANGO_HTML)]
     internal sealed class Highlighter : IWpfTextViewCreationListener
     {
         public void TextViewCreated(IWpfTextView textView)

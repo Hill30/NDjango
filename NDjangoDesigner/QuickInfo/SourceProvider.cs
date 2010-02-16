@@ -30,7 +30,8 @@ namespace NDjango.Designer.QuickInfo
     [Export(typeof(IQuickInfoSourceProvider))]
     [Name("NDjango QuickInfo Source")]
     [Order(Before = "default")]
-    [ContentType(Constants.NDJANGO)]
+    [ContentType(Constants.NDJANGO_TEXT)]
+    [ContentType(Constants.NDJANGO_HTML)]
     class SourceProvider : IQuickInfoSourceProvider
     {
         [Import]

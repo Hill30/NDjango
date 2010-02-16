@@ -33,7 +33,8 @@ namespace NDjango.Designer.Classifiers
     /// <remarks>Imports the Parser object and passes it on to the new classifiers so that 
     /// classifiers can generate tokenzers</remarks>
     [Export(typeof(IClassifierProvider))]
-    [ContentType(Constants.NDJANGO)]
+    [ContentType(Constants.NDJANGO_TEXT)]
+    [ContentType(Constants.NDJANGO_HTML)]
     [Name("NDjango Classifier")]
     internal class ClassifierProvider : IClassifierProvider
     {

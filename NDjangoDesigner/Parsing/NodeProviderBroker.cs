@@ -101,6 +101,9 @@ namespace NDjango.Designer.Parsing
         [Import]
         internal IVsEditorAdaptersFactoryService adaptersFactory { get; set; }
 
+        [Import]
+        internal Microsoft.VisualStudio.Utilities.IContentTypeRegistryService ContentTypeRegistryService { get; set; }
+
         /// <summary>
         /// Determines whether the buffer conatins ndjango code
         /// </summary>
@@ -108,6 +111,8 @@ namespace NDjango.Designer.Parsing
         /// <returns><b>true</b> if this is a ndjango buffer</returns>
         public bool IsNDjango(ITextBuffer buffer)
         {
+
+            var types = new List<Microsoft.VisualStudio.Utilities.IContentType>(ContentTypeRegistryService.ContentTypes);
 
             switch (buffer.ContentType.TypeName)
             {
@@ -154,18 +159,17 @@ namespace NDjango.Designer.Parsing
             Guid page = this.GetType().GUID;
             string caption = "Django Templates";
 
-            IVsOutputWindow service = GetService<IVsOutputWindow>(textBuffer, typeof(SVsOutputWindow));
+            IVsOutputWindow outputWindow = GetService<IVsOutputWindow>(textBuffer, typeof(SVsOutputWindow));
 
             IVsOutputWindowPane ppPane = null;
-            if ((ErrorHandler.Failed(service.GetPane(ref page, out ppPane)) && (caption != null)) 
-                && ErrorHandler.Succeeded(service.CreatePane(ref page, caption, 1, 1)))
+            if (ErrorHandler.Failed(outputWindow.GetPane(ref page, out ppPane)))
             {
-                service.GetPane(ref page, out ppPane);
+                ErrorHandler.ThrowOnFailure(outputWindow.CreatePane(ref page, caption, 1, 1));
+                ErrorHandler.ThrowOnFailure(outputWindow.GetPane(ref page, out ppPane));
             }
-            if (ppPane != null)
-            {
-                ErrorHandler.ThrowOnFailure(ppPane.Activate());
-            }
+            ErrorHandler.ThrowOnFailure(ppPane.Activate());
+            ErrorHandler.ThrowOnFailure(ppPane.OutputString("Hello world\n"));
+            ErrorHandler.ThrowOnFailure(ppPane.FlushToTaskList());
             return ppPane;
         }
 

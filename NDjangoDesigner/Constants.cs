@@ -93,11 +93,12 @@ namespace NDjango.Designer
         /// the actual filtering of the content types is done in the IsNDjango method 
         /// on the parser
 
-        internal const string NDJANGO = "plaintext";
+        internal const string NDJANGO_TEXT = "plaintext";
+        internal const string NDJANGO_HTML = "HTML";
 
-//        [Export]
-//        [Name(NDJANGO)]
-//        [BaseDefinition("plaintext")]
+        [Export]
+        [Name("NDJANGO")]
+        [BaseDefinition("plaintext")]
 //        [BaseDefinition("HTML")]
         internal static ContentTypeDefinition TestContentTypeDefinition;
     }

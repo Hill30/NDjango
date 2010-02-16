@@ -11,7 +11,8 @@ namespace NDjango.Designer.Parsing
 {
     [Export(typeof(IWpfTextViewCreationListener))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    [ContentType(Constants.NDJANGO)]
+    [ContentType(Constants.NDJANGO_TEXT)]
+    [ContentType(Constants.NDJANGO_HTML)]
     class ActiveViewMonitor : IWpfTextViewCreationListener
     {
         public void TextViewCreated(IWpfTextView textView)
