@@ -49,12 +49,14 @@
         </Directory>
       </Directory>
       <Directory Id="VS2008PROJECTTEMPLATESLOCATION">
-        <Directory Id="vs2008Web1" Name="Web">
-          <Component Id="ProjectTemplates" Guid="F12101E4-615A-418F-9665-1D5C7B4ED5B8">
-            <RemoveFolder Id="vs2008Web1" Directory="vs2008Web1" On="uninstall" />
-            <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
-            <File Id="NDjangoMVC" Name="NDjangoMVC.zip" Source="Templates\NDjangoMVC.zip" />
-          </Component>
+        <Directory Id="vs2008CSharp" Name="Visual C#">
+          <Directory Id="vs2008Web1" Name="Web">
+            <Component Id="ProjectTemplates" Guid="F12101E4-615A-418F-9665-1D5C7B4ED5B8">
+              <RemoveFolder Id="vs2008Web1" Directory="vs2008Web1" On="uninstall" />
+              <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+              <File Id="NDjangoMVC" Name="NDjangoMVC.zip" Source="Templates\NDjangoMVC.zip" />
+            </Component>
+          </Directory>
         </Directory>
       </Directory>
       <Component Id="RegisterDjangoExtensionForHTMLEditor" Guid="02D1F592-DC45-4019-9551-9CDFC6F43F4F">
