@@ -59,15 +59,14 @@ module internal ASTNodes =
                 parent=Some walker; 
                 nodes= nodes;
                 context = 
-                    if Option.isSome parent then
-                        //We have to replace(refresh) the context, because later, 
+                    match parent with
+                        //We have to update the context, because later, 
                         //while rendering another {{block.super}} variable, 
                         //we should use the parent SuperBlock - not the same all the time.
                         //Avoiding this replacement may cause endless looping in case when 
                         //you have chain of block.super variables (see 'extends 05-CHAIN' unit test).
-                        walker.context.remove("block").add("block", ({super= Option.get parent} :> obj))
-                    else
-                        walker.context.remove("block")
+                    | Some p -> walker.context.add("block", ({super = p} :> obj))
+                    | None -> walker.context.remove("block")
             }
             
         override this.nodelist with get() = nodes
@@ -113,7 +112,7 @@ module internal ASTNodes =
                     if  not (List.isEmpty parents) then
                         //add SuperBlockPointer to the context. Later, when we will render {{block.super}} variable,
                         //we will get inside this inserted SuperBlock and 'walk' it.
-                        walker.context.add("block", ({super= new SuperBlock(parsing_context, token, parents)} :> obj))
+                        walker.context.add("block", ({super = new SuperBlock(parsing_context, token, parents)} :> obj))
                     else
                         walker.context
             }

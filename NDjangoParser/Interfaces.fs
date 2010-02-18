@@ -147,12 +147,13 @@ type ITemplateLoader =
 /// An execution context container. This interface defines a set of methods necessary 
 /// for templates and external entities to exchange information.
 type IContext =
-    /// Adds an object to the context
+    /// Adds an object (a variable) to the context
     abstract member add:(string*obj)->IContext
     
     /// Attempts to find an object in the context by the key
     abstract member tryfind: string->obj option
     
+    /// Removes an object (a variable) from the context
     abstract member remove:string->IContext
     
     /// Indicates that this Context is in Autoescape mode
