@@ -29,8 +29,8 @@ namespace NDjango.UnitTests
                 templates.Add("t21-withif", "{% extends \"t22\" %}skip - b21{%block b3%}{%if 'a'%}{% block b1 %}to be replaced21{% endblock %}{%endif%}{%endblock%}skip-b21");
                 templates.Add("t21ancestor", "text{% block b1 %} ancestor {% endblock %}text");
                 templates.Add("t21middle", "{% extends \"t21ancestor\" %} {% block b1 %}{% if 'a' %}{% block b2 %} middle {% endblock %}{% endif %}{% endblock %}");
-                //templates.Add("t21ancestor-CHAIN", "{% block b1 %}ancestor {% endblock %}");
-                //templates.Add("t21middle-CHAIN", "{% extends \"t21ancestor-CHAIN\" %}{% block b1 %}middle {{block.super}}{% endblock %}");
+                templates.Add("t21ancestor-CHAIN", "{% block b1 %}ancestor{% endblock %}");
+                templates.Add("t21middle-CHAIN", "{% extends \"t21ancestor-CHAIN\" %}{% block b1 %}middle {{block.super}}{% endblock %}");
                 templates.Add("t21top", "{% extends \"t21middle\" %} {% block b2 %} {{block.super}} {% endblock %}");
                 templates.Add("tBaseNested",
 @"{% block outer %}

@@ -62,7 +62,7 @@ namespace NDjango.UnitTests
                 ContextObjects.p("insert1--the replacement1++to be replaced21++to be replaced22--insert2")));
 
             lst.Add(new TestDescriptor("extends 05", "{% extends \"t21middle\" %} {% block b2 %} child {% endblock %}", null, ContextObjects.p("text child text")));
-            //lst.Add(new TestDescriptor("extends 05-CHAIN", "{% extends \"t21middle-CHAIN\" %} {% block b1 %}child {{block.super}} {% endblock %}", null, ContextObjects.p("child middle ancestor")));
+            lst.Add(new TestDescriptor("extends 05-CHAIN", "{% extends \"t21middle-CHAIN\" %} {% block b1 %}child {{block.super}}{% endblock %}", null, ContextObjects.p("child middle ancestor")));
             
             // Nested block tags
             lst.Add(new TestDescriptor("nestedblocks 01",
