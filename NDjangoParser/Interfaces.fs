@@ -153,6 +153,8 @@ type IContext =
     /// Attempts to find an object in the context by the key
     abstract member tryfind: string->obj option
     
+    abstract member remove:string->IContext
+    
     /// Indicates that this Context is in Autoescape mode
     abstract member Autoescape: bool
     
@@ -162,7 +164,7 @@ type IContext =
     /// Translation routine - when applied to the value returns it translated 
     /// to the language for the user
     abstract member Translate: string -> string
-
+    
 /// Single threaded template manager. Caches templates it renders in a non-synchronized dictionary
 /// should be used only to service rendering requests from a single thread
 type ITemplateManager = 

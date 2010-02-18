@@ -114,9 +114,13 @@ module internal Template =
                 | Some v -> Some v
                 | None -> None 
                 
+            member x.remove(key) =
+                new Context(externalContext, Map.remove key variables, autoescape, translator) :> IContext
+                
             member x.Autoescape = autoescape
 
             member x.WithAutoescape(value) =
                 new Context(externalContext, variables, value, translator) :> IContext
                 
             member x.Translate value = value |> translator
+            

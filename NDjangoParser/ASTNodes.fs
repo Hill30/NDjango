@@ -43,7 +43,8 @@ module internal ASTNodes =
         | _ -> raise (RenderingError (sprintf "Invalid template name in 'extends' tag. Variable %A is undefined" templateRef))
 
     type SuperBlockPointer = {super:TagNode}
-
+    
+    //SuperBlock that can be inserted into context to use it while rendering {{block.super}} variable
     and SuperBlock (context: ParsingContext, token:BlockToken, parents: BlockNode list) =
         inherit TagNode(context, token)
         
@@ -54,35 +55,54 @@ module internal ASTNodes =
             | _ -> [], None
         
         override this.walk manager walker = 
-            {walker with parent=Some walker; nodes= nodes}
+            {walker with 
+                parent=Some walker; 
+                nodes= nodes;
+                context = 
+                    if Option.isSome parent then
+                        //We have to replace(refresh) the context, because later, 
+                        //while rendering another {{block.super}} variable, 
+                        //we should use the parent SuperBlock - not the same all the time.
+                        //Avoiding this replacement may cause endless looping in case when 
+                        //you have chain of block.super variables (see 'extends 05-CHAIN' unit test).
+                        walker.context.remove("block").add("block", ({super= Option.get parent} :> obj))
+                    else
+                        walker.context.remove("block")
+            }
             
         override this.nodelist with get() = nodes
-        
-        member this.super = 
-            match parent with
-            | Some v -> v
-            | None -> new SuperBlock(context, token,[])
-        
-        
+
+    //During parsing the templates, we build(see ExtendsNode) dictionary "__blockmap" consisting 
+    //of different blocks. For each block name we have a list of blocks, 
+    //where the most child block is in the head and the most parental - in the tail of the list.
+    //During the rendering, we will use the head of each list and give the head's nodes(=final_nodelist)
+    //to the walker in order to implement the blocks overriding. 
+    //Moreover, we will use the rest (=parents) of the list for {{super.bock}} issues.
+    //This rest of the list will be added to context with a "block" key.
     and BlockNode(parsing_context: ParsingContext, token: BlockToken, name: string, nodelist: INodeImpl list, ?parent: BlockNode) =
         inherit TagNode(parsing_context, token)
 
+        //get the head's nodes to give them later to the walker
+        //the rest of the list will be given to the context for {{super.block}} issues
         member x.MapNodes blocks =
             match Map.tryFind x.Name blocks with
             | Some (children: BlockNode list) -> 
                 match children with
                 | active::parents ->
-                    active.nodelist, (*[x], true //*) (match parents with | [] -> [x] | _ -> parents), true
-                | [] -> x.nodelist, [], true
-            | None -> x.nodelist, [], false
+                    //always append current block to 'parents'. We need this block in case 
+                    //when {{block.super}} refers to a simple block, not another {{block.super}} 
+                    active.nodelist, List.append parents [x]
+                | [] -> x.nodelist, []
+            | None -> x.nodelist, []
         
         member x.Name = name
         member x.Parent = parent
         
+        //get the final_nodelist and parents from the "__blockmap" dictionary using MapNodes function
         override x.walk manager walker =
-            let final_nodelist, parents, overriden =
+            let final_nodelist, parents =
                 match walker.context.tryfind "__blockmap" with
-                | None -> x.nodelist, [], false
+                | None -> x.nodelist, []
                 | Some ext -> 
                     x.MapNodes (ext :?> Map<string, BlockNode list>)
                     
@@ -90,7 +110,9 @@ module internal ASTNodes =
                 parent=Some walker; 
                 nodes=final_nodelist; 
                 context= 
-                    if overriden && not (List.isEmpty parents) then
+                    if  not (List.isEmpty parents) then
+                        //add SuperBlockPointer to the context. Later, when we will render {{block.super}} variable,
+                        //we will get inside this inserted SuperBlock and 'walk' it.
                         walker.context.add("block", ({super= new SuperBlock(parsing_context, token, parents)} :> obj))
                     else
                         walker.context
