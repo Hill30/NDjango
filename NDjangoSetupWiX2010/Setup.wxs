@@ -11,7 +11,7 @@
             <UpgradeVersion Minimum="0.8.0" IncludeMinimum="yes" Maximum="$(var.ProductVersion)" IncludeMaximum="yes" Language="1033" Property="UPGRADEFOUND" />
         </Upgrade>
         <Property Id="MVCFOUND">
-            <RegistrySearch Id="MVCfound" Type="raw" Root="HKLM" Key="SOFTWARE\Microsoft\ASP.NET\ASP.NET MVC 1.0" Name="InstallPath" />
+            <RegistrySearch Id="MVCfound" Type="raw" Root="HKLM" Key="SOFTWARE\Microsoft\ASP.NET MVC 2\Runtime" Name="InstallPath" />
         </Property>
         <Property Id="VS2010FOUND">
             <RegistrySearch Id="VS2010found" Type="raw" Root="HKLM" Key="Software\Microsoft\VisualStudio\10.0" Name="InstallDir" />
@@ -195,7 +195,7 @@
                     <Condition Action="disable"><![CDATA[ WFSERVERROOTDIR <> NULL ]]></Condition>
                     <Condition Action="enable"><![CDATA[ WFSERVERROOTDIR = NULL ]]></Condition>
                 </Control>
-                <Control Type="CheckBox" Id="TemplatesCheckBox" Width="230" Height="17" X="22" Y="149" CheckBoxValue="1" Property="TEMPLATESNEEDED" Text="Install NDjango templates for Visual Studio 2010 RC">
+                <Control Type="CheckBox" Id="TemplatesCheckBox" Width="317" Height="17" X="22" Y="149" CheckBoxValue="1" Property="TEMPLATESNEEDED" Text="Install NDjango templates for Visual Studio 2010 RC (ASP.NET MVC 2 is required)">
                     <Condition Action="enable"><![CDATA[ (VS2010FOUND <> NULL) AND MVCFOUND ]]></Condition>
                     <Condition Action="disable"><![CDATA[ (VS2010FOUND = NULL) OR (MVCFOUND = NULL)]]></Condition>
                 </Control>
