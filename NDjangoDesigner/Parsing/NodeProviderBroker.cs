@@ -34,9 +34,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using NDjango.Interfaces;
 
-using EnvDTE;
-using EnvDTE80;
-
 namespace NDjango.Designer.Parsing
 {
 
@@ -45,6 +42,7 @@ namespace NDjango.Designer.Parsing
         NodeProvider GetNodeProvider(ITextBuffer buffer);
         bool IsNDjango(ITextBuffer buffer);
         bool ShowDiagnostics{ get; }
+        IVsOutputWindowPane DjangoDiagnostics { get; }
     }
 
     /// <summary>
@@ -53,6 +51,53 @@ namespace NDjango.Designer.Parsing
     [Export(typeof(INodeProviderBroker))]
     internal class NodeProviderBroker : INodeProviderBroker
     {
+        IVsSolution ivsSolution = null;
+        IVsOutputWindowPane djangoDiagnostics = null;
+
+        public bool ShowDiagnostics
+        {
+            get
+            {
+                lock (this)
+                {
+                    if (ivsSolution == null)
+                    {
+                        ivsSolution = GetService<IVsSolution>(typeof(SVsSolution));
+                    }
+                }
+                object slnName;
+                int errCode =
+                    ivsSolution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out slnName);
+
+                return (int)VSConstants.E_UNEXPECTED != errCode;
+            }
+        }
+
+        public IVsOutputWindowPane DjangoDiagnostics
+        {
+            get
+            {
+                lock (this)
+                {
+                    if(djangoDiagnostics == null)
+                    {
+                        djangoDiagnostics = GetOutputPane();
+                    }
+                }
+                return djangoDiagnostics;
+            }
+        }
+
+        [Import]
+        internal SVsServiceProvider ServiceProvider = null;
+
+        [Import]
+        internal IVsEditorAdaptersFactoryService adaptersFactory { get; set; }
+
+        [Import]
+        internal Microsoft.VisualStudio.Utilities.IContentTypeRegistryService ContentTypeRegistryService { get; set; }
+
+        IParser parser = InitializeParser();
 
         private static IParser InitializeParser()
         {
@@ -102,43 +147,6 @@ namespace NDjango.Designer.Parsing
             list.Add((T)Activator.CreateInstance(typeof(T), attrs[0].Name, Activator.CreateInstance(t)));
         }
 
-        IParser parser = InitializeParser();
-
-        bool initialized = false;
-        IVsOutputWindowPane djangoDiagnostics = null;
-        IVsSolution ivsSolution = null;
-
-        [Import]
-        internal SVsServiceProvider ServiceProvider = null; 
-
-        /// <summary>
-        /// Displays us if we can display diagnostic messages safely
-        /// </summary>
-        public bool ShowDiagnostics
-        {
-            get 
-            {
-                lock (this)
-                {
-                    if (ivsSolution == null)
-                    {
-                        ivsSolution = GetService<IVsSolution>(typeof(SVsSolution));
-                    }
-                }
-                object slnName;
-                int errCode = 
-                    ivsSolution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out slnName);
-                
-                return (int)VSConstants.E_UNEXPECTED != errCode;
-            }
-        }
-
-        [Import]
-        internal IVsEditorAdaptersFactoryService adaptersFactory { get; set; }
-
-        [Import]
-        internal Microsoft.VisualStudio.Utilities.IContentTypeRegistryService ContentTypeRegistryService { get; set; }
-
         /// <summary>
         /// Determines whether the buffer conatins ndjango code
         /// </summary>
@@ -171,17 +179,10 @@ namespace NDjango.Designer.Parsing
         /// <returns></returns>
         public NodeProvider GetNodeProvider(ITextBuffer buffer)
         {              
-            lock (this)
-                if (!initialized)
-                {
-                    djangoDiagnostics = GetOutputPane();
-                    initialized = true;
-                }            
-
             NodeProvider provider;
             if (!buffer.Properties.TryGetProperty(typeof(NodeProvider), out provider))
             {
-                provider = new NodeProvider(djangoDiagnostics, parser, buffer, this);
+                provider = new NodeProvider(parser, buffer, this);
                 buffer.Properties.AddProperty(typeof(NodeProvider), provider);
             }
             return provider;
@@ -201,8 +202,6 @@ namespace NDjango.Designer.Parsing
                 ErrorHandler.ThrowOnFailure(outputWindow.GetPane(ref page, out ppPane));
             }
             ErrorHandler.ThrowOnFailure(ppPane.Activate());
-            ErrorHandler.ThrowOnFailure(ppPane.OutputString("Hello world\n"));
-            ErrorHandler.ThrowOnFailure(ppPane.FlushToTaskList());
             return ppPane;
         }
 

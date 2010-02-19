@@ -62,10 +62,10 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider(IVsOutputWindowPane djangoDiagnostics, IParser parser, ITextBuffer buffer, INodeProviderBroker broker)
+        public NodeProvider( IParser parser, ITextBuffer buffer, INodeProviderBroker broker)
         {
             this.broker = broker;
-            this.djangoDiagnostics = djangoDiagnostics;
+            this.djangoDiagnostics = broker.DjangoDiagnostics;
             this.parser = parser;
             this.buffer = buffer;
             filePath = ((ITextDocument)buffer.Properties[typeof(ITextDocument)]).FilePath;
