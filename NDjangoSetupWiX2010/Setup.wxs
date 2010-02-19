@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <?define ProductVersion="0.9.6" ?>
-    <?define ProductVersionTitle="0.9.6.0" ?>
+    <?define ProductVersion="0.9.7" ?>
+    <?define ProductVersionTitle="0.9.7.0" ?>
     <?define UpgradeCode="{9EAD0F41-F6BB-4FDD-B2C3-2C8D3AFD5F47}"?>
-    <Product Id="864163DF-4150-4470-93FB-ECF099F3A922" Name="NDjango $(var.ProductVersionTitle) for Visual Studio 2010 beta 2" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
+    <Product Id="BFBB9C2A-B34F-434F-B78D-57D82900941D" Name="NDjango $(var.ProductVersionTitle) for Visual Studio 2010 RC" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
         <Package InstallerVersion="200" Compressed="yes" />
         <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
         <Upgrade Id="$(var.UpgradeCode)">
@@ -11,13 +11,16 @@
             <UpgradeVersion Minimum="0.8.0" IncludeMinimum="yes" Maximum="$(var.ProductVersion)" IncludeMaximum="yes" Language="1033" Property="UPGRADEFOUND" />
         </Upgrade>
         <Property Id="MVCFOUND">
-          <RegistrySearch Id="MVCfound" Type="raw" Root="HKLM" Key="SOFTWARE\Microsoft\ASP.NET\ASP.NET MVC 1.0" Name="InstallPath" />
+            <RegistrySearch Id="MVCfound" Type="raw" Root="HKLM" Key="SOFTWARE\Microsoft\ASP.NET\ASP.NET MVC 1.0" Name="InstallPath" />
         </Property>
         <Property Id="VS2010FOUND">
             <RegistrySearch Id="VS2010found" Type="raw" Root="HKLM" Key="Software\Microsoft\VisualStudio\10.0" Name="InstallDir" />
         </Property>
         <Property Id="VS2010PROJECTTEMPLATESLOCATION">
-          <RegistrySearch Id="UserProjectTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\10.0" Name="UserProjectTemplatesLocation" />
+            <RegistrySearch Id="UserProjectTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\10.0" Name="UserProjectTemplatesLocation" />
+        </Property>
+        <Property Id="VS2010ITEMTEMPLATESLOCATION">
+            <RegistrySearch Id="UserProjectTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\10.0" Name="UserItemTemplatesLocation" />
         </Property>
         <PropertyRef Id="NETFRAMEWORK40FULL" />
         <Condition Message="This applicatin requires .NET Framework 4.0. Please install the .NET Framework then run this installer again.">NETFRAMEWORK40FULL</Condition>
@@ -35,36 +38,50 @@
             <Directory Id="ProgramFilesFolder" Name="PFiles">
                 <Directory Id="Hill30" Name="Hill30">
                     <Directory Id="INSTALLDIR" Name="NDjango">
-                        <Component Id="NDjangoAssemblies" Guid="94965855-72E6-4B54-AA9F-E1DB5263F89D">
+                        <Component Id="NDjangoAssemblies" Guid="322925F0-84C3-41EC-ACE8-D238D3CBF2ED">
                             <File Id="NDJANGODESIGNER" Name="NDjango.Designer.vsix" Source="NDjango.Designer.vsix" />
                             <File Id="ASPMVCIntegration.dll" Name="$(var.ASPMVCIntegration.TargetFileName)" Source="$(var.ASPMVCIntegration.TargetPath)" />
                             <File Id="NDjango.BistroIntegration.dll" Name="$(var.BistroIntegration.TargetFileName)" Source="$(var.BistroIntegration.TargetPath)" />
-                             <File Id="NDjango.Core.dll" Name="$(var.NDjangoParser2010.TargetFileName)" Source="$(var.NDjangoParser2010.TargetPath)" />
-
+                            <File Id="Castle.Monorail.Views.NDjangoView.dll" Name="$(var.Castle.Monorail.Views.NDjangoView.TargetFileName)" Source="$(var.Castle.Monorail.Views.NDjangoView.TargetPath)" />
+                            <File Id="NDjango.Core.dll" Name="$(var.NDjangoParser2010.TargetFileName)" Source="$(var.NDjangoParser2010.TargetPath)" />
                             <File Id="NDjango.Filters.dll" Name="$(var.NDjangoParserFilters2010.TargetFileName)" Source="$(var.NDjangoParserFilters2010.TargetPath)" />
                         </Component>
-                        <Component Id="Readme" Guid="39D6280B-D600-4A8E-A929-62578C3CA890">
+                        <Component Id="Readme" Guid="437A42DC-2097-4AA7-A838-34A0A1E891CD">
                             <File Id="Readme.txt" Name="Readme.txt" Source="Readme.txt" />
                         </Component>
-                        <Component Id="FSharpComponents" Guid="C0587159-FC5A-4495-8287-F01E7B39A585">
+                        <Component Id="FSharpComponents" Guid="53C80A14-55E3-4D51-9E2D-35BAB1BFF7F6">
                             <File Id="FSharp.PowerPack.dll" Name="FSharp.PowerPack.dll" Source="FSharp.PowerPack.dll" />
                             <File Id="FSharp.Core.dll" Name="FSharp.Core.dll" Source="FSharp.Core.dll" />
                         </Component>
-                        <Component Id="ThirdPartyComponents" Guid="B5E34D54-3914-4851-8602-19311D415912">
+                        <Component Id="ThirdPartyComponents" Guid="1231329B-3AA0-4D86-9BCA-3608320C65E5">
                             <File Id="StructureMap.dll" Name="StructureMap.dll" Source="..\..\Integration\ASP.MVC\lib\StructureMap.dll" />
                         </Component>
                     </Directory>
                 </Directory>
             </Directory>
-          <Directory Id="VS2010PROJECTTEMPLATESLOCATION">
-            <Directory Id="vs2010Web1" Name="Visual Web Developer">
-              <Component Id="ProjectTemplates" Guid="F12101E4-615A-418F-9665-1D5C7B4ED5B8">
-                <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
-                <File Id="NDjangoMVC" Name="NDjangoMVC.zip" Source="Templates\NDjangoMVC.zip" />
-              </Component>
+            <Directory Id="VS2010PROJECTTEMPLATESLOCATION">
+                <Directory Id="vs2010CSharpProject" Name="Visual C#">
+                    <Directory Id="vs2010Web1Project" Name="Web">
+                        <Component Id="ProjectTemplates" Guid="5C719ECB-EFBF-474A-9BD5-A4AE67794048">
+                            <RemoveFolder Id="vs2010Web1Project" Directory="vs2010Web1Project" On="uninstall" />
+                            <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+                            <File Id="NDjangoMVC" Name="NDjangoMVC.zip" Source="Templates\NDjangoMVC.zip" />
+                        </Component>
+                    </Directory>
+                </Directory>
             </Directory>
-          </Directory>
-          <Component Id="RegisterDjangoExtensionForHTMLEditor" Guid="02D1F592-DC45-4019-9551-9CDFC6F43F4F">
+            <Directory Id="VS2010ITEMTEMPLATESLOCATION">
+                <Directory Id="vs2010CSharpItem" Name="Visual C#">
+                    <Directory Id="vs2010Web1Item" Name="Web">
+                        <Component Id="ItemTemplates" Guid="27EF94C3-D513-4D79-B1BE-9401266B4319">
+                            <RemoveFolder Id="vs2010Web1Item" Directory="vs2010Web1Item" On="uninstall" />
+                            <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+                            <File Id="NDjangoTemplate" Name="NDjangoTemplate.zip" Source="Templates\NDjangoTemplate.zip" />
+                        </Component>
+                    </Directory>
+                </Directory>
+            </Directory>
+            <Component Id="RegisterDjangoExtensionForHTMLEditor" Guid="EBCF1EA1-E589-4B41-B1F9-9F48FEF6FE49">
                 <!--<RegistryKey Key="SOFTWARE\Microsoft\VisualStudio\9.0\Editors\{C76D83F8-A489-11D0-8195-00A0C91BBEE3}\Extensions" Root="HKLM">
           <RegistryValue Name="django" Value="40" Type="integer" />
         </RegistryKey>-->
@@ -81,7 +98,7 @@
         <Binary Id="EditTemplates" SourceFile="editTemplates.exe" />
         <Property Id="TEMPLATESNEEDED" Secure="yes" />
         <Feature Id="InstallTemplates" Level="1">
-          <ComponentRef Id="ProjectTemplates" />
+            <ComponentRef Id="ProjectTemplates" />
         </Feature>
         <Feature Id="ProductFeature" Level="1">
             <ComponentRef Id="NDjangoAssemblies" />
@@ -94,7 +111,7 @@
         </CustomAction>
         <Property Id="WixShellExecTarget" Value="[INSTALLDIR]\NDjango.Designer.vsix" />
         <Property Id="DESIGNERNEEDED" />
-      <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual Web Developer\NDjangoMVC.zip&quot; &quot;[INSTALLDIR]&quot;" Id="EditNDjangoTemplate" Return="ignore" />
+        <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual Web Developer\NDjangoMVC.zip&quot; &quot;[INSTALLDIR]&quot;" Id="EditNDjangoTemplate" Return="ignore" />
         <CustomAction Id="InstallDesigner" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
         <InstallExecuteSequence>
             <Custom Action="EditNDjangoTemplate" After="InstallFinalize"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
@@ -151,13 +168,13 @@
                 <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.WelcomeDlgTitle)" />
                 <Control Type="Text" Width="220" Height="60" X="135" Y="116" Id="FSharpNOTE" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}NOTE: This application requires FSharp 1.9.6.2." Hidden="yes" />
                 <Control Type="Text" Id="Note" Width="192" Height="22" X="135" Y="79" Transparent="yes">
-                    <Text>This application was developed for using with .NET Framework 4.0 and Visual Studio 2010 beta 2</Text>
+                    <Text>This application was developed for using with .NET Framework 4.0 and Visual Studio 2010 RC</Text>
                 </Control>
             </Dialog>
             <Dialog Id="InstallDirDlgCustom" Width="370" Height="270" Title="!(loc.InstallDirDlg_Title)">
-                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" >
-                  <Publish Event="AddLocal" Value="ALL">1</Publish>
-                  <Publish Event="Remove" Value="InstallTemplates"><![CDATA[ (TEMPLATESNEEDED <> "1") OR (MVCFOUND = NULL) ]]></Publish>
+                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
+                    <Publish Event="AddLocal" Value="ALL">1</Publish>
+                    <Publish Event="Remove" Value="InstallTemplates"><![CDATA[ (TEMPLATESNEEDED <> "1") OR (MVCFOUND = NULL) ]]></Publish>
                 </Control>
                 <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
                 <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
@@ -177,11 +194,11 @@
                     <Condition Action="disable"><![CDATA[ WFSERVERROOTDIR <> NULL ]]></Condition>
                     <Condition Action="enable"><![CDATA[ WFSERVERROOTDIR = NULL ]]></Condition>
                 </Control>
-                <Control Type="CheckBox" Id="TemplatesCheckBox" Width="230" Height="17" X="22" Y="149" CheckBoxValue="1" Property="TEMPLATESNEEDED" Text="Install NDjango templates for Visual Studio 2010 beta 2">
-                  <Condition Action="enable"><![CDATA[ (VS2010FOUND <> NULL) AND MVCFOUND ]]></Condition>
-                  <Condition Action="disable"><![CDATA[ (VS2010FOUND = NULL) OR (MVCFOUND = NULL)]]></Condition>
+                <Control Type="CheckBox" Id="TemplatesCheckBox" Width="230" Height="17" X="22" Y="149" CheckBoxValue="1" Property="TEMPLATESNEEDED" Text="Install NDjango templates for Visual Studio 2010 RC">
+                    <Condition Action="enable"><![CDATA[ (VS2010FOUND <> NULL) AND MVCFOUND ]]></Condition>
+                    <Condition Action="disable"><![CDATA[ (VS2010FOUND = NULL) OR (MVCFOUND = NULL)]]></Condition>
                 </Control>
-                <Control Type="CheckBox" Id="DesignerCheckBox" Width="230" Height="17" X="22" Y="169" Property="DESIGNERNEEDED" CheckBoxValue="1" Text="Install NDjango Designer for Visual Studio 2010 beta 2">
+                <Control Type="CheckBox" Id="DesignerCheckBox" Width="230" Height="17" X="22" Y="169" Property="DESIGNERNEEDED" CheckBoxValue="1" Text="Install NDjango Designer for Visual Studio 2010 RC">
                     <Condition Action="enable"><![CDATA[ VS2010FOUND <> NULL ]]></Condition>
                     <Condition Action="disable"><![CDATA[ VS2010FOUND = NULL ]]></Condition>
                 </Control>
