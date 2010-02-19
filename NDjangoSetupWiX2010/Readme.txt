@@ -4,6 +4,7 @@ NDjango Requirements:
 
 New in 0.9.7.0 *NDjango Editor for Microsoft Visual Studio 2010 RC.
  *Ndjango.Core and NDjango.Filters are now bound to the new FSharp.Core version 4.0 and FSharp.PowerPack version 1.9.9.9.
+ *See http://ndjango.org for the full list of changes
  
 New in 0.9.6.0 *NDjango Editor for Microsoft Visual Studio 2010 beta 2.
  *Ndjango.Core and NDjango.Filters are now bound to the new FSharp.Core version 4.0 and FSharp.PowerPack version 1.9.7.8.

@@ -20,7 +20,7 @@
             <RegistrySearch Id="UserProjectTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\10.0" Name="UserProjectTemplatesLocation" />
         </Property>
         <Property Id="VS2010ITEMTEMPLATESLOCATION">
-            <RegistrySearch Id="UserProjectTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\10.0" Name="UserItemTemplatesLocation" />
+            <RegistrySearch Id="UserItemTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\10.0" Name="UserItemTemplatesLocation" />
         </Property>
         <PropertyRef Id="NETFRAMEWORK40FULL" />
         <Condition Message="This applicatin requires .NET Framework 4.0. Please install the .NET Framework then run this installer again.">NETFRAMEWORK40FULL</Condition>
@@ -99,6 +99,7 @@
         <Property Id="TEMPLATESNEEDED" Secure="yes" />
         <Feature Id="InstallTemplates" Level="1">
             <ComponentRef Id="ProjectTemplates" />
+            <ComponentRef Id="ItemTemplates" />
         </Feature>
         <Feature Id="ProductFeature" Level="1">
             <ComponentRef Id="NDjangoAssemblies" />
@@ -111,7 +112,7 @@
         </CustomAction>
         <Property Id="WixShellExecTarget" Value="[INSTALLDIR]\NDjango.Designer.vsix" />
         <Property Id="DESIGNERNEEDED" />
-        <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual Web Developer\NDjangoMVC.zip&quot; &quot;[INSTALLDIR]&quot;" Id="EditNDjangoTemplate" Return="ignore" />
+        <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoMVC.zip&quot; &quot;[INSTALLDIR]&quot;" Id="EditNDjangoTemplate" Return="ignore" />
         <CustomAction Id="InstallDesigner" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
         <InstallExecuteSequence>
             <Custom Action="EditNDjangoTemplate" After="InstallFinalize"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
