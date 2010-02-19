@@ -28,10 +28,14 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using NDjango.Interfaces;
+
+using EnvDTE;
+using EnvDTE80;
 
 namespace NDjango.Designer.Parsing
 {
@@ -40,6 +44,7 @@ namespace NDjango.Designer.Parsing
     {
         NodeProvider GetNodeProvider(ITextBuffer buffer);
         bool IsNDjango(ITextBuffer buffer);
+        bool ShowDiagnostics{ get; }
     }
 
     /// <summary>
@@ -77,6 +82,7 @@ namespace NDjango.Designer.Parsing
                     .WithTags(tags)
                     .WithFilters(filters)
                     .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false);
+
         }
 
         private static void CreateEntry<T>(List<T> list, Type t) where T:class
@@ -97,6 +103,35 @@ namespace NDjango.Designer.Parsing
         }
 
         IParser parser = InitializeParser();
+
+        bool initialized = false;
+        IVsOutputWindowPane djangoDiagnostics = null;
+        IVsSolution ivsSolution = null;
+
+        [Import]
+        internal SVsServiceProvider ServiceProvider = null; 
+
+        /// <summary>
+        /// Displays us if we can display diagnostic messages safely
+        /// </summary>
+        public bool ShowDiagnostics
+        {
+            get 
+            {
+                lock (this)
+                {
+                    if (ivsSolution == null)
+                    {
+                        ivsSolution = GetService<IVsSolution>(typeof(SVsSolution));
+                    }
+                }
+                object slnName;
+                int errCode = 
+                    ivsSolution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out slnName);
+                
+                return (int)VSConstants.E_UNEXPECTED != errCode;
+            }
+        }
 
         [Import]
         internal IVsEditorAdaptersFactoryService adaptersFactory { get; set; }
@@ -135,31 +170,29 @@ namespace NDjango.Designer.Parsing
         /// <param name="buffer"></param>
         /// <returns></returns>
         public NodeProvider GetNodeProvider(ITextBuffer buffer)
-        {
+        {              
             lock (this)
                 if (!initialized)
                 {
-                    djangoDiagnostics = GetOutputPane(buffer);
+                    djangoDiagnostics = GetOutputPane();
                     initialized = true;
-                }
+                }            
 
             NodeProvider provider;
             if (!buffer.Properties.TryGetProperty(typeof(NodeProvider), out provider))
             {
-                provider = new NodeProvider(djangoDiagnostics, parser, buffer);
+                provider = new NodeProvider(djangoDiagnostics, parser, buffer, this);
                 buffer.Properties.AddProperty(typeof(NodeProvider), provider);
             }
             return provider;
-        }
-        bool initialized = false;
-        IVsOutputWindowPane djangoDiagnostics = null;
+        }        
 
-        public IVsOutputWindowPane GetOutputPane(ITextBuffer textBuffer)
+        public IVsOutputWindowPane GetOutputPane()
         {
             Guid page = this.GetType().GUID;
             string caption = "Django Templates";
 
-            IVsOutputWindow outputWindow = GetService<IVsOutputWindow>(textBuffer, typeof(SVsOutputWindow));
+            IVsOutputWindow outputWindow = GetService<IVsOutputWindow>(typeof(SVsOutputWindow));
 
             IVsOutputWindowPane ppPane = null;
             if (ErrorHandler.Failed(outputWindow.GetPane(ref page, out ppPane)))
@@ -173,31 +206,9 @@ namespace NDjango.Designer.Parsing
             return ppPane;
         }
 
-        private T GetService<T>(ITextBuffer textBuffer, Type serviceType)
+        private T GetService<T>(Type serviceType)
         {
-            var vsBuffer = adaptersFactory.GetBufferAdapter(textBuffer);
-            if (vsBuffer == null)
-                return default(T);
-
-            Guid guidServiceProvider = VSConstants.IID_IUnknown;
-            IObjectWithSite objectWithSite = vsBuffer as IObjectWithSite;
-            IntPtr ptrServiceProvider = IntPtr.Zero;
-            objectWithSite.GetSite(ref guidServiceProvider, out ptrServiceProvider);
-            Microsoft.VisualStudio.OLE.Interop.IServiceProvider serviceProvider =
-                (Microsoft.VisualStudio.OLE.Interop.IServiceProvider)Marshal.GetObjectForIUnknown(ptrServiceProvider);
-
-            Guid guidService = serviceType.GUID;
-            Guid guidInterface = typeof(T).GUID;
-            IntPtr ptrObject = IntPtr.Zero;
-
-            int hr = serviceProvider.QueryService(ref guidService, ref guidInterface, out ptrObject);
-            if (ErrorHandler.Failed(hr) || ptrObject == IntPtr.Zero)
-                return default(T);
-
-            T result = (T)Marshal.GetObjectForIUnknown(ptrObject);
-
-            return result;
+            return (T)ServiceProvider.GetService(serviceType);
         }
-        
     }
 }

@@ -45,6 +45,7 @@ namespace NDjango.Designer.Parsing
         private IParser parser;
         private ITextBuffer buffer;
         private IVsOutputWindowPane djangoDiagnostics;
+        private INodeProviderBroker broker;
         string filePath;
         /// <summary>
         /// indicates the delay (in milliseconds) of parser invoking. 
@@ -61,8 +62,9 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider(IVsOutputWindowPane djangoDiagnostics, IParser parser, ITextBuffer buffer)
+        public NodeProvider(IVsOutputWindowPane djangoDiagnostics, IParser parser, ITextBuffer buffer, INodeProviderBroker broker)
         {
+            this.broker = broker;
             this.djangoDiagnostics = djangoDiagnostics;
             this.parser = parser;
             this.buffer = buffer;
@@ -151,14 +153,17 @@ namespace NDjango.Designer.Parsing
 
         internal void ShowDiagnostics()
         {
-            List<DesignerNode> nodes;
-            lock (node_lock)
+            if (this.broker.ShowDiagnostics)
             {
-                nodes = this.nodes;
+                List<DesignerNode> nodes;
+                lock (node_lock)
+                {
+                    nodes = this.nodes;
+                }
+                djangoDiagnostics.Clear();
+                nodes.ForEach(node => node.ShowDiagnostics(djangoDiagnostics, filePath));
+                djangoDiagnostics.FlushToTaskList();
             }
-            djangoDiagnostics.Clear();
-            nodes.ForEach(node => node.ShowDiagnostics(djangoDiagnostics, filePath));
-            djangoDiagnostics.FlushToTaskList();
         }
 
         /// <summary>
