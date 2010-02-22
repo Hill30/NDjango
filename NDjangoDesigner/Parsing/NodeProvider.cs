@@ -145,17 +145,29 @@ namespace NDjango.Designer.Parsing
             RaiseNodesChanged(snapshot);
         }
 
+        /// <summary>
+        /// Raises the <see cref="NodesChanged"/> event
+        /// </summary>
+        /// <param name="snapshot"></param>
         internal void RaiseNodesChanged(ITextSnapshot snapshot)
         {
             if (NodesChanged != null)
                 NodesChanged(new SnapshotSpan(snapshot, 0, snapshot.Length));
         }
 
+        /// <summary>
+        /// Shows diagnostic message associated with the node
+        /// </summary>
+        /// <param name="task"></param>
         internal void ShowDiagnostics(ErrorTask task)
         {
             broker.ShowDiagnostics(task);
         }
 
+        /// <summary>
+        /// Removes diagnostic message associated with the node
+        /// </summary>
+        /// <param name="task"></param>
         internal void RemoveDiagnostics(ErrorTask task)
         {
             broker.RemoveDiagnostics(task);

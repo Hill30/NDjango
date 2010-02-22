@@ -52,19 +52,114 @@ namespace NDjango.Designer.Parsing
     [Export(typeof(INodeProviderBroker))]
     internal class NodeProviderBroker : INodeProviderBroker, IVsRunningDocTableEvents
     {
-        IVsSolution ivsSolution = null;
 
+        #region Broker Initialization routines
+
+        private NodeProviderBroker()
+        {
+            parser = InitializeParser();
+        }
+
+        IParser parser;
+
+        private IParser InitializeParser()
+        {
+            string path = typeof(TemplateManagerProvider).Assembly.CodeBase;
+            List<Tag> tags = new List<Tag>();
+            List<Filter> filters = new List<Filter>();
+            if (path.StartsWith("file:///"))
+                foreach (string file in
+                    Directory.EnumerateFiles(
+                        Path.GetDirectoryName(path.Substring(8)),
+                        "*.NDjangoExtension.dll",
+                        SearchOption.AllDirectories))
+                {
+                    AssemblyName name = new AssemblyName();
+                    name.CodeBase = file;
+                    foreach (Type t in Assembly.Load(name).GetExportedTypes())
+                    {
+                        if (typeof(ITag).IsAssignableFrom(t))
+                            CreateEntry<Tag>(tags, t);
+                        if (typeof(ISimpleFilter).IsAssignableFrom(t))
+                            CreateEntry<Filter>(filters, t);
+                    }
+                }
+
+            TemplateManagerProvider parser = new TemplateManagerProvider();
+            return parser
+                    .WithTags(tags)
+                    .WithFilters(filters)
+                    .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false);
+
+        }
+
+        private static void CreateEntry<T>(List<T> list, Type t) where T : class
+        {
+            if (t.IsAbstract)
+                return;
+            if (t.IsInterface)
+                return;
+
+            var attrs = t.GetCustomAttributes(typeof(NameAttribute), false) as NameAttribute[];
+            if (attrs.Length == 0)
+                return;
+
+            if (t.GetConstructor(new Type[] { }) == null)
+                return;
+
+            list.Add((T)Activator.CreateInstance(typeof(T), attrs[0].Name, Activator.CreateInstance(t)));
+        }
+
+        #endregion
+
+        private SVsServiceProvider serviceProvider;
+
+        [Import]
+        internal SVsServiceProvider ServiceProvider
+        {
+            get { return serviceProvider; }
+            private set
+            {
+                serviceProvider = value;
+                taskList = new TaskProvider(serviceProvider);
+                rdt = GetService<IVsRunningDocumentTable>(typeof(SVsRunningDocumentTable));
+                ErrorHandler.ThrowOnFailure(rdt.AdviseRunningDocTableEvents(this, out rdtEventsCookie));
+            }
+        }
+
+        private T GetService<T>(Type serviceType)
+        {
+            return (T)ServiceProvider.GetService(serviceType);
+        }
+
+        #region Diagnostic handling
+
+        private TaskProvider taskList;
+
+        /// <summary>
+        /// Adds a diganostic message defined by the parameter to the tasklist
+        /// </summary>
+        /// <param name="task">the object representing the error message</param>
         public void ShowDiagnostics(ErrorTask task)
         {
             task.Navigate += new EventHandler(NavigateTo);
             taskList.Tasks.Add(task);
         }
 
+        /// <summary>
+        /// Removes a diganostic message defined by the parameter from the tasklist
+        /// </summary>
+        /// <param name="task">the object representing the error message</param>
         public void RemoveDiagnostics(ErrorTask task)
         {
             taskList.Tasks.Remove(task);
         }
 
+        /// <summary>
+        /// Navigates to the location of the error in the source code
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="arguments"></param>
         private void NavigateTo(object sender, EventArgs arguments)
         {
             Microsoft.VisualStudio.Shell.Task task = sender as Microsoft.VisualStudio.Shell.Task;
@@ -115,91 +210,16 @@ namespace NDjango.Designer.Parsing
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(mgr.NavigateToLineAndColumn(buffer, ref logicalView, task.Line, task.Column, task.Line, task.Column));
         }
 
+        #endregion
+
+        /// <summary>
+        /// Parses the template
+        /// </summary>
+        /// <param name="template">a reader with the template</param>
+        /// <returns>A list of the syntax nodes</returns>
         public Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template)
         {
             return parser.ParseTemplate(template);
-        }
-
-        private SVsServiceProvider serviceProvider;
-
-        private TaskProvider taskList;
-
-        IVsRunningDocumentTable rdt;
-
-        uint rdtEventsCookie;
-
-        [Import]
-        internal SVsServiceProvider ServiceProvider
-        {
-            get { return serviceProvider; }
-            private set 
-            { 
-                serviceProvider = value;
-                ivsSolution = GetService<IVsSolution>(typeof(SVsSolution));
-                taskList = new TaskProvider(serviceProvider);
-                rdt = GetService<IVsRunningDocumentTable>(typeof(SVsRunningDocumentTable));
-                ErrorHandler.ThrowOnFailure(rdt.AdviseRunningDocTableEvents(this, out rdtEventsCookie));
-            }
-        }
-
-        private T GetService<T>(Type serviceType)
-        {
-            return (T)ServiceProvider.GetService(serviceType);
-        }
-
-        private NodeProviderBroker()
-        {
-            parser = InitializeParser();
-        }
-
-        IParser parser;
-
-        private IParser InitializeParser()
-        {
-            string path = typeof(TemplateManagerProvider).Assembly.CodeBase;
-            List<Tag> tags = new List<Tag>();
-            List<Filter> filters = new List<Filter>();
-            if (path.StartsWith("file:///"))
-                foreach (string file in
-                    Directory.EnumerateFiles(
-                        Path.GetDirectoryName(path.Substring(8)), 
-                        "*.NDjangoExtension.dll", 
-                        SearchOption.AllDirectories))
-                {
-                    AssemblyName name = new AssemblyName();
-                    name.CodeBase = file;
-                    foreach (Type t in Assembly.Load(name).GetExportedTypes())
-                    {
-                        if (typeof(ITag).IsAssignableFrom(t))
-                            CreateEntry<Tag>(tags, t);
-                        if (typeof(ISimpleFilter).IsAssignableFrom(t))
-                            CreateEntry<Filter>(filters, t);
-                    }
-                }
-
-            TemplateManagerProvider parser = new TemplateManagerProvider();
-            return parser
-                    .WithTags(tags)
-                    .WithFilters(filters)
-                    .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false);
-
-        }
-
-        private static void CreateEntry<T>(List<T> list, Type t) where T:class
-        {
-            if (t.IsAbstract)
-                return;
-            if (t.IsInterface)
-                return;
-
-            var attrs = t.GetCustomAttributes(typeof(NameAttribute), false) as NameAttribute[];
-            if (attrs.Length == 0)
-                return;
-
-            if (t.GetConstructor(new Type[] { }) == null)
-                return;
-
-            list.Add((T)Activator.CreateInstance(typeof(T), attrs[0].Name, Activator.CreateInstance(t)));
         }
 
         /// <summary>
@@ -242,6 +262,10 @@ namespace NDjango.Designer.Parsing
 
         [Import]
         IVsEditorAdaptersFactoryService editorFactoryService;
+
+        IVsRunningDocumentTable rdt;
+
+        uint rdtEventsCookie;
 
 
         #region IVsRunningDocTableEvents Members
@@ -286,6 +310,8 @@ namespace NDjango.Designer.Parsing
             {
                 if (pdwReadLocks == 0 && pdwEditLocks == 0)
                 {
+                    // The last lock removed - the buffer will be destroyed. 
+                    // Let's try to remove any diagnostic messages associated with it
                     IVsTextLines textLines = Marshal.GetObjectForIUnknown(ppunkDocData) as IVsTextLines;
                     if (textLines == null)
                     {
