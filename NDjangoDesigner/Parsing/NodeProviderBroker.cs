@@ -41,65 +41,120 @@ namespace NDjango.Designer.Parsing
     {
         NodeProvider GetNodeProvider(ITextBuffer buffer);
         bool IsNDjango(ITextBuffer buffer);
-        bool ShowDiagnostics{ get; }
-        IVsOutputWindowPane DjangoDiagnostics { get; }
+        Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template);
+        void ShowDiagnostics(ErrorTask task);
+        void RemoveDiagnostics(ErrorTask task);
     }
 
     /// <summary>
     /// Allocates node porviders to text buffers
     /// </summary>
     [Export(typeof(INodeProviderBroker))]
-    internal class NodeProviderBroker : INodeProviderBroker
+    internal class NodeProviderBroker : INodeProviderBroker, IVsRunningDocTableEvents
     {
         IVsSolution ivsSolution = null;
-        IVsOutputWindowPane djangoDiagnostics = null;
 
-        public bool ShowDiagnostics
+        public void ShowDiagnostics(ErrorTask task)
         {
-            get
-            {
-                lock (this)
-                {
-                    if (ivsSolution == null)
-                    {
-                        ivsSolution = GetService<IVsSolution>(typeof(SVsSolution));
-                    }
-                }
-                object slnName;
-                int errCode =
-                    ivsSolution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out slnName);
+            task.Navigate += new EventHandler(NavigateTo);
+            taskList.Tasks.Add(task);
+        }
 
-                return (int)VSConstants.E_UNEXPECTED != errCode;
+        public void RemoveDiagnostics(ErrorTask task)
+        {
+            taskList.Tasks.Remove(task);
+        }
+
+        private void NavigateTo(object sender, EventArgs arguments)
+        {
+            Microsoft.VisualStudio.Shell.Task task = sender as Microsoft.VisualStudio.Shell.Task;
+            if (task == null)
+                throw new ArgumentException("Sender is not a Microsoft.VisualStudio.Shell.Task", "sender");
+
+            // Get the doc data for the task's document
+            if (String.IsNullOrEmpty(task.Document))
+                return;
+
+            IVsUIShellOpenDocument openDoc = serviceProvider.GetService(typeof(IVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
+            if (openDoc == null)
+                return;
+
+            IVsWindowFrame frame;
+            Microsoft.VisualStudio.OLE.Interop.IServiceProvider sp;
+            IVsUIHierarchy hier;
+            uint itemid;
+            Guid logicalView = VSConstants.LOGVIEWID_Code;
+
+            if (Microsoft.VisualStudio.ErrorHandler.Failed(openDoc.OpenDocumentViaProject(task.Document, ref logicalView, out sp, out hier, out itemid, out frame)) || frame == null)
+                return;
+
+            object docData;
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out docData));
+
+            // Get the VsTextBuffer
+            VsTextBuffer buffer = docData as VsTextBuffer;
+            if (buffer == null)
+            {
+                IVsTextBufferProvider bufferProvider = docData as IVsTextBufferProvider;
+                if (bufferProvider != null)
+                {
+                    IVsTextLines lines;
+                    Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(bufferProvider.GetTextBuffer(out lines));
+                    buffer = lines as VsTextBuffer;
+                    System.Diagnostics.Debug.Assert(buffer != null, "IVsTextLines does not implement IVsTextBuffer");
+                    if (buffer == null)
+                        return;
+                }
+            }
+
+            // Finally, perform the navigation.
+            IVsTextManager mgr = serviceProvider.GetService(typeof(VsTextManagerClass)) as IVsTextManager;
+            if (mgr == null)
+                return;
+
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(mgr.NavigateToLineAndColumn(buffer, ref logicalView, task.Line, task.Column, task.Line, task.Column));
+        }
+
+        public Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template)
+        {
+            return parser.ParseTemplate(template);
+        }
+
+        private SVsServiceProvider serviceProvider;
+
+        private TaskProvider taskList;
+
+        IVsRunningDocumentTable rdt;
+
+        uint rdtEventsCookie;
+
+        [Import]
+        internal SVsServiceProvider ServiceProvider
+        {
+            get { return serviceProvider; }
+            private set 
+            { 
+                serviceProvider = value;
+                ivsSolution = GetService<IVsSolution>(typeof(SVsSolution));
+                taskList = new TaskProvider(serviceProvider);
+                rdt = GetService<IVsRunningDocumentTable>(typeof(SVsRunningDocumentTable));
+                ErrorHandler.ThrowOnFailure(rdt.AdviseRunningDocTableEvents(this, out rdtEventsCookie));
             }
         }
 
-        public IVsOutputWindowPane DjangoDiagnostics
+        private T GetService<T>(Type serviceType)
         {
-            get
-            {
-                lock (this)
-                {
-                    if(djangoDiagnostics == null)
-                    {
-                        djangoDiagnostics = GetOutputPane();
-                    }
-                }
-                return djangoDiagnostics;
-            }
+            return (T)ServiceProvider.GetService(serviceType);
         }
 
-        [Import]
-        internal SVsServiceProvider ServiceProvider = null;
+        private NodeProviderBroker()
+        {
+            parser = InitializeParser();
+        }
 
-        [Import]
-        internal IVsEditorAdaptersFactoryService adaptersFactory { get; set; }
+        IParser parser;
 
-        [Import]
-        internal Microsoft.VisualStudio.Utilities.IContentTypeRegistryService ContentTypeRegistryService { get; set; }
-
-        IParser parser = InitializeParser();
-
-        private static IParser InitializeParser()
+        private IParser InitializeParser()
         {
             string path = typeof(TemplateManagerProvider).Assembly.CodeBase;
             List<Tag> tags = new List<Tag>();
@@ -154,9 +209,6 @@ namespace NDjango.Designer.Parsing
         /// <returns><b>true</b> if this is a ndjango buffer</returns>
         public bool IsNDjango(ITextBuffer buffer)
         {
-
-            var types = new List<Microsoft.VisualStudio.Utilities.IContentType>(ContentTypeRegistryService.ContentTypes);
-
             switch (buffer.ContentType.TypeName)
             {
                 case "plaintext":
@@ -182,32 +234,87 @@ namespace NDjango.Designer.Parsing
             NodeProvider provider;
             if (!buffer.Properties.TryGetProperty(typeof(NodeProvider), out provider))
             {
-                provider = new NodeProvider(parser, buffer, this);
+                provider = new NodeProvider(this, buffer);
                 buffer.Properties.AddProperty(typeof(NodeProvider), provider);
             }
             return provider;
-        }        
+        }
 
-        public IVsOutputWindowPane GetOutputPane()
+        [Import]
+        IVsEditorAdaptersFactoryService editorFactoryService;
+
+
+        #region IVsRunningDocTableEvents Members
+
+        int IVsRunningDocTableEvents.OnAfterAttributeChange(uint docCookie, uint grfAttribs)
         {
-            Guid page = this.GetType().GUID;
-            string caption = "Django Templates";
+            return VSConstants.S_OK;
+        }
 
-            IVsOutputWindow outputWindow = GetService<IVsOutputWindow>(typeof(SVsOutputWindow));
+        int IVsRunningDocTableEvents.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
+        {
+            return VSConstants.S_OK;
+        }
 
-            IVsOutputWindowPane ppPane = null;
-            if (ErrorHandler.Failed(outputWindow.GetPane(ref page, out ppPane)))
+        int IVsRunningDocTableEvents.OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsRunningDocTableEvents.OnAfterSave(uint docCookie)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsRunningDocTableEvents.OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsRunningDocTableEvents.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
+        {
+        	uint pgrfRDTFlags;
+	        uint pdwReadLocks;
+	        uint pdwEditLocks;
+	        string pbstrMkDocument;
+	        IVsHierarchy ppHier;
+	        uint pitemid;
+	        IntPtr ppunkDocData;
+
+            ErrorHandler.ThrowOnFailure(rdt.GetDocumentInfo(docCookie, out pgrfRDTFlags, out pdwReadLocks, out pdwEditLocks, out pbstrMkDocument, out ppHier, out pitemid, out ppunkDocData));
+            try
             {
-                ErrorHandler.ThrowOnFailure(outputWindow.CreatePane(ref page, caption, 1, 1));
-                ErrorHandler.ThrowOnFailure(outputWindow.GetPane(ref page, out ppPane));
+                if (pdwReadLocks == 0 && pdwEditLocks == 0)
+                {
+                    IVsTextLines textLines = Marshal.GetObjectForIUnknown(ppunkDocData) as IVsTextLines;
+                    if (textLines == null)
+                    {
+                        IVsTextBufferProvider vsTextBufferProvider = Marshal.GetObjectForIUnknown(ppunkDocData) as IVsTextBufferProvider;
+                        if (vsTextBufferProvider != null)
+                        {
+                            ErrorHandler.ThrowOnFailure(vsTextBufferProvider.GetTextBuffer(out textLines));
+                        }
+                    }
+                    if (textLines != null)
+                    {
+                        var textBuffer = editorFactoryService.GetDocumentBuffer((IVsTextBuffer)textLines);
+                        NodeProvider provider;
+                        if (textBuffer.Properties.TryGetProperty<NodeProvider>(typeof(NodeProvider), out provider))
+                        {
+                            provider.Dispose();
+                        }
+                    }
+                }
             }
-            ErrorHandler.ThrowOnFailure(ppPane.Activate());
-            return ppPane;
+            finally
+            {
+                Marshal.Release(ppunkDocData);
+            }
+               
+
+            return VSConstants.S_OK;
         }
 
-        private T GetService<T>(Type serviceType)
-        {
-            return (T)ServiceProvider.GetService(serviceType);
-        }
+        #endregion
     }
 }

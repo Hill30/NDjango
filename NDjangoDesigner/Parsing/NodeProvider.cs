@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using NDjango.Interfaces;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Shell;
 
 namespace NDjango.Designer.Parsing
 {
@@ -42,11 +43,9 @@ namespace NDjango.Designer.Parsing
         
         // this lock is used to synchronize access to the nodes list
         private object node_lock = new object();
-        private IParser parser;
         private ITextBuffer buffer;
-        private IVsOutputWindowPane djangoDiagnostics;
         private INodeProviderBroker broker;
-        string filePath;
+
         /// <summary>
         /// indicates the delay (in milliseconds) of parser invoking. 
         /// </summary>
@@ -62,13 +61,11 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider( IParser parser, ITextBuffer buffer, INodeProviderBroker broker)
+        public NodeProvider(INodeProviderBroker broker, ITextBuffer buffer)
         {
             this.broker = broker;
-            this.djangoDiagnostics = broker.DjangoDiagnostics;
-            this.parser = parser;
             this.buffer = buffer;
-            filePath = ((ITextDocument)buffer.Properties[typeof(ITextDocument)]).FilePath;
+            FilePath = ((ITextDocument)buffer.Properties[typeof(ITextDocument)]).FilePath;
 
             buffer.Changed += new EventHandler<TextContentChangedEventArgs>(buffer_Changed);
             // we need to run rebuildNodes on a separate thread. Using timer
@@ -133,15 +130,18 @@ namespace NDjango.Designer.Parsing
         private void rebuildNodes(object snapshotObject)
         {
             ITextSnapshot snapshot = (ITextSnapshot)snapshotObject;
-            List<DesignerNode> nodes = parser.ParseTemplate(new SnapshotReader(snapshot))
+            List<DesignerNode> nodes = broker.ParseTemplate(new SnapshotReader(snapshot))
                 .ToList()
                     .ConvertAll<DesignerNode>
-                        (node => new DesignerNode(null, snapshot, (INode)node));
+                        (node => new DesignerNode(this, null, snapshot, (INode)node));
+            List<DesignerNode> oldNodes;
             lock (node_lock)
             {
+                oldNodes = this.nodes;
                 this.nodes = nodes;
             }
-            ShowDiagnostics();
+            oldNodes.ForEach(node => node.Dispose());
+            nodes.ForEach(node => node.ShowDiagnostics());
             RaiseNodesChanged(snapshot);
         }
 
@@ -151,19 +151,14 @@ namespace NDjango.Designer.Parsing
                 NodesChanged(new SnapshotSpan(snapshot, 0, snapshot.Length));
         }
 
-        internal void ShowDiagnostics()
+        internal void ShowDiagnostics(ErrorTask task)
         {
-            if (this.broker.ShowDiagnostics)
-            {
-                List<DesignerNode> nodes;
-                lock (node_lock)
-                {
-                    nodes = this.nodes;
-                }
-                djangoDiagnostics.Clear();
-                nodes.ForEach(node => node.ShowDiagnostics(djangoDiagnostics, filePath));
-                djangoDiagnostics.FlushToTaskList();
-            }
+            broker.ShowDiagnostics(task);
+        }
+
+        internal void RemoveDiagnostics(ErrorTask task)
+        {
+            broker.RemoveDiagnostics(task);
         }
 
         /// <summary>
@@ -228,5 +223,11 @@ namespace NDjango.Designer.Parsing
             return GetNodes(new SnapshotSpan(point.Snapshot, point.Position, 0), predicate);
         }
 
+        public string FilePath { get; private set; }
+
+        internal void Dispose()
+        {
+            nodes.ForEach(node => node.Dispose()); 
+        }
     }
 }

@@ -76,6 +76,7 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <SpecificVersion>True</SpecificVersion>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Text.Data, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>True</SpecificVersion>
     </Reference>
@@ -119,7 +120,6 @@
     <Compile Include="CodeCompletion\SourceProvider.cs" />
     <Compile Include="CodeCompletion\CompletionSets\TagCompletionSet.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="Parsing\ActiveViewMonitor.cs" />
     <Compile Include="Parsing\DesignerNode.cs" />
     <Compile Include="Parsing\NodeProvider.cs" />
     <Compile Include="Parsing\NodeProviderBroker.cs" />
