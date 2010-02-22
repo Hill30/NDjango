@@ -96,10 +96,5 @@ namespace NDjango.Designer
         internal const string NDJANGO_TEXT = "plaintext";
         internal const string NDJANGO_HTML = "HTML";
 
-        [Export]
-        [Name("NDJANGO")]
-        [BaseDefinition("plaintext")]
-//        [BaseDefinition("HTML")]
-        internal static ContentTypeDefinition TestContentTypeDefinition;
     }
 }
