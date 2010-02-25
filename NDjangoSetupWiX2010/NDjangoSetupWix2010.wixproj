@@ -29,18 +29,6 @@
       <Project>{f8d5e545-691b-4743-9177-3ff50cc67e74}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Integration\BistroIntegration\BistroIntegration.csproj">
-      <Name>BistroIntegration</Name>
-      <Project>{2a3cc2fe-ab0e-44f6-b1cb-3290581da442}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Integration\Castle.Monorail.Views.NDjangoView\Castle.Monorail.Views.NDjangoView.csproj">
-      <Name>Castle.Monorail.Views.NDjangoView</Name>
-      <Project>{64d8a354-dcee-44e2-b25c-c1d1a1e7bf58}</Project>
-      <Private>True</Private>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLLOCATION</RefTargetDir>
-    </ProjectReference>
     <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters2010.csproj">
       <Name>NDjangoParserFilters2010</Name>
       <Project>{89dc9575-c706-4d0d-944a-79e5865ffe88}</Project>

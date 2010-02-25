@@ -1,5 +1,5 @@
 ﻿
-namespace NDJango 
+namespace NDjango 
 
 open System.Reflection;
 
@@ -7,7 +7,14 @@ open System.Runtime.CompilerServices;
 
 open System.Runtime.InteropServices;
 
- 
+module AssemblyInfo =
+#if FRAMEWORK4
+  [<Literal>] 
+  let public Version = "0.9.7.4"
+#else
+  [<Literal>] 
+  let public Version = "0.9.7.2"
+#endif
 
 // General Information about an assembly is controlled through the following
 
@@ -25,7 +32,7 @@ open System.Runtime.InteropServices;
 
 [<assembly: AssemblyProduct("NDjango")>]
 
-[<assembly: AssemblyCopyright("Copyright © Hill30, Inc. 2008, 2009")>]
+[<assembly: AssemblyCopyright("Copyright © Hill30, Inc. 2008, 2009, 2010")>]
 
 [<assembly: AssemblyTrademark("")>]
 
@@ -67,10 +74,8 @@ open System.Runtime.InteropServices;
 
 // by using the ‘*’ as shown below:
 
-[<assembly: AssemblyVersion("0.9.6.0")>]
+[<assembly: AssemblyVersion(AssemblyInfo.Version)>]
 
-[<assembly: AssemblyFileVersion("0.9.6.0")>]
+[<assembly: AssemblyFileVersion(AssemblyInfo.Version)>]
 
 ()
-
-
