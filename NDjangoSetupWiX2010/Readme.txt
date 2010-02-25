@@ -1,11 +1,27 @@
+Readme 2010:
+
+To install:
+
+1. Uninstall all previous versions of VS2010 (is any)
+2. Uninstall all previous versions of F# CTP
+3. install VS2010 RC
+4. Run setup
+
+Because of the bug in the F# CTP installer it is important to completeley uninstall both VS2010 and F# CTP before installing new stuff see http://cs.hubfs.net/forums/thread/13145.aspx for more details
+
 NDjango Requirements:
  *NET Framework 4.0
  *Visual Studio 2010 RC is required for NDjango Editor
 
+Release Notes:
+
+See Readme.txt for installation instructions and a list of files included in the setup 
+
 New in 0.9.7.0 *NDjango Editor for Microsoft Visual Studio 2010 RC.
+ 
  *Ndjango.Core and NDjango.Filters are now bound to the new FSharp.Core version 4.0 and FSharp.PowerPack version 1.9.9.9.
  *NDjango Editor - code completion now filters the completion dropdown as you type
- *NDjango Editor - error messages are only sent to the error list, where they stay until the file is closed 
+ *NDjango Editor - error messages are only sent to the error list, where they stay until the file is closed
  
 New in 0.9.6.0 *NDjango Editor for Microsoft Visual Studio 2010 beta 2.
  *Ndjango.Core and NDjango.Filters are now bound to the new FSharp.Core version 4.0 and FSharp.PowerPack version 1.9.7.8.
