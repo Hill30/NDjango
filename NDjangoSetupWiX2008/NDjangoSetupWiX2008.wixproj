@@ -31,14 +31,9 @@
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Integration\ASP.MVC\ASPMVCIntegration.csproj">
-      <Name>ASPMVCIntegration</Name>
+    <ProjectReference Include="..\..\Integration\ASP.MVC\ASPMVCIntegration2008.csproj">
+      <Name>ASPMVCIntegration2008</Name>
       <Project>{f8d5e545-691b-4743-9177-3ff50cc67e74}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Integration\BistroIntegration\BistroIntegration.csproj">
-      <Name>BistroIntegration</Name>
-      <Project>{2a3cc2fe-ab0e-44f6-b1cb-3290581da442}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters2008.csproj">
