@@ -41,7 +41,7 @@
                     <Directory Id="INSTALLDIR" Name=".NET40">
                       <Component Id="NDjangoAssemblies" Guid="322925F0-84C3-41EC-ACE8-D238D3CBF2ED">
                         <File Id="NDJANGODESIGNER" Name="NDjango.Designer.vsix" Source="NDjango.Designer.vsix" />
-                        <File Id="ASPMVCIntegration.dll" Name="$(var.ASPMVCIntegration.TargetFileName)" Source="$(var.ASPMVCIntegration.TargetPath)" />
+                        <File Id="ASPMVCIntegration.dll" Name="$(var.ASPMVCIntegration2010.TargetFileName)" Source="$(var.ASPMVCIntegration2010.TargetPath)" />
                         <!--File Id="NDjango.BistroIntegration.dll" Name="$(var.BistroIntegration.TargetFileName)" Source="$(var.BistroIntegration.TargetPath)" /-->
                         <!--File Id="Castle.Monorail.Views.NDjangoView.dll" Name="$(var.Castle.Monorail.Views.NDjangoView.TargetFileName)" Source="$(var.Castle.Monorail.Views.NDjangoView.TargetPath)" /-->
                         <File Id="NDjango.Core.dll" Name="$(var.NDjangoParser2010.TargetFileName)" Source="$(var.NDjangoParser2010.TargetPath)" />
@@ -174,7 +174,7 @@
                 <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
                 <Control Id="Description" Type="Text" X="135" Y="105" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.WelcomeDlgDescription)" />
                 <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.WelcomeDlgTitle)" />
-                <Control Type="Text" Width="220" Height="60" X="135" Y="116" Id="FSharpNOTE" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}NOTE: This application requires FSharp 1.9.6.2." Hidden="yes" />
+                <Control Type="Text" Width="220" Height="60" X="135" Y="116" Id="FSharpNOTE" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}NOTE: This application requires FSharp 4.0" Hidden="yes" />
                 <Control Type="Text" Id="Note" Width="192" Height="22" X="135" Y="79" Transparent="yes">
                     <Text>This application was developed for using with .NET Framework 4.0 and Visual Studio 2010 RC</Text>
                 </Control>
