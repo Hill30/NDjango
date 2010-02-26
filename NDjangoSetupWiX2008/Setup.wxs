@@ -22,6 +22,9 @@
     <Property Id="VS2008PROJECTTEMPLATESLOCATION">
       <RegistrySearch Id="UserProjectTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\9.0" Name="UserProjectTemplatesLocation" />
     </Property>
+    <Property Id="VS2008ITEMTEMPLATESLOCATION">
+      <RegistrySearch Id="UserItemTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\9.0" Name="UserItemTemplatesLocation" />
+    </Property>
     <PropertyRef Id="NETFRAMEWORK35_SP_LEVEL" />
     <Condition Message="This application requires Visual Studio 2008. Please install the Visual Studio 2008 then run this installer again.">Installed OR VS2008FOUND</Condition>
     <Condition Message="This application requires .NET Framework 3.5SP1. Please install the .NET Framework 3.5SP1 then run this installer again."><![CDATA[Installed OR (NETFRAMEWORK35_SP_LEVEL and NOT NETFRAMEWORK35_SP_LEVEL = "#0")]]></Condition>
@@ -56,6 +59,17 @@
           </Directory>
         </Directory>
       </Directory>
+      <Directory Id="VS2008ITEMTEMPLATESLOCATION">
+        <Directory Id="vs2008CSharpItem" Name="Visual C#">
+          <Directory Id="vs2008Web1Item" Name="Web">
+            <Component Id="ItemTemplates" Guid="27EF94C3-D513-4D79-B1BE-9401266B4319">
+              <RemoveFolder Id="vs2008Web1Item" Directory="vs2008Web1Item" On="uninstall" />
+              <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+              <File Id="NDjangoTemplate" Name="NDjangoTemplate.zip" Source="Templates\NDjangoTemplate.zip" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
       <Directory Id="VS2008PROJECTTEMPLATESLOCATION">
         <Directory Id="vs2008CSharp" Name="Visual C#">
           <Directory Id="vs2008Web1" Name="Web">
@@ -85,6 +99,7 @@
     <Property Id="TEMPLATESNEEDED" Secure="yes" />
     <Feature Id="InstallTemplates" Level="1">
       <ComponentRef Id="ProjectTemplates" />
+      <ComponentRef Id="ItemTemplates" />
     </Feature>
     <Feature Id="ProductFeature" Level="1">
       <ComponentRef Id="NDjangoAssemblies" />
