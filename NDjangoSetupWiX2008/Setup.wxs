@@ -168,8 +168,8 @@
         <Control Id="ChangeFolder" Type="PushButton" X="20" Y="120" Width="56" Height="17" Text="!(loc.InstallDirDlgChange)">
         </Control>
         <Control Type="CheckBox" Id="TemplatesCheckBox" Width="317" Height="17" X="22" Y="169" CheckBoxValue="1" Property="TEMPLATESNEEDED" Text="Install NDjango templates for Visual Studio 2008 (ASP.NET MVC 2 is required)">
-          <Condition Action="enable"><![CDATA[ (VS2008FOUND <> NULL) AND MVCFOUND]]></Condition>
-          <Condition Action="disable"><![CDATA[ (VS2008FOUND = NULL) OR (MVCFOUND = NULL)]]></Condition>
+          <Condition Action="enable"><![CDATA[ (VS2008FOUND <> NULL) AND MVCFOUND AND MVCTOOLS2008SFOUND]]></Condition>
+          <Condition Action="disable"><![CDATA[ (VS2008FOUND = NULL) OR (MVCFOUND = NULL) OR (MVCTOOLS2008SFOUND = NULL)]]></Condition>
         </Control>
       </Dialog>
       <InstallUISequence>
