@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?define ProductVersion="0.9.6" ?>
-  <?define ProductVersionTitle="0.9.6.0" ?>
+  <?define ProductVersion="0.9.7" ?>
+  <?define ProductVersionTitle="0.9.7" ?>
   <?define UpgradeCode="{9EAD0F41-F6BB-4FDD-B2C3-2C8D3AFD5F47}"?>
   <Product Id="74ACC0DC-513A-449D-A2EB-99DD75FEF570" Name="NDjango $(var.ProductVersionTitle) for Visual Studio 2008" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
     <Package InstallerVersion="200" Compressed="yes" />
@@ -28,23 +28,29 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder" Name="PFiles">
         <Directory Id="Hill30" Name="Hill30">
-          <Directory Id="INSTALLDIR" Name="NDjango">
-            <Component Id="NDjangoAssemblies" Guid="94965855-72E6-4B54-AA9F-E1DB5263F89D">
-              <File Id="ASPMVCIntegration.dll" Name="$(var.ASPMVCIntegration.TargetFileName)" Source="$(var.ASPMVCIntegration.TargetPath)" />
-              <File Id="NDjango.BistroIntegration.dll" Name="$(var.BistroIntegration.TargetFileName)" Source="$(var.BistroIntegration.TargetPath)" />
-              <File Id="NDjango.Core.dll" Name="$(var.NDjangoParser2008.TargetFileName)" Source="$(var.NDjangoParser2008.TargetPath)" />
-              <File Id="NDjango.Filters.dll" Name="$(var.NDjangoParserFilters2008.TargetFileName)" Source="$(var.NDjangoParserFilters2008.TargetPath)" />
-            </Component>
-            <Component Id="Readme" Guid="39D6280B-D600-4A8E-A929-62578C3CA890">
-              <File Id="Readme.txt" Name="Readme.txt" Source="Readme.txt" />
-            </Component>
-            <Component Id="FSharpComponents" Guid="C0587159-FC5A-4495-8287-F01E7B39A585">
-              <File Id="FSharp.PowerPack.dll" Name="FSharp.PowerPack.dll" Source="FSharp.PowerPack.dll" />
-              <File Id="FSharp.Core.dll" Name="FSharp.Core.dll" Source="FSharp.Core.dll" />
-            </Component>
-            <Component Id="ThirdPartyComponents" Guid="B5E34D54-3914-4851-8602-19311D415912">
-              <File Id="StructureMap.dll" Name="StructureMap.dll" Source="..\..\Integration\ASP.MVC\lib\StructureMap.dll" />
-            </Component>
+          <Directory Id="NDjango" Name="NDjango">
+            <Directory Id="INSTALLDIR" Name=".NET35">
+              <Component Id="NDjangoAssemblies" Guid="94965855-72E6-4B54-AA9F-E1DB5263F89D">
+                <File Id="ASPMVCIntegration.dll" Name="$(var.ASPMVCIntegration.TargetFileName)" Source="$(var.ASPMVCIntegration.TargetPath)" />
+                <!--File Id="NDjango.BistroIntegration.dll" Name="$(var.BistroIntegration.TargetFileName)" Source="$(var.BistroIntegration.TargetPath)" /-->
+                <File Id="NDjango.Core.dll" Name="$(var.NDjangoParser2008.TargetFileName)" Source="$(var.NDjangoParser2008.TargetPath)" />
+                <File Id="NDjango.Filters.dll" Name="$(var.NDjangoParserFilters2008.TargetFileName)" Source="$(var.NDjangoParserFilters2008.TargetPath)" />
+              </Component>
+              <Component Id="Readme" Guid="39D6280B-D600-4A8E-A929-62578C3CA890">
+                <File Id="Readme.txt" Name="Readme.txt" Source="Readme.txt" />
+              </Component>
+              <Component Id="ReleaseNotes" Guid="0B12A82D-47CE-4334-A3C6-C02AA10AB12A">
+                <File Id="ReleaseNotes.htm" Name="ReleaseNotes.htm" Source="..\ReleaseNotes.htm" />
+              </Component>
+              <Component Id="FSharpComponents" Guid="C0587159-FC5A-4495-8287-F01E7B39A585">
+                <File Id="FSharp.Core.dll" Name="FSharp.Core.dll" Source="FSharp.Core.dll" />
+                <File Id="FSharp.PowerPack.dll" Name="FSharp.PowerPack.dll" Source="FSharp.PowerPack.dll" />
+                <File Id="FSharp.PowerPack.Compatibility.dll" Name="FSharp.PowerPack.Compatibility.dll" Source="FSharp.PowerPack.Compatibility.dll" />
+              </Component>
+              <Component Id="ThirdPartyComponents" Guid="B5E34D54-3914-4851-8602-19311D415912">
+                <File Id="StructureMap.dll" Name="StructureMap.dll" Source="..\..\Integration\ASP.MVC\lib\StructureMap.dll" />
+              </Component>
+            </Directory>
           </Directory>
         </Directory>
       </Directory>
@@ -82,6 +88,7 @@
       <ComponentRef Id="NDjangoAssemblies" />
       <ComponentRef Id="RegisterDjangoExtensionForHTMLEditor" />
       <ComponentRef Id="Readme" />
+      <ComponentRef Id="ReleaseNotes" />
       <ComponentRef Id="FSharpComponents" />
       <ComponentRef Id="ThirdPartyComponents" />
     </Feature>
