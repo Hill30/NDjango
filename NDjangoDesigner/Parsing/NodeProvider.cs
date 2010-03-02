@@ -131,9 +131,10 @@ namespace NDjango.Designer.Parsing
         {
             ITextSnapshot snapshot = (ITextSnapshot)snapshotObject;
             List<DesignerNode> nodes = broker.ParseTemplate(new SnapshotReader(snapshot))
-                .ToList()
-                    .ConvertAll<DesignerNode>
-                        (node => new DesignerNode(this, null, snapshot, (INode)node));
+                .Aggregate(
+                    new List<DesignerNode>(),
+                    (list, node) => { list.Add(CreateDesignerNode(null, snapshot, (INode)node)); return list; }
+                        );
             List<DesignerNode> oldNodes;
             lock (node_lock)
             {
@@ -143,6 +144,17 @@ namespace NDjango.Designer.Parsing
             oldNodes.ForEach(node => node.Dispose());
             nodes.ForEach(node => node.ShowDiagnostics());
             RaiseNodesChanged(snapshot);
+        }
+
+        internal DesignerNode CreateDesignerNode(DesignerNode parent, ITextSnapshot snapshot, INode node)
+        {
+            switch (node.NodeType)
+            {
+                case NodeType.TemplateName:
+                    return new TemplateNameNode(this, parent, snapshot, node);
+                default:
+                    return new DesignerNode(this, parent, snapshot, node);
+            }
         }
 
         /// <summary>

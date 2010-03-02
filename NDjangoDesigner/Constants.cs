@@ -73,7 +73,7 @@ namespace NDjango.Designer
         internal const string MARKER_CLASSIFIER = "ndjango.marker";
         [Export]
         [Name(MARKER_CLASSIFIER)]
-        internal static ClassificationTypeDefinition NDjangoMarker;
+        internal static ClassificationTypeDefinition NDjangoMarker = null; // null is not really necessary, but to keep the compiler happy...
 
         [Export(typeof(EditorFormatDefinition))]
         [Name("ndjango.marker.format")]

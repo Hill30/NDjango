@@ -151,6 +151,8 @@ namespace NDjango.Designer.CodeCompletion
 
             CompletionContext completionContext = 
                 AbstractCompletionSet.GetCompletionContext(e.Key, subjectBuffer, caretPoint.Position);
+            if (completionContext == CompletionContext.None)
+                return;
 
             // the invocation occurred in a subject buffer of interest to us
             triggerPosition = caretPoint.Position;

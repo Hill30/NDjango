@@ -14,18 +14,28 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         char quote_char;
         public TemplateNameCompletionSet() { }
 
-        protected override void Initialize(DesignerNode node, SnapshotPoint point)
+        protected override void Initialize(CompletionContext context, DesignerNode node, SnapshotPoint point)
         {
-            base.Initialize(node, point);
-            this.quote_char = node.SnapshotSpan.GetText()[0]; 
+            base.Initialize(context, node, point);
+            switch (context)
+            {
+                case CompletionContext.QuotedString:
+                    quote_char = '"';
+                    break;
+                case CompletionContext.AposString:
+                    quote_char = '\'';
+                    break;
+                default:
+                    System.Diagnostics.Debug.Assert(true, "Contexts other than QuotedString and AposString are not allowed, context=" + context.ToString());
+                    break;
+            }
         }
 
         protected override int FilterOffset { get { return 1; } }
 
-        List<string> values = new List<string>(new string[] { });
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {
-            return BuildCompletions(values, quote_char.ToString(), quote_char.ToString() + ' ');
+            return BuildCompletions(Node.Values, quote_char.ToString(), quote_char.ToString() + ' ');
         }
     }
 }

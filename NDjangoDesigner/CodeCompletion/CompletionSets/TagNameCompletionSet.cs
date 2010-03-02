@@ -13,8 +13,8 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
     /// </summary>
     class TagNameCompletionSet : AbstractCompletionSet
     {
-        internal TagNameCompletionSet(DesignerNode node, SnapshotPoint point)
-            : base(node, point)
+        internal TagNameCompletionSet(CompletionContext context, DesignerNode node, SnapshotPoint point)
+            : base(context, node, point)
         { }
 
         private IEnumerable<Completion> BuildCompletions(IEnumerable<string> values)

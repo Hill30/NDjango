@@ -70,7 +70,7 @@ module internal LoaderTags =
             member this.Perform token context tokens = 
                 let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens []
                 match token.Args with
-                | parent::[] -> 
+                | parent::tail -> 
                     
                     /// expression yielding the name of the parent template
                     let parent_name_expr = 
@@ -82,29 +82,56 @@ module internal LoaderTags =
                             (fun node ->
                                 match node with
                                 /// we need ParsingContextNode in the nodelist for code completion issues
-                                | :? ParsingContextNode -> Some node
-                                | :? BlockNode -> Some node
-                                | :? INode when (node :?> INode).NodeType = NodeType.Text -> Some node
+                                | :? ParsingContextNode -> Some (node :?> INode)
+                                | :? BlockNode -> Some (node :?> INode)
+                                | :? INode when (node :?> INode).NodeType = NodeType.Text -> 
+                                    let marked = 
+                                        let body = node.Token.TextToken.RawText.TrimStart();
+                                        if (body.Trim() = "") then node :?> INode
+                                        else 
+                                            // build a new token representing non-spaces in the text
+                                            let newToken = node.Token.TextToken.CreateToken(node.Token.Length - body.Length, body.Trim().Length)
+                                            {new Node(Text newToken) with 
+                                                override x.node_type = NodeType.Text
+                                                override x.ErrorMessage = new Error(1, "All content except 'block' tags inside extending template is ignored")
+                                                override x.elements = []
+                                            } :> INode
+                                    Some marked
                                 | _ -> 
                                     if (context.Provider.Settings.[NDjango.Constants.EXCEPTION_IF_ERROR] :?> bool)
                                     then None
                                     else
-                                        Some ({new ErrorNode
-                                                (Block(token), 
-                                                 new Error(1, "All tags except 'block' tag inside inherited template are ignored"))
-                                                 with
-                                                    override x.nodelist = [node]
-                                                   } :> INodeImpl)
+                                        Some (new ErrorNode
+                                                (node.Token, 
+                                                 new Error(1, "All content except 'block' tags inside extending template is ignored"))
+                                                    :> INode)
                             )
+
+                    let node_list = 
+                        match tail with
+                        | [] -> node_list
+                        | _ -> 
+                            node_list @ 
+                            [{new ErrorNode(
+                                Text tail.Head, new Error(1, "Excessive arguments in the extends tag are ignored"))
+                                with override x.elements = []
+                                } :> INode] 
                     
-                    let (nodes : INode list) = List.map(fun (node : INodeImpl) -> node :?> INode) node_list
-                    
-                    ((new ExtendsNode(context, token, nodes, parent_name_expr) :> INodeImpl), 
+                    ((new ExtendsNode(context, token, node_list, parent_name_expr) :> INodeImpl), 
                        remaining)
-                | _ -> raise (SyntaxError (
-                                 "extends tag requires exactly one argument",
-                                 node_list,
-                                 remaining))
+                | _ -> 
+                    // this is a fictitious node created only for the purpose of providing the intellisense
+                    // we need to position it right before the closing bracket
+                    let parent_name_expr = 
+                        {new Node(Text (token.CreateToken(token.RawText.Length-2, 0))) with 
+                            override x.node_type = NodeType.TemplateName
+                            override x.elements = []
+                            } :> INode
+                    raise (SyntaxError (
+                                 "extends tag - missing template name",
+                                 Some (Seq.ofList node_list),
+                                 Some [parent_name_expr],
+                                 Some remaining))
 
     /// Loads a template and renders it with the current context. This is a way of "including" other templates within a template.
     ///

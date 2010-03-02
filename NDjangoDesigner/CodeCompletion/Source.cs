@@ -45,6 +45,7 @@ namespace NDjango.Designer.CodeCompletion
             this.textBuffer = textBuffer;
             nodeProvider = nodeProviderBroker.GetNodeProvider(textBuffer);
         }
+        
         public void AugmentCompletionSession(ICompletionSession session, IList<VSCompletionSet> completionSets)
         {
             CompletionContext context;
@@ -70,19 +71,19 @@ namespace NDjango.Designer.CodeCompletion
             {
                 case CompletionContext.Tag:
                     return AbstractCompletionSet.Create<TagCompletionSet>(
-                        nodeProvider, point,
+                        context, nodeProvider, point,
                         n => n.NodeType == NodeType.ParsingContext
                             );
 
                 case CompletionContext.Variable:
                     return AbstractCompletionSet.Create<VariableCompletionSet>(
-                        nodeProvider, point,
+                        context, nodeProvider, point,
                         n => n.NodeType == NodeType.ParsingContext
                             );
 
                 case CompletionContext.FilterName:
                     return AbstractCompletionSet.Create<FilterCompletionSet>(
-                        nodeProvider, point,
+                        context, nodeProvider, point,
                         n => n.NodeType == NodeType.ParsingContext
                             );
 
@@ -92,26 +93,24 @@ namespace NDjango.Designer.CodeCompletion
                     // out of the list get the last node which is not a parsing context
                     DesignerNode node = nodes.FindLast(n => n.NodeType != NodeType.ParsingContext);
                     if (node == null)
-                        break;
+                        return null;
                     if (node.NodeType == NodeType.TagName)
-                        return new TagNameCompletionSet(node, point);
-                    return new ValueCompletionSet(node, point);
+                        return new TagNameCompletionSet(context, node, point);
+                    return new ValueCompletionSet(context, node, point);
+
+                case CompletionContext.AposString:
+                case CompletionContext.QuotedString:
+                    return AbstractCompletionSet.Create<TemplateNameCompletionSet>(
+                        context, nodeProvider, point,
+                        n =>
+                            n.NodeType == NodeType.TemplateName
+                            );
 
                 default:
-                    break;
+                    return null;
             }
 
-            return null;
-            // for now let us leave the template names alone
-            //return AbstractCompletionSet.Create<TemplateNameCompletionSet>(
-            //    nodeProvider, point,
-            //    n =>
-            //        n.NodeType == NodeType.TemplateName
-            //        && string_delimiters.Contains(n.SnapshotSpan.GetText()[0])
-            //        );
         }
-
-        readonly static char[] string_delimiters = { '"', '\'' };
 
     }
 }

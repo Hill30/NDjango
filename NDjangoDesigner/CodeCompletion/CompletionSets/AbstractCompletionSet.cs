@@ -25,7 +25,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
     {
 
         internal static CompletionSet Create<T>
-            (NodeProvider nodeProvider, SnapshotPoint point, Predicate<DesignerNode> filter)
+            (CompletionContext context, NodeProvider nodeProvider, SnapshotPoint point, Predicate<DesignerNode> filter)
             where T : AbstractCompletionSet, new()
         {
             // Get a list of all nodes of template name type
@@ -33,7 +33,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             if (node == null)
                 return null;
             var result = new T();
-            result.Initialize(node, point);
+            result.Initialize(context, node, point);
             return result;
        }
 
@@ -52,16 +52,16 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// </summary>
         /// <param name="node"></param>
         /// <param name="point"></param>
-        internal AbstractCompletionSet(DesignerNode node, SnapshotPoint point)
+        internal AbstractCompletionSet(CompletionContext context, DesignerNode node, SnapshotPoint point)
             : base("Django Completions", "Django Completions", null, null, null)
         {
-            Initialize(node, point);
+            Initialize(context, node, point);
         }
 
         protected AbstractCompletionSet()
             : base("Django Completions", "Django Completions", null, null, null) { }
-        
-        protected virtual void Initialize(DesignerNode node, SnapshotPoint point)
+
+        protected virtual void Initialize(CompletionContext context, DesignerNode node, SnapshotPoint point)
         {
             // calculate the span to be replaced with user selection
             Span span = new Span(point.Position, 0);
@@ -69,7 +69,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
                 span = node.SnapshotSpan.Span;
             ApplicableTo = point.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
 
-            // claculate the filter span (see above)
+            // claculate the filter span (for explanation see comment on the filterspan member definition)
             filterSpan = point.Snapshot.CreateTrackingSpan(span.Start, point.Position - span.Start, SpanTrackingMode.EdgeInclusive); 
 
             this.node = node;
@@ -337,6 +337,12 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
                 case '|':
                     return CompletionContext.FilterName;
 
+                case '\'':
+                    return CompletionContext.AposString;
+
+                case '"':
+                    return CompletionContext.QuotedString;
+
                 default:
                     if (Char.IsLetterOrDigit(triggerChars[0]))
                         return CompletionContext.Word;
@@ -368,9 +374,13 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         Variable,
 
         /// <summary>
-        /// Other is a context covering typing inside a word - a tag name, a filter name a keyword, etc
+        /// Word is a context covering typing inside a word - a tag name, a filter name a keyword, etc
         /// </summary>
         Word,
+
+        QuotedString,
+
+        AposString,
 
         /// <summary>
         /// This is not a recognized code completion context

@@ -78,7 +78,7 @@ module internal ASTNodes =
     //to the walker in order to implement the blocks overriding. 
     //Moreover, we will use the rest (=parents) of the list for {{super.bock}} issues.
     //This rest of the list will be added to context with a "block" key.
-    and BlockNode(parsing_context: ParsingContext, token: BlockToken, name: string, nodelist: INodeImpl list, ?parent: BlockNode) =
+    and BlockNode(parsing_context: ParsingContext, token: BlockToken, name: string, nodelist: INodeImpl list) =
         inherit TagNode(parsing_context, token)
 
         //get the head's nodes to give them later to the walker
@@ -95,7 +95,6 @@ module internal ASTNodes =
             | None -> x.nodelist, []
         
         member x.Name = name
-        member x.Parent = parent
         
         //get the final_nodelist and parents from the "__blockmap" dictionary using MapNodes function
         override x.walk manager walker =

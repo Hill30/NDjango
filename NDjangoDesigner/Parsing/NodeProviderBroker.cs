@@ -261,7 +261,7 @@ namespace NDjango.Designer.Parsing
         }
 
         [Import]
-        IVsEditorAdaptersFactoryService editorFactoryService;
+        IVsEditorAdaptersFactoryService editorFactoryService = null; // null is not really necessary, but to keep the compiler happy...
 
         IVsRunningDocumentTable rdt;
 

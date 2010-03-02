@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Text;
 using NDjango.Designer.Parsing;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace NDjango.Designer.Tags
 {
@@ -54,8 +55,18 @@ namespace NDjango.Designer.Tags
             {
                 foreach (DesignerNode node in nodeProvider.GetNodes(span, node => node.NodeType != NDjango.Interfaces.NodeType.ParsingContext))
                 {
-                    if (node.ErrorMessage.Severity > -1)
-                        yield return new TagSpan<ErrorTag>(node.SnapshotSpan, new ErrorTag());
+                    switch (node.ErrorMessage.Severity)
+                    {
+                        case -1:
+                        case 0:
+                            continue;
+                        case 1:
+                            yield return new TagSpan<ErrorTag>(node.SnapshotSpan, new ErrorTag(PredefinedErrorTypeNames.Warning));
+                            break;
+                        default:
+                            yield return new TagSpan<ErrorTag>(node.SnapshotSpan, new ErrorTag(PredefinedErrorTypeNames.SyntaxError));
+                            break;
+                    }
                 }
             }
         }

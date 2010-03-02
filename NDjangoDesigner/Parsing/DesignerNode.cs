@@ -45,7 +45,7 @@ namespace NDjango.Designer.Parsing
             {
                 snapshotSpan = new SnapshotSpan(snapshot, node.Position, node.Length);
                 int offset = 0;
-                if (node.Values.GetEnumerator().MoveNext())
+                if (IsIntellisenseProvider)
                 {
                     ITextSnapshotLine line = snapshot.GetLineFromPosition(node.Position);
 
@@ -69,7 +69,15 @@ namespace NDjango.Designer.Parsing
             }
             foreach (IEnumerable<INode> list in node.Nodes.Values)
                 foreach (INode child in list)
-                    children.Add(new DesignerNode(provider, this, snapshot, child));
+                    children.Add(provider.CreateDesignerNode(this, snapshot, child));
+        }
+
+        protected virtual bool IsIntellisenseProvider
+        {
+            get
+            {
+                return node.Values.GetEnumerator().MoveNext();
+            }
         }
 
         /// <summary>
@@ -181,7 +189,7 @@ namespace NDjango.Designer.Parsing
             get { return node.Position; }
         }
 
-        public IEnumerable<string> Values
+        public virtual IEnumerable<string> Values
         {
             get { return node.Values; }
         }
