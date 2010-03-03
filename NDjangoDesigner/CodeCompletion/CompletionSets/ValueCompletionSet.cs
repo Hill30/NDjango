@@ -9,8 +9,8 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
     class ValueCompletionSet : AbstractCompletionSet
     {
-        public ValueCompletionSet(CompletionContext context, DesignerNode node, SnapshotPoint point)
-            : base(context, node, point)
+        public ValueCompletionSet(Source source, DesignerNode node, SnapshotPoint point)
+            : base(source, node, point)
         { }
 
         protected override IEnumerable<Microsoft.VisualStudio.Language.Intellisense.Completion> BuildNodeCompletions()

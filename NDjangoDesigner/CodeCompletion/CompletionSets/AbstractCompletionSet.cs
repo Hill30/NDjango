@@ -15,17 +15,11 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
     /// <summary>
     /// Collection of the values to choose from in the code completion dialog
     /// </summary>
-    /// <remarks>
-    /// This class serves both as a base class for all context specific completion set 
-    /// classes as well as a class providing the completion set functionality for "Other" context
-    /// which is any context where one word (alphanumeric sequence) can be replaced by another word.
-    /// Every context specific class has to implement its own Create method
-    /// </remarks>
     abstract class AbstractCompletionSet : Microsoft.VisualStudio.Language.Intellisense.CompletionSet
     {
 
         internal static CompletionSet Create<T>
-            (CompletionContext context, NodeProvider nodeProvider, SnapshotPoint point, Predicate<DesignerNode> filter)
+            (Source source, NodeProvider nodeProvider, SnapshotPoint point, Predicate<DesignerNode> filter)
             where T : AbstractCompletionSet, new()
         {
             // Get a list of all nodes of template name type
@@ -33,7 +27,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             if (node == null)
                 return null;
             var result = new T();
-            result.Initialize(context, node, point);
+            result.Initialize(source, node, point);
             return result;
        }
 
@@ -52,17 +46,21 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// </summary>
         /// <param name="node"></param>
         /// <param name="point"></param>
-        internal AbstractCompletionSet(CompletionContext context, DesignerNode node, SnapshotPoint point)
+        internal AbstractCompletionSet(Source source, DesignerNode node, SnapshotPoint point)
             : base("Django Completions", "Django Completions", null, null, null)
         {
-            Initialize(context, node, point);
+            Initialize(source, node, point);
         }
 
         protected AbstractCompletionSet()
             : base("Django Completions", "Django Completions", null, null, null) { }
 
-        protected virtual void Initialize(CompletionContext context, DesignerNode node, SnapshotPoint point)
+        protected Source Source { get; private set; }
+
+        protected virtual void Initialize(Source source, DesignerNode node, SnapshotPoint point)
         {
+            Source = source;
+
             // calculate the span to be replaced with user selection
             Span span = new Span(point.Position, 0);
             if (node.SnapshotSpan.IntersectsWith(span))

@@ -45,16 +45,21 @@ namespace NDjango.Designer.CodeCompletion
             this.textBuffer = textBuffer;
             nodeProvider = nodeProviderBroker.GetNodeProvider(textBuffer);
         }
-        
+
+        public CompletionContext Context { get; private set; }
+        public ICompletionSession Session { get; private set; }
+
         public void AugmentCompletionSession(ICompletionSession session, IList<VSCompletionSet> completionSets)
         {
             CompletionContext context;
             if (!session.Properties.TryGetProperty<CompletionContext>(typeof(CompletionContext), out context))
                 return;
+            Context = context;
+            Session = session;
 
             SnapshotPoint point = session.GetTriggerPoint(textBuffer).GetPoint(textBuffer.CurrentSnapshot);
 
-            CompletionSet set = CreateCompletionSet(context, point);
+            CompletionSet set = CreateCompletionSet(point);
 
             if (set == null)
                 return;
@@ -65,25 +70,25 @@ namespace NDjango.Designer.CodeCompletion
         public void Dispose()
         { }
 
-        private CompletionSet CreateCompletionSet(CompletionContext context, SnapshotPoint point)
+        private CompletionSet CreateCompletionSet(SnapshotPoint point)
         {
-            switch (context)
+            switch (Context)
             {
                 case CompletionContext.Tag:
                     return AbstractCompletionSet.Create<TagCompletionSet>(
-                        context, nodeProvider, point,
+                        this, nodeProvider, point,
                         n => n.NodeType == NodeType.ParsingContext
                             );
 
                 case CompletionContext.Variable:
                     return AbstractCompletionSet.Create<VariableCompletionSet>(
-                        context, nodeProvider, point,
+                        this, nodeProvider, point,
                         n => n.NodeType == NodeType.ParsingContext
                             );
 
                 case CompletionContext.FilterName:
                     return AbstractCompletionSet.Create<FilterCompletionSet>(
-                        context, nodeProvider, point,
+                        this, nodeProvider, point,
                         n => n.NodeType == NodeType.ParsingContext
                             );
 
@@ -95,16 +100,14 @@ namespace NDjango.Designer.CodeCompletion
                     if (node == null)
                         return null;
                     if (node.NodeType == NodeType.TagName)
-                        return new TagNameCompletionSet(context, node, point);
-                    return new ValueCompletionSet(context, node, point);
+                        return new TagNameCompletionSet(this, node, point);
+                    return new ValueCompletionSet(this, node, point);
 
                 case CompletionContext.AposString:
                 case CompletionContext.QuotedString:
                     return AbstractCompletionSet.Create<TemplateNameCompletionSet>(
-                        context, nodeProvider, point,
-                        n =>
-                            n.NodeType == NodeType.TemplateName
-                            );
+                        this, nodeProvider, point,
+                        n => n.NodeType == NodeType.TemplateName);
 
                 default:
                     return null;

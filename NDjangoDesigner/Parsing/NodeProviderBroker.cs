@@ -44,6 +44,7 @@ namespace NDjango.Designer.Parsing
         Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template);
         void ShowDiagnostics(ErrorTask task);
         void RemoveDiagnostics(ErrorTask task);
+        ITemplateManager TemplateManager { get; }
     }
 
     /// <summary>
@@ -61,6 +62,9 @@ namespace NDjango.Designer.Parsing
         }
 
         IParser parser;
+
+        [Import]
+        public ITemplateManager TemplateManager { get; private set; }
 
         private IParser InitializeParser()
         {

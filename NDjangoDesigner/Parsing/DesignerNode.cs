@@ -18,7 +18,7 @@ namespace NDjango.Designer.Parsing
     /// </remarks>
     class DesignerNode : INode, IDisposable
     {
-        private NodeProvider provider;
+        public NodeProvider Provider { get; private set; }
         private INode node;
         private SnapshotSpan snapshotSpan;
         private SnapshotSpan extensionSpan;
@@ -33,7 +33,7 @@ namespace NDjango.Designer.Parsing
         /// <param name="node"></param>
         public DesignerNode(NodeProvider provider, DesignerNode parent, ITextSnapshot snapshot, INode node)
         {
-            this.provider = provider;
+            this.Provider = provider;
             Parent = parent;
             this.node = node;
             if (node.NodeType == NodeType.ParsingContext)
@@ -119,7 +119,7 @@ namespace NDjango.Designer.Parsing
             {
                 ITextSnapshotLine line = snapshotSpan.Snapshot.GetLineFromPosition(node.Position);
                 errorTask = new ErrorTask();
-                errorTask.Document = provider.FilePath;
+                errorTask.Document = Provider.FilePath;
                 errorTask.Line = line.LineNumber; // The task list does +1 before showing this number.
                 errorTask.Column = node.Position - line.Extent.Start;// line.Start;
                 errorTask.Text = node.ErrorMessage.Message;
@@ -129,7 +129,7 @@ namespace NDjango.Designer.Parsing
                 if (node.ErrorMessage.Severity == 1 )
                     errorTask.ErrorCategory = TaskErrorCategory.Warning;
 
-                provider.ShowDiagnostics(errorTask);
+                Provider.ShowDiagnostics(errorTask);
             }
 
             children.ForEach(child => child.ShowDiagnostics());
@@ -208,7 +208,7 @@ namespace NDjango.Designer.Parsing
             if (disposing)
             {
                 if (errorTask != null)
-                    provider.RemoveDiagnostics(errorTask);
+                    Provider.RemoveDiagnostics(errorTask);
                 children.ForEach(child => child.Dispose());
             }
         }

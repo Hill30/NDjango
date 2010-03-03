@@ -44,7 +44,7 @@ namespace NDjango.Designer.Parsing
         // this lock is used to synchronize access to the nodes list
         private object node_lock = new object();
         private ITextBuffer buffer;
-        private INodeProviderBroker broker;
+        public INodeProviderBroker Broker { get; private set; }
 
         /// <summary>
         /// indicates the delay (in milliseconds) of parser invoking. 
@@ -63,7 +63,7 @@ namespace NDjango.Designer.Parsing
         /// <param name="buffer">buffer to watch</param>
         public NodeProvider(INodeProviderBroker broker, ITextBuffer buffer)
         {
-            this.broker = broker;
+            Broker = broker;
             this.buffer = buffer;
             FilePath = ((ITextDocument)buffer.Properties[typeof(ITextDocument)]).FilePath;
 
@@ -130,7 +130,7 @@ namespace NDjango.Designer.Parsing
         private void rebuildNodes(object snapshotObject)
         {
             ITextSnapshot snapshot = (ITextSnapshot)snapshotObject;
-            List<DesignerNode> nodes = broker.ParseTemplate(new SnapshotReader(snapshot))
+            List<DesignerNode> nodes = Broker.ParseTemplate(new SnapshotReader(snapshot))
                 .Aggregate(
                     new List<DesignerNode>(),
                     (list, node) => { list.Add(CreateDesignerNode(null, snapshot, (INode)node)); return list; }
@@ -173,7 +173,7 @@ namespace NDjango.Designer.Parsing
         /// <param name="task"></param>
         internal void ShowDiagnostics(ErrorTask task)
         {
-            broker.ShowDiagnostics(task);
+            Broker.ShowDiagnostics(task);
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace NDjango.Designer.Parsing
         /// <param name="task"></param>
         internal void RemoveDiagnostics(ErrorTask task)
         {
-            broker.RemoveDiagnostics(task);
+            Broker.RemoveDiagnostics(task);
         }
 
         /// <summary>

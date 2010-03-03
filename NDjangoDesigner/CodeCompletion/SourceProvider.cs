@@ -35,7 +35,7 @@ namespace NDjango.Designer.CodeCompletion
     internal class SourceProvider : ICompletionSourceProvider
     {
         [Import]
-        internal INodeProviderBroker nodeProviderBroker { get; set; }
+        private INodeProviderBroker nodeProviderBroker = null;
 
         public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)
         {
