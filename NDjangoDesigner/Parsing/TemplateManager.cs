@@ -53,10 +53,11 @@ namespace NDjango.Designer.Parsing
                 finally
                 {
                     Marshal.Release(ppHier);
-                    Marshal.Release(ppSC);
+                    if (!ppSC.Equals(IntPtr.Zero))
+                        Marshal.Release(ppSC);
                 }
             }
-            return result.ConvertAll(file => file.Substring((directory + root).Length)); 
+            return result.ConvertAll(file => file.Substring((directory + root).Length + 1)); 
         }
 
         List<string> recent5 = new List<string>();

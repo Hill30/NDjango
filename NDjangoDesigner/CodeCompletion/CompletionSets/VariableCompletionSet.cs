@@ -12,19 +12,9 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
     {
         public VariableCompletionSet() { }
 
-        public override void SelectBestMatch()
-        {
-            SelectionStatus = new CompletionSelectionStatus(Completions[0], false, true);
-        }
-
-        private IEnumerable<Completion> BuildCompletions(IEnumerable<string> values)
-        {
-            return BuildCompletions(values, "{ ", "");
-        }
-
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {
-            return BuildCompletions(new List<string>(new string[] { " }}" }));
+            return BuildCompletions(new List<string>(new string[] { " " }), "{", "}}");
         }
     }
 }
