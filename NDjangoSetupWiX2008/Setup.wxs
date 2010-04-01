@@ -2,7 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <?define ProductVersion="0.9.7" ?>
   <?define ProductVersionTitle="0.9.7" ?>
-  <?define UpgradeCode="{9EAD0F41-F6BB-4FDD-B2C3-2C8D3AFD5F47}"?>
+  <?define UpgradeCode="{8EAD0F41-F6BB-4FDD-B2C3-2C8D3AFD5F47}"?>
   <Product Id="74ACC0DC-513A-449D-A2EB-99DD75FEF570" Name="NDjango $(var.ProductVersionTitle) for Visual Studio 2008" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
     <Package InstallerVersion="200" Compressed="yes" />
     <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
