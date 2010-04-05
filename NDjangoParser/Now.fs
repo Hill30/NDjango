@@ -30,7 +30,7 @@ open NDjango.Interfaces
 open NDjango.ParserNodes
 open NDjango.Expressions
 
-module internal Now =
+module public Now =
 
     ///Display the date, formatted according to the given string.
     ///
@@ -99,8 +99,8 @@ module internal Now =
     /// The formatting letters which can be mapped by tweaking the DateFormatInfo structure are marked with additional *). Please keep in mind 
     /// that if several formatting letters within the same format string require such modifications, only the last one will take effect
 
-    let format_parser = new Regex(@"([^\\]|\\.)+?", RegexOptions.Compiled)
-    let format_map = 
+    let internal format_parser = new Regex(@"([^\\]|\\.)+?", RegexOptions.Compiled)
+    let internal format_map = 
         new Map<char, string>(
             [
 /// a    'a.m.'         tt *)   'a.m.' or 'p.m.' (Note that this is slightly different than PHP's output, because this includes periods to match Associated Press style.)  
@@ -166,7 +166,7 @@ module internal Now =
 /// z    0 to 365        ?      Day of the year. 
 /// Z -43200 to 43200    ?      Time zone offset in seconds. The offset for timezones west of UTC is always negative, and for those east of UTC is always positive.  
             ])
-    let format format = 
+    let internal format format = 
         format_parser.Replace(format, 
             (fun (mtch: Match) 
                 ->  let m = mtch
@@ -176,7 +176,7 @@ module internal Now =
                     ))
     
     [<Description("Displays the current date, formatted according to the given string.")>]
-    type Tag() =
+    type internal Tag() =
         interface ITag with
             member this.Perform token provider tokens =
                 match token.Args with
@@ -198,7 +198,7 @@ module internal Now =
     ///When used without a format string:
     ///{{ value|date }}
     ///...the DateTime.ToString with empty format string will be used (that's the difference from Django implementation).
-    type DateFilter() =
+    type public DateFilter() =
         interface IFilter with
             member x.DefaultValue = null
             member x.Perform value = raise (RenderingError("Not implemented."))
@@ -212,7 +212,7 @@ module internal Now =
                 format |> dt.ToString :> obj
                            
                            
-    type TimeFilter() = 
+    type public TimeFilter() = 
         interface IFilter with
             member x.DefaultValue = "t" :> obj
             member x.Perform value = raise (RenderingError("Not implemented."))
@@ -226,7 +226,7 @@ module internal Now =
                 format |> dt.ToString :> obj
 
     
-    let timeSinceUntil value args (subtract:(DateTime*DateTime) -> TimeSpan) =
+    let internal timeSinceUntil value args (subtract:(DateTime*DateTime) -> TimeSpan) =
         let arrNames = ["year","years";
                         "month","months";
                         "week","weeks";
@@ -295,7 +295,7 @@ module internal Now =
         result :> obj
 
                 
-    type TimeSinceFilter() = 
+    type public TimeSinceFilter() = 
         interface IFilter with
             member x.DefaultValue = DateTime.Now :> obj
             member x.Perform value = raise (RenderingError("Not implemented."))
@@ -304,7 +304,7 @@ module internal Now =
                     dateFirst - dateSecond
                 timeSinceUntil value args subtract
 
-    type TimeUntilFilter() = 
+    type public TimeUntilFilter() = 
         interface IFilter with
             member x.DefaultValue = DateTime.Now :> obj
             member x.Perform value = raise (RenderingError("Not implemented."))
