@@ -82,16 +82,8 @@
                             <Component Id="ReleaseNotes" Guid="0B12A82D-47CE-4334-A3C6-C02AA10AB12A">
                                 <File Id="ReleaseNotes.htm" Name="ReleaseNotes.htm" Source="..\ReleaseNotes.htm" />
                             </Component>
-                            <!--<Component Id="FSharpComponents" Guid="C0587159-FC5A-4495-8287-F01E7B39A585">
-                <File Id="FSharp.Core.dll" Name="FSharp.Core.dll" Source="FSharp.Core.dll" />
-                <File Id="FSharp.PowerPack.dll" Name="FSharp.PowerPack.dll" Source="FSharp.PowerPack.dll" />
-                <File Id="FSharp.PowerPack.Compatibility.dll" Name="FSharp.PowerPack.Compatibility.dll" Source="FSharp.PowerPack.Compatibility.dll" />
-              </Component>-->
                             <Component Id="ThirdPartyComponents" Guid="B5E34D54-3914-4851-8602-19311D415912">
                                 <File Id="StructureMap.dll" Name="StructureMap.dll" Source="..\..\Integration\ASP.MVC\lib\StructureMap.dll" />
-                            </Component>
-                            <Component Id="NDjangoDesigner" Guid="A5E34D54-3914-4851-8602-19311D415912">
-                                <File Id="NDjango.Designer.vsix" Name="NDjango.Designer.vsix" Source="NDjango.Designer.vsix" />
                             </Component>
                         </Directory>
                     </Directory>
@@ -146,21 +138,18 @@
             <ComponentRef Id="ReleaseNotes" />
             <ComponentRef Id="ThirdPartyComponents" />
             <ComponentRef Id="NDjangoDesignerFiles" />
-            <ComponentRef Id="NDjangoDesigner" />
         </Feature>
         <CustomAction Id="UninstallDesignerFiles" Directory="EXTENSIONSHILL30" ExeCommand="&quot;cmd.exe&quot; /c rmdir /s /q &quot;NDjangoDesigner&quot;" Return="ignore" />
         <Property Id="DESIGNERNEEDED" />
         <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2008PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoMVC.zip&quot; &quot;[VersionDir]&quot;" Id="EditNDjangoTemplate" Return="ignore" />
         <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[ENV_DIR2008]ProjectTemplates\Bistro\BistroProject2008.zip&quot;" Id="EditBistroProject2008CustomAction" Return="ignore" />
         <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[ENV_DIR2008]ProjectTemplates\Bistro\BistroNHibernate2008.zip&quot;" Id="EditBistroNHibernate2008CustomAction" Return="ignore" />
-        <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[ENV_DIR2010]ProjectTemplates\Bistro\BistroProject2010.zip&quot;" Id="EditBistroProject2010CustomAction" Return="ignore" />
-        <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[ENV_DIR2010]ProjectTemplates\Bistro\BistroNHibernate2010.zip&quot;" Id="EditBistroNHibernate2010CustomAction" Return="ignore" />
+        <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[ENV_DIR2008]ProjectTemplates\Bistro\FSharp2008.zip&quot;" Id="EditFSharp2008CustomAction" Return="ignore" />
         <InstallExecuteSequence>
             <Custom Action="EditNDjangoTemplate" After="InstallFinalize"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2008FOUND]]></Custom>
-            <Custom Action="EditBistroProject2008CustomAction" After="EditNDjangoTemplate"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
-            <Custom Action="EditBistroNHibernate2008CustomAction" After="EditBistroProject2008CustomAction"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
-            <Custom Action="EditBistroProject2010CustomAction" After="EditBistroNHibernate2008CustomAction"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
-            <Custom Action="EditBistroNHibernate2010CustomAction" After="EditBistroProject2010CustomAction"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
+            <Custom Action="EditBistroProject2008CustomAction" After="InstallFinalize"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
+            <Custom Action="EditBistroNHibernate2008CustomAction" After="InstallFinalize"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
+            <Custom Action="EditFSharp2008CustomAction" After="InstallFinalize"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
             <Custom Action="UninstallDesignerFiles" After="InstallInitialize"><![CDATA[REMOVE]]></Custom>
             <RemoveExistingProducts After="InstallInitialize" />
         </InstallExecuteSequence>
