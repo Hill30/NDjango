@@ -20,9 +20,9 @@
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Setup.wxs" />
-  </ItemGroup>
-  <ItemGroup>
+    <WixExtension Include="WixUtilExtension">
+      <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
+    </WixExtension>
     <WixExtension Include="WixNetFxExtension">
       <HintPath>$(WixExtDir)\WixNetFxExtension.dll</HintPath>
     </WixExtension>
@@ -46,6 +46,9 @@
       <Project>{b75384c4-c545-4511-a7fe-93d438b8afa4}</Project>
       <Private>True</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ExtendedSetup.wxs" />
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <!--
