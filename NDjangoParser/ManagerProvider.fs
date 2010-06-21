@@ -233,14 +233,19 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                         | None -> walker
                         
                     override x.elements = (expression :> INode) :: base.elements
-            } :> INodeImpl), context, tokens
+            } :> INodeImpl), context.BodyContext, tokens
 
         | Lexer.Block block -> 
             try
                 match Map.tryFind block.Verb.RawText tags with 
                 | None -> raise (SyntaxError ("Tag is unknown or out of context: " + block.Verb.RawText, None, None, Some tokens))
                 | Some (tag: ITag) -> 
-                    tag.Perform block context tokens
+                    if not context.IsInHeader && tag.is_header_tag 
+                    then raise (SyntaxError ("Header tag in the template body: " + block.Verb.RawText, None, None, Some tokens))
+                    let node, context, tokens = tag.Perform block context tokens
+                    if tag.is_header_tag 
+                    then (node, context, tokens)
+                    else (node, context.BodyContext, tokens)
             with
                 |_ as ex ->
                     // here we need to squeeze all available information into the mold
@@ -407,7 +412,12 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             else
                 fun value -> value
             
-                
+        member x.GetMembersOfType model_type extras = 
+            let type_members = 
+                if model_type = "" then []
+                else [ model_type + ".1"; model_type + ".2"; model_type + ".3"]
+            
+            type_members |> List.append extras |> List.map (fun var -> (var, null))
 
     interface IParser with
         

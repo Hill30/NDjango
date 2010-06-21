@@ -109,11 +109,11 @@ module internal Misc =
         interface ITag with
             member x.is_header_tag = true
             member this.Perform token context tokens =
-                ({new TagNode(context, token)
-                    with
-                        override x.elements =
-                            ((new KeywordNode(token.Args.Head, seq [])) :> INode) :: base.elements
-                    } :> INodeImpl), context, tokens
+                match token.Args with 
+                | name::[] -> 
+                    (new TagNode(context, token) :> INodeImpl), context.WithModelType(name.RawText), tokens
+                | _ ->
+                    raise (SyntaxError("block tag requires exactly one argument"))
 
     /// Outputs the first variable passed that is not False.
     /// 

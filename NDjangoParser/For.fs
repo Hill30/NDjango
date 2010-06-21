@@ -235,12 +235,15 @@ module internal For =
         interface NDjango.Interfaces.ITag with 
             member x.is_header_tag = false
             member this.Perform token context tokens =
-                let node_list_body, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["empty"; "endfor"]))
+                let node_list_body, remaining = 
+                    (context.Provider :?> IParser).Parse (Some token) tokens 
+                        (context.WithClosures(["empty"; "endfor"]).WithExtraVariables(["forloop"]))
                 let node_list_empty, remaining2 =
                     match node_list_body.[node_list_body.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb.RawText = "empty" then
-                            (context.Provider :?> IParser).Parse (Some token) remaining (context.WithClosures(["endfor"]))
+                            (context.Provider :?> IParser).Parse (Some token) remaining 
+                                (context.WithClosures(["endfor"]).WithExtraVariables(["forloop"]))
                         else
                             [], remaining
                     | _ -> [], remaining

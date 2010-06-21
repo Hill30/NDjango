@@ -49,7 +49,9 @@ module internal LoaderTags =
             member this.Perform token context tokens =
                 match token.Args with 
                 | name::[] -> 
-                    let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"; "endblock " + name.RawText]))
+                    let node_list, remaining = 
+                        (context.Provider :?> IParser).Parse (Some token) tokens 
+                            (context.WithClosures(["endblock"; "endblock " + name.RawText]).WithExtraVariables(["super"]))
                     (new BlockNode(context, token, name.RawText, node_list) :> INodeImpl), context, remaining
                 | _ ->
                     let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"]))

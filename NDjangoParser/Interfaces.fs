@@ -252,6 +252,8 @@ and ITemplateManagerProvider =
     /// the retrieved template is placed in the dictionary replacing 
     /// the existing template with the same name (if any)
     abstract member LoadTemplate: string -> (ITemplate * System.DateTime)
+
+    abstract member GetMembersOfType: string -> string list -> (string*obj) list
     
 /// A tag implementation
 and ITag = 
@@ -271,29 +273,40 @@ and ITag =
     abstract member is_header_tag: bool
     
 /// Parsing context is a container for information specific to the tag being parsed
-and ParsingContext(provider: ITemplateManagerProvider, closures: string list, is_in_header) =
+and ParsingContext(provider: ITemplateManagerProvider, closures: string list, is_in_header, model_type, vars: string list) =
     
     new (provider)
-        = new ParsingContext(provider, [], true)
+        = new ParsingContext(provider, [], true, "", [])
 
-    member x.BodyContext = new ParsingContext(provider, closures, false)
+    member x.BodyContext = new ParsingContext(provider, closures, false, model_type, vars)
 
-    member x.WithClosures(closures) = new ParsingContext(provider, closures, is_in_header)
+    member x.WithClosures(new_closures) = new ParsingContext(provider, new_closures, is_in_header, model_type, vars)
 
-    /// List (sequence) of all registered tag names. Includes all registered tags
+    member x.WithModelType(new_model_type) = new ParsingContext(provider, closures, is_in_header, new_model_type, vars)
+
+    member 
+        x.WithExtraVariables(extra_vars) = 
+            new ParsingContext(provider, closures, is_in_header, model_type,
+                List.fold (fun lst var -> if lst |> List.contains var then lst else var :: lst) vars extra_vars
+                )
+
+    /// a sequence of all registered tag names
     member x.Tags = provider.Tags |> Map.toSeq |> Seq.map (fun tag -> tag |> fst) 
 
-    /// a list (sequence) of all closing tags for the context
+    /// a list of all closing tags for the context
     member x.TagClosures = closures                    
    
-   /// Parent provider owning the context
+   /// parent provider owning the context
     member x.Provider = provider
    
-    /// A list of filters
+    /// a sequence of all registered filter names
     member x.Filters = provider.Filters |> Map.toSeq |> Seq.map (fun filter -> filter |> fst)
 
-    /// A flag indicating if any of the non-header tags have been encountered yet
+    /// a flag indicating if any of the non-header tags have been encountered yet
     member x.IsInHeader = is_in_header
+    
+    /// a list of all variables available in the context
+    member x.Variables = provider.GetMembersOfType model_type vars
     
 /// A representation of a node of the template abstract syntax tree    
 type INode =

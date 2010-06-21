@@ -14,7 +14,11 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {
-            return BuildCompletions(new List<string>(new string[] { " " }), "{", "}}");
+            var vars = new List<string>();
+            Node.ParsingContext.Variables
+                .ToList()
+                .ForEach(var => vars.Add(var.Item1));
+            return BuildCompletions(vars, "{", "}}");
         }
     }
 }
