@@ -100,6 +100,21 @@ module internal Misc =
                             {walker with buffer = walker.context.ToString()}
                     } :> INodeImpl), context, tokens
             
+    /// Provides the name of the model class.
+    ///
+    /// this name is used by the designer to provide the code completion support;
+    ///
+    [<Description("Provides the name of the model class to be used with the template")>]
+    type ModelTag() =
+        interface ITag with
+            member x.is_header_tag = true
+            member this.Perform token context tokens =
+                ({new TagNode(context, token)
+                    with
+                        override x.elements =
+                            ((new KeywordNode(token.Args.Head, seq [])) :> INode) :: base.elements
+                    } :> INodeImpl), context, tokens
+
     /// Outputs the first variable passed that is not False.
     /// 
     /// Outputs nothing if all the passed variables are False.

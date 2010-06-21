@@ -84,6 +84,7 @@ module Defaults =
             ++ ("ifequal", (new IfEqual.Tag(true) :> ITag))
             ++ ("ifnotequal", (new IfEqual.Tag(false) :> ITag))
             ++ ("include", (new LoaderTags.IncludeTag() :> ITag))
+            ++ ("model", (new ModelTag() :> ITag))
             ++ ("now", (new Now.Tag() :> ITag))
             ++ ("regroup", (new RegroupTag() :> ITag))
             ++ ("spaceless", (new SpacelessTag() :> ITag))
@@ -289,7 +290,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
     let terminals (block : BlockToken) =
         String.concat " " ((block.Verb :: block.Args) |> List.map(fun text_token -> text_token.Value))                    
                         
-    /// recursively parses the token stream until the token(s) listed in parse_until are encountered.
+    /// recursively parses the token stream until the token(s) listed in parsing context TagClosures are encountered.
     /// this function returns the node list and the unparsed remainder of the token stream.
     /// The list is returned in the reversed order
     let rec parse_internal (context:ParsingContext) nodes tokens =
@@ -297,7 +298,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
        | LazyList.Cons(token, tokens) -> 
             match token with 
             | Lexer.Block block when context.TagClosures |> List.exists (terminals block).Equals ->
-                 (context.WithClosures([]), (new CloseTagNode(context, block) :> INodeImpl) :: nodes, tokens)
+                 (context, (new CloseTagNode(context, block) :> INodeImpl) :: nodes, tokens)
             | _ ->
                 let node, context, tokens = parse_token context tokens token
                 parse_internal context (node :: nodes) tokens

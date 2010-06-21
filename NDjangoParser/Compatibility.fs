@@ -19,8 +19,6 @@
  *  
  ***************************************************************************)
 
-#light
-
 namespace NDjango.Compatibility
 
 open NDjango.Lexer

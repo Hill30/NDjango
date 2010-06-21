@@ -196,7 +196,7 @@ namespace NDjango.UnitTests
                 Assert.AreEqual(actualResult[i].Position, ResultForDesigner[i].Position, "Invalid Position");
                 Assert.AreEqual(actualResult[i].Severity, ResultForDesigner[i].Severity, "Invalid Severity");
                 Assert.AreEqual(actualResult[i].ErrorMessage, ResultForDesigner[i].ErrorMessage, "Invalid ErrorMessage");
-                Assert.AreEqual(actualResult[i].Values, ResultForDesigner[i].Values, "Invalid Values");
+                Assert.AreEqual(actualResult[i].Values, ResultForDesigner[i].Values, "Invalid Values Array");
             }            
         }
 
