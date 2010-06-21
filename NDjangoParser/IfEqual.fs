@@ -46,14 +46,15 @@ module internal IfEqual =
     [<Description("Outputs the content of enclosed tags based on whether the values are equal.")>]
     type Tag(not:bool) =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
                 let tag = token.Verb
-                let node_list_true, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["else"; "end" + tag.RawText]
+                let node_list_true, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["else"; "end" + tag.RawText]))
                 let node_list_false, remaining =
                     match node_list_true.[node_list_true.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb.RawText = "else" then
-                            (context.Provider :?> IParser).Parse (Some token) remaining ["end" + tag.RawText]
+                            (context.Provider :?> IParser).Parse (Some token) remaining (context.WithClosures(["end" + tag.RawText]))
                         else
                             [], remaining
                     | _ -> [], remaining
@@ -91,7 +92,7 @@ module internal IfEqual =
                                         |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (node_list_true |> Seq.map (fun node -> (node :?> INode)))
                                         |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (node_list_false |> Seq.map (fun node -> (node :?> INode)))
 
-                    } :> INodeImpl), remaining
+                    } :> INodeImpl), context, remaining
                 | _ -> raise (SyntaxError (
                                 sprintf "'%s' takes two arguments" tag.RawText,
                                 node_list_true @ node_list_false,

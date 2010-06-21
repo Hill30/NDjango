@@ -54,13 +54,14 @@ module internal IfChanged =
     [<Description("Outputs the content of enclosed tags based on whether the value has changed.")>]
     type Tag() =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
-                let nodes_ifchanged, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["else"; "endifchanged"]
+                let nodes_ifchanged, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["else"; "endifchanged"]))
                 let nodes_ifsame, remaining =
                     match nodes_ifchanged.[nodes_ifchanged.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb.RawText = "else" then
-                            (context.Provider :?> IParser).Parse (Some token) remaining ["endifchanged"]
+                            (context.Provider :?> IParser).Parse (Some token) remaining (context.WithClosures(["endifchanged"]))
                         else
                             [], remaining
                     | _ -> [], remaining
@@ -108,4 +109,4 @@ module internal IfChanged =
                                     |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFTRUE) (nodes_ifchanged |> Seq.map (fun node -> (node :?> INode)))
                                     |> Map.add (NDjango.Constants.NODELIST_IFTAG_IFFALSE) (nodes_ifsame |> Seq.map (fun node -> (node :?> INode)))
 
-                    } :> INodeImpl), remaining)
+                    } :> INodeImpl), context, remaining)

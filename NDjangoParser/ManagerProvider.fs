@@ -217,7 +217,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                     
                     override x.walk manager walker = 
                         {walker with buffer = textToken.RawText}
-            } :> INodeImpl), tokens
+            } :> INodeImpl), context, tokens
         | Lexer.Variable var ->
             // var.Expression is a raw string - the string as is on the template before any parsing or substitution
             let expression = new FilterExpression(context, var.Expression)
@@ -232,13 +232,14 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                         | None -> walker
                         
                     override x.elements = (expression :> INode) :: base.elements
-            } :> INodeImpl), tokens
+            } :> INodeImpl), context, tokens
 
         | Lexer.Block block -> 
             try
                 match Map.tryFind block.Verb.RawText tags with 
                 | None -> raise (SyntaxError ("Tag is unknown or out of context: " + block.Verb.RawText, None, None, Some tokens))
-                | Some (tag: ITag) -> tag.Perform block context tokens
+                | Some (tag: ITag) -> 
+                    tag.Perform block context tokens
             with
                 |_ as ex ->
                     // here we need to squeeze all available information into the mold
@@ -247,14 +248,14 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                     match generate_error_node_for_tag ex (Some block) context tokens with
                     | Some result -> 
                         let node, remainder = result
-                        node, remainder
+                        node, context, remainder
                     | None -> reraise()
         | Lexer.Comment comment -> 
             // include it in the output to cover all scenarios, but don't actually bring the comment across
             // the default behavior of the walk override is to return the same walker
             // Considering that when walk is called the buffer is empty, this will 
             // work for the comment node, so overriding the walk method here is unnecessary
-            ({new Node(token) with override x.node_type = NodeType.Comment} :> INodeImpl), tokens 
+            ({new Node(token) with override x.node_type = NodeType.Comment} :> INodeImpl), context, tokens 
         
         | Lexer.Error error ->
             if (settings.[Constants.EXCEPTION_IF_ERROR] :?> bool)
@@ -272,7 +273,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                                         (new TagNameNode(context, Text name_token )
                                                 :> INode) :: base.elements
                                     | _ -> base.elements
-                        } :> INodeImpl), tokens
+                        } :> INodeImpl), context, tokens
        
     /// builds diagnostic message from the list of possibke closing tags  
     let fail_closing parse_until =
@@ -291,19 +292,19 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
     /// recursively parses the token stream until the token(s) listed in parse_until are encountered.
     /// this function returns the node list and the unparsed remainder of the token stream.
     /// The list is returned in the reversed order
-    let rec parse_internal context (nodes:INodeImpl list) (tokens : LazyList<Lexer.Token>) parse_until =
+    let rec parse_internal (context:ParsingContext) nodes tokens =
        match tokens with
-       | LazyList.Nil ->  
-            if not <| List.isEmpty parse_until 
-                then raise (SyntaxError(fail_closing parse_until, nodes, tokens))
-            (nodes, LazyList.empty<Lexer.Token>)
        | LazyList.Cons(token, tokens) -> 
             match token with 
-            | Lexer.Block block when parse_until |> List.exists (terminals block).Equals ->
-                 ((new CloseTagNode(context, block) :> INodeImpl) :: nodes, tokens)
+            | Lexer.Block block when context.TagClosures |> List.exists (terminals block).Equals ->
+                 (context.WithClosures([]), (new CloseTagNode(context, block) :> INodeImpl) :: nodes, tokens)
             | _ ->
-                let node, tokens = parse_token context tokens token
-                parse_internal context (node :: nodes) tokens parse_until
+                let node, context, tokens = parse_token context tokens token
+                parse_internal context (node :: nodes) tokens
+       | LazyList.Nil ->  
+            if not <| List.isEmpty context.TagClosures 
+                then raise (SyntaxError(fail_closing context.TagClosures, nodes, tokens))
+            (context, nodes, LazyList.empty<Lexer.Token>)
     
             
     /// tries to return a list positioned just after one of the elements of parse_until. Returns None
@@ -410,10 +411,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
     interface IParser with
         
         /// Parses the sequence of tokens until one of the given tokens is encountered
-        member x.Parse parent tokens parse_until =
-            
-            // Create a new parsing context to include the current list of closing tags (parse_until)
-            let context = ParsingContext(x,parse_until)
+        member x.Parse parent tokens context =
             
             // take a note of the current position - this will be the
             // start position for the parsing context being built
@@ -422,13 +420,13 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             // do the parsing. If an exception is thrown we still need 
             // a list of all nodes with as much info about the template 
             // as the parser could squeeze out of the source
-            let nodes, tokens =
+            let context, nodes, tokens =
                 try
-                    parse_internal context [] tokens parse_until
+                    parse_internal context [] tokens
                 with
                 | _ as ex -> 
                     match generate_diag_for_tag ex parent context tokens with
-                    | Some result -> result
+                    | Some (nodes, tokens) -> (context, nodes, tokens)
                     | None -> reraise()
 
             match nodes with
@@ -448,7 +446,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
         member x.ParseTemplate template =
             // this will cause the TextReader to be closed when the template goes out of scope
             use template = template
-            fst <| (x :> IParser).Parse None (NDjango.Lexer.tokenize template) []
+            (x :> IParser).Parse None (NDjango.Lexer.tokenize template) (ParsingContext(x)) |> fst
 
         /// Repositions the token stream after the first token found from the parse_until list
         member x.Seek tokens parse_until = 

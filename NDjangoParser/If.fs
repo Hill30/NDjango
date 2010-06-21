@@ -177,14 +177,15 @@ module internal If =
         
         
         interface ITag with 
+            member x.is_header_tag = false
             member this.Perform token context tokens =
 
-                let node_list_true, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["else"; "endif"]
+                let node_list_true, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["else"; "endif"]))
                 let node_list_false, remaining2 =
                     match node_list_true.[node_list_true.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb.RawText = "else" then
-                            (context.Provider :?> IParser).Parse (Some token) remaining ["endif"]
+                            (context.Provider :?> IParser).Parse (Some token) remaining (context.WithClosures(["endif"]))
                         else
                             [], remaining
                     | _ -> [], remaining
@@ -206,6 +207,6 @@ module internal If =
                                 with get()=
                                     List.append (bool_vars |> List.map(fun (_, element) -> (element :> INode))) base.elements
                     } :> NDjango.Interfaces.INodeImpl),
-                    remaining2)
+                    context, remaining2)
 
 

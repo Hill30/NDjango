@@ -178,15 +178,16 @@ module public Now =
     [<Description("Displays the current date, formatted according to the given string.")>]
     type internal Tag() =
         interface ITag with
-            member this.Perform token provider tokens =
+            member x.is_header_tag = false
+            member this.Perform token context tokens =
                 match token.Args with
                     | f::[] ->
                         ({
-                            new TagNode(provider, token)
+                            new TagNode(context, token)
                             with
                                 override this.walk manager walker = 
                                     {walker with buffer = f.RawText |> format |> System.DateTime.Now.ToString }
-                        } :> INodeImpl), tokens
+                        } :> INodeImpl), context, tokens
                     | _ -> raise (SyntaxError ("malformed 'now' tag"))
                         
 

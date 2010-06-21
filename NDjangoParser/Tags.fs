@@ -38,8 +38,9 @@ module internal Misc =
     [<Description("Forces autoescape behavior for enclosed tags")>]
     type AutoescapeTag() =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
-                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endautoescape"]
+                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endautoescape"]))
 
                 let fail (fail_token:TextToken) =
                         raise (SyntaxError(
@@ -68,15 +69,16 @@ module internal Misc =
                             (new KeywordNode(List.head token.Args, ["on";"off"]) :> INode)
                                 ::base.elements
                    } :> INodeImpl), 
-                   remaining)
+                   context, remaining)
                         
     /// Ignores everything between ``{% comment %}`` and ``{% endcomment %}``.
     [<Description("Ignores everything between ``{% comment %}`` and ``{% endcomment %}``")>]
     type CommentTag() =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
                 let remaining = (context.Provider :?> IParser).Seek tokens ["endcomment"]
-                ((TagNode(context, token) :> INodeImpl), remaining)
+                ((TagNode(context, token) :> INodeImpl), context, remaining)
                 
     /// Outputs a whole load of debugging information, including the current
     /// context and imported modules.
@@ -89,13 +91,14 @@ module internal Misc =
     [<Description("Outputs debug information")>]
     type DebugTag() =
         interface ITag with
-            member this.Perform token provider tokens = 
-                ({new TagNode(provider, token)
+            member x.is_header_tag = false
+            member this.Perform token context tokens = 
+                ({new TagNode(context, token)
                     with
                         override x.walk manager walker =
                             // the actual debug output is built by the context ToString method
                             {walker with buffer = walker.context.ToString()}
-                    } :> INodeImpl), tokens
+                    } :> INodeImpl), context, tokens
             
     /// Outputs the first variable passed that is not False.
     /// 
@@ -124,6 +127,7 @@ module internal Misc =
     [<Description("Outputs the first variable passed that is not False")>]
     type FirstOfTag() =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
                 match token.Args with
                     | [] -> raise (SyntaxError ("'firstof' tag requires at least one argument"))
@@ -139,7 +143,7 @@ module internal Misc =
                                 override this.elements
                                     with get()=
                                         List.append (variables |> List.map (fun node -> (node :> INode))) base.elements
-                        } :> INodeImpl), tokens
+                        } :> INodeImpl), context, tokens
                         
 /// regroup¶
 /// Regroup a list of alike objects by a common attribute.
@@ -229,6 +233,7 @@ module internal Misc =
     [<Description("Regroups a list of alike objects by a common attribute.")>]
     type RegroupTag() =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
                 match token.Args with
                 | source::MatchToken("by")::grouper::MatchToken("as")::result::[] ->
@@ -273,7 +278,7 @@ module internal Misc =
                             override this.elements 
                                 with get() = 
                                     (value :> INode) :: base.elements
-                    } :> INodeImpl), tokens
+                    } :> INodeImpl), context, tokens
 
                 | _ -> raise (SyntaxError ("malformed 'regroup' tag"))
 
@@ -302,8 +307,9 @@ module internal Misc =
     type SpacelessTag() =
         let spaces_re = new Regex("(?'spaces'>\s+<)", RegexOptions.Compiled)
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
-                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endspaceless"]
+                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endspaceless"]))
             
                 match token.Args with
                 | [] ->
@@ -316,7 +322,7 @@ module internal Misc =
                                 let buf = spaces_re.Replace(reader.ReadToEnd(), "><")
                                 {walker with buffer = buf}
                             override this.nodelist with get() = nodes
-                    } :> INodeImpl), remaining
+                    } :> INodeImpl), context, remaining
 
                 | _ -> raise (SyntaxError (
                                 "'spaceless' tag should not have any arguments",
@@ -343,6 +349,7 @@ module internal Misc =
     [<Description("Outputs one of the syntax characters used to compose template tags.")>]
     type TemplateTag() =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
                 let buf = 
                     match token.Args with
@@ -361,7 +368,7 @@ module internal Misc =
                     with 
                         override this.walk manager walker =
                             {walker with buffer = buf}
-                } :> INodeImpl), tokens
+                } :> INodeImpl), context, tokens
 
 
     /// For creating bar charts and such, this tag calculates the ratio of a given
@@ -377,6 +384,7 @@ module internal Misc =
     [<Description("Calculates the ratio of a given value to a max value, and applies it to a constant.")>]
     type WidthRatioTag() =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
 
                 let toFloat (v:obj option) =
@@ -404,7 +412,7 @@ module internal Misc =
                                 with get()=
                                     (value :> INode) :: (maxValue :> INode) :: base.elements
                        } :> INodeImpl), 
-                       tokens)
+                       context, tokens)
                 | _ -> raise (SyntaxError ("'widthratio' takes three arguments"))
 
     /// Adds a value to the context (inside of this block) for caching and easy
@@ -418,8 +426,9 @@ module internal Misc =
     [<Description("Adds a value to the context for the enclosed tags.")>]
     type WithTag() =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
-                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endwith"]
+                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endwith"]))
                 match token.Args with
                 | var::MatchToken("as")::name::[] ->
                     let expression = new FilterExpression(context, var)
@@ -437,7 +446,7 @@ module internal Misc =
                             override this.nodelist = nodes
                             override x.elements = (expression :> INode)::base.elements
                        } :> INodeImpl), 
-                       remaining)
+                       context, remaining)
                 | _ -> raise (SyntaxError (
                                 "'with' expected format is 'value as name'",
                                 nodes,
@@ -468,6 +477,7 @@ module Abstract =
         abstract member GenerateUrl: string * string array * IContext -> string
         
         interface ITag with 
+            member x.is_header_tag = false
             member this.Perform token context tokens =
                 let path, argList, var =
                     match token.Args with
@@ -499,4 +509,4 @@ module Abstract =
                             | None -> { walker with buffer = url }
                             | Some v -> { walker with context = walker.context.add(v.Value, (url :> obj)) }
                             } :> INodeImpl),
-                    tokens)
+                    context, tokens)

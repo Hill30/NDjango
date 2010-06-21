@@ -45,13 +45,14 @@ module internal LoaderTags =
     [<Description("Defines a block that can be overridden by child templates.")>]
     type BlockTag() =
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
                 match token.Args with 
                 | name::[] -> 
-                    let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endblock"; "endblock " + name.RawText]
-                    (new BlockNode(context, token, name.RawText, node_list) :> INodeImpl), remaining
+                    let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"; "endblock " + name.RawText]))
+                    (new BlockNode(context, token, name.RawText, node_list) :> INodeImpl), context, remaining
                 | _ ->
-                    let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["endblock"]
+                    let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"]))
                     raise (SyntaxError("block tag requires exactly one argument", 
                             node_list,
                             remaining))
@@ -67,8 +68,10 @@ module internal LoaderTags =
     [<Description("Signals that this template extends a parent template.")>]
     type ExtendsTag() =
         interface ITag with
+
+            member x.is_header_tag = true
             member this.Perform token context tokens = 
-                let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens []
+                let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens context
                 match token.Args with
                 | parent::tail -> 
                     
@@ -118,7 +121,7 @@ module internal LoaderTags =
                                 } :> INode] 
                     
                     ((new ExtendsNode(context, token, node_list, parent_name_expr) :> INodeImpl), 
-                       remaining)
+                       context, remaining)
                 | _ -> 
                     // this is a fictitious node created only for the purpose of providing the intellisense
                     // we need to position it right before the closing bracket
@@ -159,6 +162,7 @@ module internal LoaderTags =
     type IncludeTag() =
 
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens = 
                 match token.Args with
                 | name::[] -> 
@@ -173,7 +177,7 @@ module internal LoaderTags =
                             override this.elements 
                                 with get()=
                                     (template_name :> INode) :: base.elements
-                    } :> INodeImpl), tokens
+                    } :> INodeImpl), context, tokens
                 | _ -> raise (SyntaxError ("'include' tag takes only one argument"))
 
 /// ssi¶
@@ -212,9 +216,10 @@ module internal LoaderTags =
     type SsiTag() =
 
         interface ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens = 
                 match token.Args with
-                | path::[] -> (new SsiNode(context, token, Path path.Value, context.Provider.Loader.GetTemplate) :> INodeImpl), tokens
+                | path::[] -> (new SsiNode(context, token, Path path.Value, context.Provider.Loader.GetTemplate) :> INodeImpl), context, tokens
                 | path::MatchToken("parsed")::[] ->
 // TODO: ExpressionToken
                     let templateRef = FilterExpression (context, path.WithValue("\"" + path.Value + "\"") (Some [1,false;path.Value.Length,true;1,false]))
@@ -223,7 +228,7 @@ module internal LoaderTags =
                         with
                             override this.walk manager walker = 
                                 {walker with parent=Some walker; nodes=(get_template manager templateRef walker.context).Nodes}
-                    } :> INodeImpl), tokens
+                    } :> INodeImpl), context, tokens
                 | _ ->
                     raise (SyntaxError ("malformed 'ssi' tag"))
                 

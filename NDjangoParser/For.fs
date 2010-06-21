@@ -233,13 +233,14 @@ module internal For =
     type Tag() =
 
         interface NDjango.Interfaces.ITag with 
+            member x.is_header_tag = false
             member this.Perform token context tokens =
-                let node_list_body, remaining = (context.Provider :?> IParser).Parse (Some token) tokens ["empty"; "endfor"]
+                let node_list_body, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["empty"; "endfor"]))
                 let node_list_empty, remaining2 =
                     match node_list_body.[node_list_body.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb.RawText = "empty" then
-                            (context.Provider :?> IParser).Parse (Some token) remaining ["endfor"]
+                            (context.Provider :?> IParser).Parse (Some token) remaining (context.WithClosures(["endfor"]))
                         else
                             [], remaining
                     | _ -> [], remaining
@@ -268,5 +269,5 @@ module internal For =
                                 with get()=
                                     (enumExpr :> INode) :: base.elements
                   } :> NDjango.Interfaces.INodeImpl), 
-                  remaining2)
+                  context, remaining2)
 

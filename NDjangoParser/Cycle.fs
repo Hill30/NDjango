@@ -110,6 +110,7 @@ module internal Cycle =
                             
                 
         interface NDjango.Interfaces.ITag with
+            member x.is_header_tag = false
             member this.Perform token context tokens =
             
                 let oldstyle_re 
@@ -139,5 +140,5 @@ module internal Cycle =
                         | _ as values -> "$Anonymous$Cycle", values
                         
                 let values = List.map (fun v -> new Variable(context, v)) values
-                ((new TagNode(context, token, name, values) :> NDjango.Interfaces.INodeImpl), tokens)
+                ((new TagNode(context, token, name, values) :> NDjango.Interfaces.INodeImpl), context, tokens)
 

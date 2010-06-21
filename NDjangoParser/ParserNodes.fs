@@ -40,8 +40,8 @@ module public ParserNodes =
 
         /// Methods/Properties for the INodeImpl interface
         /// Indicates whether this node must be the first non-text node in the template
-        abstract member must_be_first: bool
-        default x.must_be_first = false
+        abstract member is_header_tag: bool
+        default x.is_header_tag = false
         
         /// The token that defined the node
         member x.Token = token
@@ -101,7 +101,6 @@ module public ParserNodes =
             member x.Nodes = x.Nodes :> IDictionary<string, IEnumerable<INode>>
 
         interface INodeImpl with
-            member x.must_be_first = x.must_be_first
             member x.Token = x.Token
             member x.walk manager walker = x.walk manager walker
             
@@ -198,7 +197,6 @@ module public ParserNodes =
             member x.Nodes = Map.empty :> IDictionary<string, IEnumerable<INode>>
             
         interface INodeImpl with
-            member x.must_be_first = false
             member x.Token = failwith ("Token on the ParsingContextNode should not be accessed")
             member x.walk manager walker = walker
             

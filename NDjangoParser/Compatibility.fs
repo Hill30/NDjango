@@ -69,6 +69,7 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
         | Some v -> v
     
     interface ITag with
+        member x.is_header_tag = false
         member x.Perform token context tokens = 
             let parms = 
                 token.Args |>
@@ -78,7 +79,7 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
                 raise (SyntaxError(sprintf "%s expects %d parameters, but was given %d." name num_params (parms.Length)))
             else
                 let nodelist, tokens =
-                    if nested then (context.Provider :?> IParser).Parse (Some token) tokens ["end" + name]
+                    if nested then (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["end" + name]))
                     else [], tokens
                     
                 ({new TagNode(context, token)
@@ -92,4 +93,4 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
                                 
                         override this.nodelist = nodelist
 
-                } :> INodeImpl), tokens
+                } :> INodeImpl), context, tokens

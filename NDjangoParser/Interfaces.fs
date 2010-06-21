@@ -206,9 +206,6 @@ and Walker =
 /// A representation of a node of the template abstract syntax tree    
 and INodeImpl =
 
-    /// Indicates whether this node must be the first non-text node in the template
-    abstract member must_be_first: bool
-    
     /// The token that defined the node
     abstract member Token : Lexer.Token
 
@@ -219,7 +216,7 @@ and INodeImpl =
 type IParser =
     /// Produces a commited node list and uncommited token list as a result of parsing until
     /// a block from the string list is encotuntered
-    abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> parse_until:string list -> (INodeImpl list * LazyList<Lexer.Token>)
+    abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> context:ParsingContext -> (INodeImpl list * LazyList<Lexer.Token>)
    
     /// Parses the template From the source in the reader into the node list
     abstract member ParseTemplate: template:TextReader -> INodeImpl list
@@ -268,22 +265,35 @@ and ITag =
     /// a tuple consisting of the INodeImpl object representing the result of node parsing as the first element
     /// followed by the the remainder of the token list with all the token related to the node removed
     ///</returns>
-    abstract member Perform: Lexer.BlockToken -> ParsingContext -> LazyList<Lexer.Token> -> (INodeImpl * LazyList<Lexer.Token>)
+    abstract member Perform: Lexer.BlockToken -> ParsingContext -> LazyList<Lexer.Token> -> (INodeImpl * ParsingContext * LazyList<Lexer.Token>)
 
-/// Parsing context is a container for information specific to the tag being parsed
-and ParsingContext(provider: ITemplateManagerProvider, extra_tags: string list) =
+    /// Indicates whether this node must be the first non-text node in the template
+    abstract member is_header_tag: bool
     
-    /// List (sequence) of all registered tag names. Includes all registered tags as well as 
+/// Parsing context is a container for information specific to the tag being parsed
+and ParsingContext(provider: ITemplateManagerProvider, closures: string list, is_in_header) =
+    
+    new (provider)
+        = new ParsingContext(provider, [], true)
+
+    member x.BodyContext = new ParsingContext(provider, closures, false)
+
+    member x.WithClosures(closures) = new ParsingContext(provider, closures, is_in_header)
+
+    /// List (sequence) of all registered tag names. Includes all registered tags
     member x.Tags = provider.Tags |> Map.toSeq |> Seq.map (fun tag -> tag |> fst) 
 
     /// a list (sequence) of all closing tags for the context
-    member x.TagClosures = Seq.ofList extra_tags                    
+    member x.TagClosures = closures                    
    
    /// Parent provider owning the context
     member x.Provider = provider
    
-   /// Parent provider owning the context
+    /// A list of filters
     member x.Filters = provider.Filters |> Map.toSeq |> Seq.map (fun filter -> filter |> fst)
+
+    /// A flag indicating if any of the non-header tags have been encountered yet
+    member x.IsInHeader = is_in_header
     
 /// A representation of a node of the template abstract syntax tree    
 type INode =
