@@ -72,7 +72,7 @@ type NodeType =
         | Reference = 0x0007
 
         /// <summary>
-        /// Filter with o without a parameter. Parameter can be a constant or a reference
+        /// Filter with or without a parameter. Parameter can be a constant or a reference
         /// <example>default:"nothing"</example>
         /// </summary>
         | Filter = 0x0008
@@ -211,6 +211,22 @@ and INodeImpl =
 
     /// Processes this node and advances the walker to reflect the progress made
     abstract member walk: manager:ITemplateManager -> walker:Walker -> Walker
+    
+type DjangoType =
+    | Type
+    | DjangoType
+    | Dictionary
+    | List
+    | Value
+
+type IDjangoType =
+    
+    abstract member Name : string
+    
+    abstract member Type : DjangoType
+    
+    abstract member Members : IDjangoType seq
+    
 
 /// Parsing interface definition
 type IParser =
@@ -253,7 +269,7 @@ and ITemplateManagerProvider =
     /// the existing template with the same name (if any)
     abstract member LoadTemplate: string -> (ITemplate * System.DateTime)
 
-    abstract member GetMembersOfType: string -> string list -> (string*obj) list
+    abstract member GetMembersOfType: string -> IDjangoType list
     
 /// A tag implementation
 and ITag = 
@@ -273,22 +289,25 @@ and ITag =
     abstract member is_header_tag: bool
     
 /// Parsing context is a container for information specific to the tag being parsed
-and ParsingContext(provider: ITemplateManagerProvider, closures: string list, is_in_header, model_type, vars: string list) =
+and ParsingContext(provider: ITemplateManagerProvider, parent, closures: string list, is_in_header, model_type, vars: IDjangoType list) =
     
+    let combine extra_vars =
+        vars |> List.filter (fun var -> List.contains var <| vars) |> List.append extra_vars 
+
     new (provider)
-        = new ParsingContext(provider, [], true, "", [])
+        = new ParsingContext(provider, None, [], true, "", [])
+        
+    member x.ChildOf = new ParsingContext(provider, Some x, closures, is_in_header, model_type, vars)
+        
+    member x.BodyContext = new ParsingContext(provider, parent, closures, false, model_type, vars)
 
-    member x.BodyContext = new ParsingContext(provider, closures, false, model_type, vars)
+    member x.WithClosures(new_closures) = new ParsingContext(provider, parent, new_closures, is_in_header, model_type, vars)
 
-    member x.WithClosures(new_closures) = new ParsingContext(provider, new_closures, is_in_header, model_type, vars)
-
-    member x.WithModelType(new_model_type) = new ParsingContext(provider, closures, is_in_header, new_model_type, vars)
+    member x.WithModelType(new_model_type) = new ParsingContext(provider, parent, closures, is_in_header, new_model_type, vars)
 
     member 
         x.WithExtraVariables(extra_vars) = 
-            new ParsingContext(provider, closures, is_in_header, model_type,
-                List.fold (fun lst var -> if lst |> List.contains var then lst else var :: lst) vars extra_vars
-                )
+            new ParsingContext(provider, parent, closures, is_in_header, model_type, combine extra_vars)
 
     /// a sequence of all registered tag names
     member x.Tags = provider.Tags |> Map.toSeq |> Seq.map (fun tag -> tag |> fst) 
@@ -306,7 +325,7 @@ and ParsingContext(provider: ITemplateManagerProvider, closures: string list, is
     member x.IsInHeader = is_in_header
     
     /// a list of all variables available in the context
-    member x.Variables = provider.GetMembersOfType model_type vars
+    member x.Variables = provider.GetMembersOfType model_type |> combine
     
 /// A representation of a node of the template abstract syntax tree    
 type INode =

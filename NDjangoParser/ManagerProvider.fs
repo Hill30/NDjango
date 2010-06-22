@@ -412,17 +412,14 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             else
                 fun value -> value
             
-        member x.GetMembersOfType model_type extras = 
-            let type_members = 
-                if model_type = "" then []
-                else [ model_type + ".1"; model_type + ".2"; model_type + ".3"]
-            
-            type_members |> List.append extras |> List.map (fun var -> (var, null))
+        member x.GetMembersOfType model_type = TypeResolver.Resolve model_type
 
     interface IParser with
         
         /// Parses the sequence of tokens until one of the given tokens is encountered
         member x.Parse parent tokens context =
+            
+            let context = context.ChildOf
             
             // take a note of the current position - this will be the
             // start position for the parsing context being built

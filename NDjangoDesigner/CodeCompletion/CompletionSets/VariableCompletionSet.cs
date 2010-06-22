@@ -17,7 +17,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             var vars = new List<string>();
             Node.ParsingContext.Variables
                 .ToList()
-                .ForEach(var => vars.Add(var.Item1));
+                .ForEach(var => vars.Add(var.Name));
             return BuildCompletions(vars, "{", "}}");
         }
     }

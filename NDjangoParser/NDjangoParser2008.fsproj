@@ -66,6 +66,7 @@
     <Compile Include="Variables.fs" />
     <Compile Include="Expressions.fs" />
     <Compile Include="ASTNodes.fs" />
+    <Compile Include="TypeResolver.fs" />
     <Compile Include="Tags.fs" />
     <Compile Include="Cycle.fs" />
     <Compile Include="Filter.fs" />

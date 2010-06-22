@@ -51,7 +51,7 @@ module internal LoaderTags =
                 | name::[] -> 
                     let node_list, remaining = 
                         (context.Provider :?> IParser).Parse (Some token) tokens 
-                            (context.WithClosures(["endblock"; "endblock " + name.RawText]).WithExtraVariables(["super"]))
+                            (context.WithClosures(["endblock"; "endblock " + name.RawText])(*.WithExtraVariables(["super"])*))
                     (new BlockNode(context, token, name.RawText, node_list) :> INodeImpl), context, remaining
                 | _ ->
                     let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"]))

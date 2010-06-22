@@ -31,6 +31,7 @@ open NDjango.Interfaces
 open NDjango.Variables
 open NDjango.Expressions
 open NDjango.ParserNodes
+//open NDjango.TypeResolver
 
 module internal For =
 
@@ -99,8 +100,15 @@ module internal For =
         last:        bool
         parentloop:  obj
         }
-        
-            
+
+    type private ForContextDescriptor(parent:ParsingContext) =
+        interface IDjangoType with
+            member x.Name = "forloop"
+            member x.Type = DjangoType.Value
+            member x.Members = 
+                seq [
+                    ]
+    
     type TagNode(
                 provider,
                 token,
@@ -237,13 +245,13 @@ module internal For =
             member this.Perform token context tokens =
                 let node_list_body, remaining = 
                     (context.Provider :?> IParser).Parse (Some token) tokens 
-                        (context.WithClosures(["empty"; "endfor"]).WithExtraVariables(["forloop"]))
+                        (context.WithClosures(["empty"; "endfor"]).WithExtraVariables([ForContextDescriptor(context)]))
                 let node_list_empty, remaining2 =
                     match node_list_body.[node_list_body.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb.RawText = "empty" then
                             (context.Provider :?> IParser).Parse (Some token) remaining 
-                                (context.WithClosures(["endfor"]).WithExtraVariables(["forloop"]))
+                                (context.WithClosures(["endfor"]).WithExtraVariables([ForContextDescriptor(context)]))
                         else
                             [], remaining
                     | _ -> [], remaining
