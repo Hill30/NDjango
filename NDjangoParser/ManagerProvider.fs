@@ -158,7 +158,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                 raise (SyntaxException(syntax_error.Message, Block blockToken))
             else
                 Some ( ({
-                            new ErrorNode(Block blockToken, new Error(2, syntax_error.Message))
+                            new ErrorNode(context, Block blockToken, new Error(2, syntax_error.Message))
                                 with
                                     /// Add TagName node to the list of elements
                                     override x.elements =
@@ -186,7 +186,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             else
                 Some ( List.ofSeq syntax_error.Nodes @
                         [({
-                            new ErrorNode(Block blockToken, new Error(2, syntax_error.Message))
+                            new ErrorNode(context, Block blockToken, new Error(2, syntax_error.Message))
                                 with
                                     /// Add TagName node to the list of elements
                                     override x.elements =
@@ -210,7 +210,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
 
         match token with
         | Lexer.Text textToken -> 
-            ({new Node(token)
+            ({new Node(context, token)
                 with 
                     override x.node_type = NodeType.Text        
 
@@ -223,7 +223,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             // var.Expression is a raw string - the string as is on the template before any parsing or substitution
             let expression = new FilterExpression(context, var.Expression)
 
-            ({new Node(token)
+            ({new Node(context, token)
                 with 
                     override x.node_type = NodeType.Expression
 
@@ -261,13 +261,13 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             // the default behavior of the walk override is to return the same walker
             // Considering that when walk is called the buffer is empty, this will 
             // work for the comment node, so overriding the walk method here is unnecessary
-            ({new Node(token) with override x.node_type = NodeType.Comment} :> INodeImpl), context, tokens 
+            ({new Node(context, token) with override x.node_type = NodeType.Comment} :> INodeImpl), context, tokens 
         
         | Lexer.Error error ->
             if (settings.[Constants.EXCEPTION_IF_ERROR] :?> bool)
                 then raise (SyntaxException(error.ErrorMessage, Token.Error error))
             ({
-                        new ErrorNode(token, new Error(2, error.ErrorMessage))
+                        new ErrorNode(context, token, new Error(2, error.ErrorMessage))
                             with
                                 override x.elements =
                                     match error.RawText.[0..1] with

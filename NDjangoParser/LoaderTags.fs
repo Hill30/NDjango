@@ -96,7 +96,7 @@ module internal LoaderTags =
                                         else 
                                             // build a new token representing non-spaces in the text
                                             let newToken = node.Token.TextToken.CreateToken(node.Token.Length - body.Length, body.Trim().Length)
-                                            {new Node(Text newToken) with 
+                                            {new Node(context, Text newToken) with 
                                                 override x.node_type = NodeType.Text
                                                 override x.ErrorMessage = new Error(1, "All content except 'block' tags inside extending template is ignored")
                                                 override x.elements = []
@@ -107,7 +107,7 @@ module internal LoaderTags =
                                     then None
                                     else
                                         Some (new ErrorNode
-                                                (node.Token, 
+                                                (context, node.Token, 
                                                  new Error(1, "All content except 'block' tags inside extending template is ignored"))
                                                     :> INode)
                             )
@@ -117,7 +117,7 @@ module internal LoaderTags =
                         | [] -> node_list
                         | _ -> 
                             node_list @ 
-                            [{new ErrorNode(
+                            [{new ErrorNode(context,
                                 Text tail.Head, new Error(1, "Excessive arguments in the extends tag are ignored"))
                                 with override x.elements = []
                                 } :> INode] 
@@ -128,7 +128,7 @@ module internal LoaderTags =
                     // this is a fictitious node created only for the purpose of providing the intellisense
                     // we need to position it right before the closing bracket
                     let parent_name_expr = 
-                        {new Node(Text (token.CreateToken(token.RawText.Length-2, 0))) with 
+                        {new Node(context, Text (token.CreateToken(token.RawText.Length-2, 0))) with 
                             override x.node_type = NodeType.TemplateName
                             override x.elements = []
                             } :> INode

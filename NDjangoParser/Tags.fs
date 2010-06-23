@@ -46,7 +46,7 @@ module internal Misc =
                         raise (SyntaxError(
                                 "invalid arguments for 'Autoescape' tag", 
                                 Some (Seq.ofList nodes),
-                                Some [(new KeywordNode(fail_token, ["on";"off"]) :> INode)],
+                                Some [(new KeywordNode(context, fail_token, ["on";"off"]) :> INode)],
                                 Some remaining
                                 ))
 
@@ -66,7 +66,7 @@ module internal Misc =
                                 nodes=nodes}
                         override x.nodelist with get() = nodes
                         override x.elements =
-                            (new KeywordNode(List.head token.Args, ["on";"off"]) :> INode)
+                            (new KeywordNode(context, List.head token.Args, ["on";"off"]) :> INode)
                                 ::base.elements
                    } :> INodeImpl), 
                    context, remaining)

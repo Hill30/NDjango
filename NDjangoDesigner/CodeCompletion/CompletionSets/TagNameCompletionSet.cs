@@ -24,12 +24,12 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {
-            return BuildCompletions(Node.ParsingContext.Tags); 
+            return BuildCompletions(Node.Context.Tags); 
         }
 
         protected override IEnumerable<Completion> BuildNodeCompletionBuilders()
         {
-            return BuildCompletions(Node.ParsingContext.TagClosures);
+            return BuildCompletions(Node.Context.TagClosures);
         }
     }
 }

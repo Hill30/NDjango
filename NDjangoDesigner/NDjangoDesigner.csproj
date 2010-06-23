@@ -110,6 +110,7 @@
     <Compile Include="Classifiers\Highlighter.cs" />
     <Compile Include="CodeCompletion\CompletionSets\AbstractCompletionSet.cs" />
     <Compile Include="CodeCompletion\CompletionSets\FilterCompletionSet.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\ReferenceCompletionSet.cs" />
     <Compile Include="CodeCompletion\CompletionSets\TagNameCompletionSet.cs" />
     <Compile Include="CodeCompletion\CompletionSets\TemplateNameCompletionSet.cs" />
     <Compile Include="CodeCompletion\CompletionSets\ValueCompletionSet.cs" />

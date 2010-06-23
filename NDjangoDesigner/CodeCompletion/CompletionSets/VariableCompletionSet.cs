@@ -8,17 +8,11 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
-    class VariableCompletionSet : AbstractCompletionSet
+    class VariableCompletionSet : ReferenceCompletionSet
     {
-        public VariableCompletionSet() { }
 
-        protected override IEnumerable<Completion> BuildNodeCompletions()
-        {
-            var vars = new List<string>();
-            Node.ParsingContext.Variables
-                .ToList()
-                .ForEach(var => vars.Add(var.Name));
-            return BuildCompletions(vars, "{", "}}");
-        }
+        protected override string Prefix { get { return "{"; } }
+
+        protected override string Suffix { get { return "}}"; } }
     }
 }

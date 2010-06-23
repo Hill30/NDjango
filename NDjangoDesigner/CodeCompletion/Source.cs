@@ -74,40 +74,48 @@ namespace NDjango.Designer.CodeCompletion
         {
             switch (Context)
             {
+
                 case CompletionContext.Tag:
                     return AbstractCompletionSet.Create<TagCompletionSet>(
-                        this, nodeProvider, point,
-                        n => n.NodeType == NodeType.ParsingContext
+                        this, point,
+                            nodeProvider.GetNodes(point, n => n.NodeType == NodeType.ParsingContext).FindLast(n => true)
                             );
 
                 case CompletionContext.Variable:
                     return AbstractCompletionSet.Create<VariableCompletionSet>(
-                        this, nodeProvider, point,
-                        n => n.NodeType == NodeType.ParsingContext
+                        this, point,
+                            nodeProvider.GetNodes(point, n => n.NodeType == NodeType.ParsingContext).FindLast(n => true)
                             );
 
                 case CompletionContext.FilterName:
                     return AbstractCompletionSet.Create<FilterCompletionSet>(
-                        this, nodeProvider, point,
-                        n => n.NodeType == NodeType.ParsingContext
+                        this, point,
+                            nodeProvider.GetNodes(point, n => n.NodeType == NodeType.ParsingContext).FindLast(n => true)
                             );
 
                 case CompletionContext.Word:
                     // Get the list of all nodes with non-empty value lists
-                    List<DesignerNode> nodes = nodeProvider.GetNodes(point, n => n.Values.GetEnumerator().MoveNext());
+                    List<DesignerNode> nodes = nodeProvider.GetNodes(point, n => n.NodeType == NodeType.Reference || n.Values.GetEnumerator().MoveNext());
                     // out of the list get the last node which is not a parsing context
                     DesignerNode node = nodes.FindLast(n => n.NodeType != NodeType.ParsingContext);
                     if (node == null)
                         return null;
+                    if (node.NodeType == NodeType.Reference)
+                        return AbstractCompletionSet.Create<ReferenceCompletionSet>(this, point, node);
                     if (node.NodeType == NodeType.TagName)
                         return new TagNameCompletionSet(this, node, point);
                     return new ValueCompletionSet(this, node, point);
 
+                case CompletionContext.Reference:
+                    return AbstractCompletionSet.Create<TemplateNameCompletionSet>(
+                        this, point,
+                        nodeProvider.GetNodes(point, n => n.NodeType == NodeType.Reference).FindLast(n => true));
+
                 case CompletionContext.AposString:
                 case CompletionContext.QuotedString:
                     return AbstractCompletionSet.Create<TemplateNameCompletionSet>(
-                        this, nodeProvider, point,
-                        n => n.NodeType == NodeType.TemplateName);
+                        this, point, 
+                        nodeProvider.GetNodes(point, n => n.NodeType == NodeType.TemplateName).FindLast(n=>true));
 
                 default:
                     return null;

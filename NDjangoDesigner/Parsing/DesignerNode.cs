@@ -142,21 +142,6 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         public List<DesignerNode> Children { get { return children; } }
 
-        /// <summary>
-        /// Parsing context for current node
-        /// </summary>
-        public ParsingContext ParsingContext 
-        {
-            get 
-            {
-                if (node is NDjango.ParserNodes.ParsingContextNode)
-                    return (node as NDjango.ParserNodes.ParsingContextNode).Context;
-                if (node is NDjango.ParserNodes.TagNameNode)
-                    return (node as NDjango.ParserNodes.TagNameNode).Context;
-                throw new Exception("Context - not implemented");
-            }
-        }
-
         #region INode Members
 
         public string Description
@@ -194,6 +179,8 @@ namespace NDjango.Designer.Parsing
             get { return node.Values; }
         }
 
+        public ParsingContext Context { get { return node.Context; } }
+        
         #endregion
 
         #region IDisposable Members

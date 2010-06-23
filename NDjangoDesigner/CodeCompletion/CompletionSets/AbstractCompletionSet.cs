@@ -31,6 +31,17 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             return result;
        }
 
+        internal static CompletionSet Create<T>
+            (Source source, SnapshotPoint point, DesignerNode node)
+            where T : AbstractCompletionSet, new()
+        {
+            if (node == null)
+                return null;
+            var result = new T();
+            result.Initialize(source, node, point);
+            return result;
+        }
+
         /// <summary>
         /// Span tracking filter to be applied to the value list as the user types.
         /// Starts at the beginning of the word and ends at the left most position of the user input
@@ -118,7 +129,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// Calculates the prefix used to filter and position the completion list
         /// </summary>
         /// <returns></returns>
-        private string getPrefix()
+        protected virtual string getPrefix()
         {
             var prefix = filterSpan.GetText(filterSpan.TextBuffer.CurrentSnapshot);
             if (prefix.Length > FilterOffset)
@@ -341,6 +352,9 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
                 case '"':
                     return CompletionContext.QuotedString;
 
+                case '.':
+                    return CompletionContext.Reference;
+
                 default:
                     if (Char.IsLetterOrDigit(triggerChars[0]))
                         return CompletionContext.Word;
@@ -375,6 +389,8 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// Word is a context covering typing inside a word - a tag name, a filter name a keyword, etc
         /// </summary>
         Word,
+
+        Reference,
 
         QuotedString,
 

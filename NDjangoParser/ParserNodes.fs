@@ -36,7 +36,7 @@ module public ParserNodes =
 
     /// Base class for all Django syntax nodes.
     [<AbstractClass>]
-    type Node(token: Token) =
+    type Node(context, token) =
 
         /// Methods/Properties for the INodeImpl interface
         /// Indicates whether this node must be the first non-text node in the template
@@ -72,8 +72,8 @@ module public ParserNodes =
         default x.elements 
             with get() = 
                 [
-                    (new ConstructBracketNode(token, Open) :> INode); 
-                    (new ConstructBracketNode(token, Close) :> INode)
+                    (new ConstructBracketNode(context, token, Open) :> INode); 
+                    (new ConstructBracketNode(context, token, Close) :> INode)
                 ]
         
         /// A list of all values allowed for the node, i.e. for the tag name node a list of all registered tags
@@ -99,13 +99,14 @@ module public ParserNodes =
             member x.ErrorMessage = x.ErrorMessage
             member x.Description = x.Description
             member x.Nodes = x.Nodes :> IDictionary<string, IEnumerable<INode>>
+            member x.Context = context
 
         interface INodeImpl with
             member x.Token = x.Token
             member x.walk manager walker = x.walk manager walker
             
     /// Node representing a django construct bracket
-    and private ConstructBracketNode(token: Token, bracketType: BracketType) =
+    and private ConstructBracketNode(context, token: Token, bracketType: BracketType) =
 
         interface INode with
             
@@ -132,10 +133,12 @@ module public ParserNodes =
             
             /// node lists are empty
             member x.Nodes = Map.empty :> IDictionary<string, IEnumerable<INode>>
-   
+ 
+            member x.Context = context
+
     /// Value list node is a node carrying a list of values which will be used by code completion
     /// it can be used either directly or through several node classes inherited from the Value list node
-    type ValueListNode(nodeType, token: Token, values)  =
+    type ValueListNode(context, nodeType, token: Token, values)  =
 
         override x.ToString() = token.TextToken.RawText
             
@@ -150,30 +153,34 @@ module public ParserNodes =
             member x.Description = ""
             /// node list is empty
             member x.Nodes = Map.empty :> IDictionary<string, IEnumerable<INode>>
+
+            member x.Context = context
             
     /// a node representing a tag name. carries a list of valid tag names 
-    type TagNameNode (context: ParsingContext, token) =
+    type TagNameNode (context, token) =
         inherit ValueListNode
             (
+                context,
                 NodeType.TagName, 
                 token,
                 context.Tags
             )
-        member x.Context = context
             
     /// a node representing a keyword - i.e. on/off values for the autoescape tag
-    type KeywordNode (token:TextToken, values:IEnumerable<string>) =
+    type KeywordNode (context, token:TextToken, values:IEnumerable<string>) =
         inherit ValueListNode
             (
+                context,
                 NodeType.Keyword, 
                 Text token,
                 values
             )     
             
     /// a node representing a filter name
-    type FilterNameNode (token:TextToken, values:IEnumerable<string>) =
+    type FilterNameNode (context, token:TextToken, values:IEnumerable<string>) =
         inherit ValueListNode
             (
+                context,
                 NodeType.FilterName, 
                 Text token,
                 values
@@ -184,7 +191,6 @@ module public ParserNodes =
     /// context as well as boundaries of the context. 
     /// Ignore during rendering
     type ParsingContextNode (context: ParsingContext, position, length) =
-        member x.Context = context
         interface INode with
             member x.NodeType = NodeType.ParsingContext
             /// Position - the position of the first character of the context 
@@ -195,6 +201,7 @@ module public ParserNodes =
             member x.ErrorMessage = Error.None
             member x.Description = ""
             member x.Nodes = Map.empty :> IDictionary<string, IEnumerable<INode>>
+            member x.Context = context
             
         interface INodeImpl with
             member x.Token = failwith ("Token on the ParsingContextNode should not be accessed")
@@ -209,7 +216,7 @@ module public ParserNodes =
 
     /// Base class for all syntax nodes representing django tags
     type TagNode(context: ParsingContext, token: BlockToken) =
-        inherit Node(Block token)
+        inherit Node(context, Block token)
 
         /// NodeType = Tag
         override x.node_type = NodeType.Construct   
@@ -238,8 +245,8 @@ module public ParserNodes =
          
             
     /// Error nodes
-    type ErrorNode(token: Token, error: Error) =
-        inherit Node(token)
+    type ErrorNode(context, token: Token, error: Error) =
+        inherit Node(context, token)
 
         // in some cases (like an empty tag) we need this for proper colorization
         // if the colorization is already there it does not hurt

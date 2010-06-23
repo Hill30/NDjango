@@ -180,7 +180,7 @@ namespace NDjango.UnitTests
                     List<string> contextValues = new List<string>(node.Values);
                     if (node.NodeType == NodeType.ParsingContext)
                     {
-                        contextValues.InsertRange(0 ,((ParserNodes.ParsingContextNode)node).Context.TagClosures);
+                        contextValues.InsertRange(0 ,(node.Context.TagClosures));
                         return new DesignerData(node.Position, node.Length, contextValues.ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
                     }
                     else

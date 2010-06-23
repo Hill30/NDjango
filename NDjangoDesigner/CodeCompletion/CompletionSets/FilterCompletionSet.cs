@@ -21,7 +21,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {
-            return BuildCompletions(Node.ParsingContext.Filters, "|", "");
+            return BuildCompletions(Node.Context.Filters, "|", "");
         }
 
     }

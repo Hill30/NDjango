@@ -289,3 +289,5 @@ module Variables =
             member x.ErrorMessage = error
             member x.Description = ""
             member x.Nodes = Map.empty :> IDictionary<string, IEnumerable<INode>>
+            member x.Context = context
+

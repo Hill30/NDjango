@@ -351,6 +351,8 @@ type INode =
     /// node lists
     abstract member Nodes: IDictionary<string, IEnumerable<INode>>
 
+    abstract member Context : ParsingContext
+
 /// This exception is thrown if a problem encountered while rendering the template
 /// This exception will be later caught in the ASTWalker and re-thrown as the 
 /// RenderingException
