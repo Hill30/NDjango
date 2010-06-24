@@ -76,6 +76,11 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             Span span = new Span(point.Position, 0);
             if (node.SnapshotSpan.IntersectsWith(span))
                 span = node.SnapshotSpan.Span;
+
+            span = InitializeSpan(
+                        new SnapshotSpan(point.Snapshot.TextBuffer.CurrentSnapshot, span).GetText(),                
+                        span);
+            
             ApplicableTo = point.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
 
             // claculate the filter span (for explanation see comment on the filterspan member definition)
@@ -83,6 +88,8 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 
             this.node = node;
         }
+
+        protected virtual Span InitializeSpan(string span_text, Span span) { return span; }
 
         /// <summary>
         /// The node this completion set is associated with
@@ -129,7 +136,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// Calculates the prefix used to filter and position the completion list
         /// </summary>
         /// <returns></returns>
-        protected virtual string getPrefix()
+        protected virtual string GetPrefix()
         {
             var prefix = filterSpan.GetText(filterSpan.TextBuffer.CurrentSnapshot);
             if (prefix.Length > FilterOffset)
@@ -148,7 +155,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// </remarks>
         public override void SelectBestMatch()
         {
-            string prefix = getPrefix();
+            string prefix = GetPrefix();
 
             // precise match to a completion builder
             Completion completion = CompletionBuilders.FirstOrDefault(c => c.DisplayText.CompareTo(prefix) == 0);
@@ -206,7 +213,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
                     completions = new CompletionList();
                 }
 
-                string prefix = getPrefix();
+                string prefix = GetPrefix();
                 int cPos = 0;
                 foreach (var c in nodeCompletions)
                 {

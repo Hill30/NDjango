@@ -107,7 +107,7 @@ namespace NDjango.Designer.CodeCompletion
                     return new ValueCompletionSet(this, node, point);
 
                 case CompletionContext.Reference:
-                    return AbstractCompletionSet.Create<TemplateNameCompletionSet>(
+                    return AbstractCompletionSet.Create<ReferenceCompletionSet>(
                         this, point,
                         nodeProvider.GetNodes(point, n => n.NodeType == NodeType.Reference).FindLast(n => true));
 
