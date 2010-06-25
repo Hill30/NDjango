@@ -107,6 +107,13 @@ module internal For =
             member x.Type = DjangoType.Value
             member x.Members = 
                 seq [
+                    ValueDjangoType("counter");
+                    ValueDjangoType("counter0");
+                    ValueDjangoType("revcounter");
+                    ValueDjangoType("counter");
+                    ValueDjangoType("revcounter0");
+                    ValueDjangoType("first");
+                    ValueDjangoType("last");
                     ]
     
     type TagNode(

@@ -227,6 +227,11 @@ type IDjangoType =
     
     abstract member Members : IDjangoType seq
     
+type ValueDjangoType(name) =
+    interface IDjangoType with
+        member x.Name = name
+        member x.Type = Value
+        member x.Members = seq []
 
 /// Parsing interface definition
 type IParser =
