@@ -101,13 +101,13 @@ namespace NDjango.Designer.CodeCompletion
                     if (node == null)
                         return null;
                     if (node.NodeType == NodeType.Reference)
-                        return AbstractCompletionSet.Create<ReferenceCompletionSet>(this, point, node);
+                        return AbstractCompletionSet.Create<MemberCompletionSet>(this, point, node);
                     if (node.NodeType == NodeType.TagName)
                         return new TagNameCompletionSet(this, node, point);
                     return new ValueCompletionSet(this, node, point);
 
-                case CompletionContext.Reference:
-                    return AbstractCompletionSet.Create<ReferenceCompletionSet>(
+                case CompletionContext.NewMemberReference:
+                    return AbstractCompletionSet.Create<NewMemberCompletionSet>(
                         this, point,
                         nodeProvider.GetNodes(point, n => n.NodeType == NodeType.Reference).FindLast(n => true));
 

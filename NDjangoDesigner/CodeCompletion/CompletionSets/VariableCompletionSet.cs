@@ -8,11 +8,13 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
-    class VariableCompletionSet : ReferenceCompletionSet
+    /// <summary>
+    /// Builds completion sets for 'django variable' constructs
+    /// </summary>
+    class VariableCompletionSet : AbstractMemberCompletionSet
     {
+        protected override string Prefix { get { return "{ "; } }
 
-        protected override string Prefix { get { return "{"; } }
-
-        protected override string Suffix { get { return "}}"; } }
+        protected override string Suffix { get { return " }}"; } }
     }
 }

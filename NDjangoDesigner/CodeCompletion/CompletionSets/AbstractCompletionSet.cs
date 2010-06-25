@@ -77,9 +77,9 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             if (node.SnapshotSpan.IntersectsWith(span))
                 span = node.SnapshotSpan.Span;
 
-            span = InitializeSpan(
-                        new SnapshotSpan(point.Snapshot.TextBuffer.CurrentSnapshot, span).GetText(),                
-                        span);
+            var existing_text = new SnapshotSpan(point.Snapshot.TextBuffer.CurrentSnapshot, span).GetText();
+            
+            span = InitializeSpan(existing_text, span);
             
             ApplicableTo = point.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
 
@@ -136,7 +136,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// Calculates the prefix used to filter and position the completion list
         /// </summary>
         /// <returns></returns>
-        protected virtual string GetPrefix()
+        protected virtual string GetFilterPrefix()
         {
             var prefix = filterSpan.GetText(filterSpan.TextBuffer.CurrentSnapshot);
             if (prefix.Length > FilterOffset)
@@ -155,7 +155,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// </remarks>
         public override void SelectBestMatch()
         {
-            string prefix = GetPrefix();
+            string prefix = GetFilterPrefix();
 
             // precise match to a completion builder
             Completion completion = CompletionBuilders.FirstOrDefault(c => c.DisplayText.CompareTo(prefix) == 0);
@@ -213,7 +213,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
                     completions = new CompletionList();
                 }
 
-                string prefix = GetPrefix();
+                string prefix = GetFilterPrefix();
                 int cPos = 0;
                 foreach (var c in nodeCompletions)
                 {
@@ -360,7 +360,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
                     return CompletionContext.QuotedString;
 
                 case '.':
-                    return CompletionContext.Reference;
+                    return CompletionContext.NewMemberReference;
 
                 default:
                     if (Char.IsLetterOrDigit(triggerChars[0]))
@@ -397,7 +397,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// </summary>
         Word,
 
-        Reference,
+        NewMemberReference,
 
         QuotedString,
 
