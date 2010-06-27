@@ -60,6 +60,7 @@
     <Compile Include="Constants.fs" />
     <Compile Include="Lexer.fs" />
     <Compile Include="Interfaces.fs" />
+    <Compile Include="TypeResolver.fs" />
     <Compile Include="ASTWalker.fs" />
     <Compile Include="Filters.fs" />
     <Compile Include="ParserNodes.fs" />
@@ -76,7 +77,6 @@
     <Compile Include="Now.fs" />
     <Compile Include="LoaderTags.fs" />
     <Compile Include="Template.fs" />
-    <Compile Include="TypeResolver.fs" />
     <Compile Include="ManagerProvider.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Compatibility.fs" />

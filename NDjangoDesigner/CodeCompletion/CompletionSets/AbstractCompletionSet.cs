@@ -87,10 +87,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             ApplicableTo = point.Snapshot.CreateTrackingSpan(to_be_replaced, SpanTrackingMode.EdgeInclusive);
 
             // claculate the filter span (for explanation see comment on the filterspan member definition)
-            if (point.Position < to_be_replaced.Start)
-                filterSpan = point.Snapshot.CreateTrackingSpan(to_be_replaced.Start, 0, SpanTrackingMode.EdgeInclusive); 
-            else
-                filterSpan = point.Snapshot.CreateTrackingSpan(to_be_replaced.Start, point.Position - to_be_replaced.Start, SpanTrackingMode.EdgeInclusive); 
+            filterSpan = point.Snapshot.CreateTrackingSpan(to_be_replaced.Start, point.Position - to_be_replaced.Start, SpanTrackingMode.EdgeInclusive); 
 
             this.node = node;
         }
