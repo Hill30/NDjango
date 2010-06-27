@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateViewer", "TemplateV
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoParserFilters2010", "NDjangoParserFilters\NDjangoParserFilters2010.csproj", "{89DC9575-C706-4D0D-944A-79E5865FFE88}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesignerTests", "DesignerTests\DesignerTests.csproj", "{240FDEC0-66D0-41E3-916A-61845A332747}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,16 @@ Global
 		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|x86.ActiveCfg = Release|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Release|Any CPU.Build.0 = Release|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{240FDEC0-66D0-41E3-916A-61845A332747}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

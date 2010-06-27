@@ -77,19 +77,25 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             if (node.SnapshotSpan.IntersectsWith(span))
                 span = node.SnapshotSpan.Span;
 
-            var existing_text = new SnapshotSpan(point.Snapshot.TextBuffer.CurrentSnapshot, span).GetText();
-            
-            span = InitializeSpan(existing_text, span);
-            
-            ApplicableTo = point.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive);
+            var existing_text = new SnapshotSpan(point.Snapshot.TextBuffer.CurrentSnapshot, span);
+
+            var completion_offset = InitializeFilters(existing_text.GetText().Substring(0, point.Position - existing_text.Start));
+
+            //Adjust the span to be replaced for variables/members;
+            var to_be_replaced = new Span(span.Start + completion_offset, span.Length - completion_offset);
+
+            ApplicableTo = point.Snapshot.CreateTrackingSpan(to_be_replaced, SpanTrackingMode.EdgeInclusive);
 
             // claculate the filter span (for explanation see comment on the filterspan member definition)
-            filterSpan = point.Snapshot.CreateTrackingSpan(span.Start, point.Position - span.Start, SpanTrackingMode.EdgeInclusive); 
+            if (point.Position < to_be_replaced.Start)
+                filterSpan = point.Snapshot.CreateTrackingSpan(to_be_replaced.Start, 0, SpanTrackingMode.EdgeInclusive); 
+            else
+                filterSpan = point.Snapshot.CreateTrackingSpan(to_be_replaced.Start, point.Position - to_be_replaced.Start, SpanTrackingMode.EdgeInclusive); 
 
             this.node = node;
         }
 
-        protected virtual Span InitializeSpan(string span_text, Span span) { return span; }
+        protected virtual int InitializeFilters(string existing) { return 0; }
 
         /// <summary>
         /// The node this completion set is associated with

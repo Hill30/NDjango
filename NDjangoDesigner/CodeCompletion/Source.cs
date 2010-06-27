@@ -36,7 +36,7 @@ namespace NDjango.Designer.CodeCompletion
     /// <summary>
     /// Supplies a list of completion values
     /// </summary>
-    internal class Source : ICompletionSource
+    public class Source : ICompletionSource
     {
         private NodeProvider nodeProvider;
         private ITextBuffer textBuffer;

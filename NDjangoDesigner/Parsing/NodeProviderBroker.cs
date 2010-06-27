@@ -37,7 +37,7 @@ using NDjango.Interfaces;
 namespace NDjango.Designer.Parsing
 {
 
-    internal interface INodeProviderBroker
+    public interface INodeProviderBroker
     {
         NodeProvider GetNodeProvider(ITextBuffer buffer);
         bool IsNDjango(ITextBuffer buffer);
@@ -51,12 +51,12 @@ namespace NDjango.Designer.Parsing
     /// Allocates node porviders to text buffers
     /// </summary>
     [Export(typeof(INodeProviderBroker))]
-    internal class NodeProviderBroker : INodeProviderBroker, IVsRunningDocTableEvents
+    public class NodeProviderBroker : INodeProviderBroker, IVsRunningDocTableEvents
     {
 
         #region Broker Initialization routines
 
-        private NodeProviderBroker()
+        public NodeProviderBroker()
         {
             parser = InitializeParser();
         }

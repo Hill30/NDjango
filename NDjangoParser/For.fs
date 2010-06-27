@@ -110,7 +110,6 @@ module internal For =
                     ValueDjangoType("counter");
                     ValueDjangoType("counter0");
                     ValueDjangoType("revcounter");
-                    ValueDjangoType("counter");
                     ValueDjangoType("revcounter0");
                     ValueDjangoType("first");
                     ValueDjangoType("last");

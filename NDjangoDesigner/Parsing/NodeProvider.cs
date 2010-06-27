@@ -35,7 +35,7 @@ namespace NDjango.Designer.Parsing
     /// <summary>
     /// Manages a list of syntax nodes for a given buffer.
     /// </summary>
-    class NodeProvider
+    public class NodeProvider
     {
         // it can take some time for the parser to build the token list.
         // for now let us initialize it to an empty list
