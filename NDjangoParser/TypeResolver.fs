@@ -27,15 +27,11 @@ open NDjango.Expressions
 module TypeResolver =
     
     type ITypeResolver =
-        abstract member Resolve: type_name: string -> IDjangoType list
+        abstract member Resolve: type_name: string -> IDjangoType seq
         
-    type AnotherTypeResolver() =
-        interface ITypeResolver with
-            member x.Resolve type_name = []
-            
     type DefaultTypeResolver() =
         interface ITypeResolver with
-            member x.Resolve type_name = []
+            member x.Resolve type_name = [] |> List.toSeq
             
     let private resolver = 
         let resolver_type =
@@ -74,6 +70,6 @@ module TypeResolver =
         interface IDjangoType with
             member x.Name = name
             member x.Type = DjangoType.Type
-            member x.Members = Resolve type_name |> Seq.ofList
+            member x.Members = Resolve type_name
            
     

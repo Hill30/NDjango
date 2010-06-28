@@ -274,7 +274,7 @@ and ITemplateManagerProvider =
     /// the existing template with the same name (if any)
     abstract member LoadTemplate: string -> (ITemplate * System.DateTime)
 
-    abstract member GetMembersOfType: string -> IDjangoType list
+    abstract member GetMembersOfType: string -> IDjangoType seq
     
 /// A tag implementation
 and ITag = 
@@ -330,7 +330,7 @@ and ParsingContext(provider: ITemplateManagerProvider, parent, closures: string 
     member x.IsInHeader = is_in_header
     
     /// a list of all variables available in the context
-    member x.Variables = provider.GetMembersOfType model_type |> combine
+    member x.Variables = provider.GetMembersOfType model_type |> Seq.toList |> combine
     
 /// A representation of a node of the template abstract syntax tree    
 type INode =
