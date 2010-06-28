@@ -356,23 +356,24 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
     
     interface ITemplateManagerProvider with
 
-        member x.GetTemplate name =
+        member x.GetTemplate template =
+            let name, _ = template
             lock lockProvider 
                 (fun() -> 
                     match !templates |> Map.tryFind name with
                     | None ->
-                        (x :> ITemplateManagerProvider).LoadTemplate name
-                    | Some (template, ts) -> 
-                        if (validate_template(name, ts)) then
-                            (x :> ITemplateManagerProvider).LoadTemplate name
+                        (x :> ITemplateManagerProvider).LoadTemplate template
+                    | Some (t, timestamp) -> 
+                        if (validate_template(name, timestamp)) then
+                            (x :> ITemplateManagerProvider).LoadTemplate template
                         else
-                            (template, ts)
+                            (t, timestamp)
                 )
                 
-        member x.LoadTemplate name =
+        member x.LoadTemplate ((name, resolver)) =
             lock lockProvider
                 (fun() ->
-                    let t = ((new NDjango.Template.Impl((x :> ITemplateManagerProvider), loader.GetTemplate(name)) :> ITemplate), System.DateTime.Now)
+                    let t = ((new NDjango.Template.Impl((x :> ITemplateManagerProvider), loader.GetTemplate(name), resolver) :> ITemplate), System.DateTime.Now)
                     templates := Map.add name t !templates  
                     t
                 )
@@ -412,8 +413,6 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             else
                 fun value -> value
             
-        member x.GetMembersOfType model_type = TypeResolver.Resolve model_type
-
     interface IParser with
         
         /// Parses the sequence of tokens until one of the given tokens is encountered
@@ -451,10 +450,15 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                 ((new ParsingContextNode(context, start_pos, end_pos - start_pos) :> INodeImpl) :: result, tokens)
         
         /// Parses the template From the source in the reader into the node list
+        member x.ParseTemplate template = 
+            (x :> IParser).ParseTemplate ((template, new NDjango.TypeResolver.DefaultTypeResolver() :> ITypeResolver))
+
+        /// Parses the template From the source in the reader into the node list
         member x.ParseTemplate template =
+            let template, resolver = template
             // this will cause the TextReader to be closed when the template goes out of scope
             use template = template
-            (x :> IParser).Parse None (NDjango.Lexer.tokenize template) (ParsingContext(x)) |> fst
+            (x :> IParser).Parse None (NDjango.Lexer.tokenize template) (ParsingContext(x, resolver)) |> fst
 
         /// Repositions the token stream after the first token found from the parse_until list
         member x.Seek tokens parse_until = 

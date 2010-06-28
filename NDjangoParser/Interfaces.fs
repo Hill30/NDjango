@@ -166,6 +166,24 @@ type IContext =
     /// to the language for the user
     abstract member Translate: string -> string
     
+type DjangoType =
+    | Type
+    | DjangoType
+    | Dictionary
+    | List
+    | Value
+
+type IDjangoType =
+    
+    abstract member Name : string
+    
+    abstract member Type : DjangoType
+    
+    abstract member Members : IDjangoType seq
+    
+type ITypeResolver =
+    abstract member Resolve: type_name: string -> IDjangoType seq
+        
 /// Single threaded template manager. Caches templates it renders in a non-synchronized dictionary
 /// should be used only to service rendering requests from a single thread
 type ITemplateManager = 
@@ -173,9 +191,16 @@ type ITemplateManager =
     /// given the path to the template and context returns the <see cref="System.IO.TextReader"/> 
     /// that will stream out the results of the render.
     abstract member RenderTemplate: path:string * context:IDictionary<string, obj> -> TextReader
+    
+    /// given the path to the template and context returns the <see cref="System.IO.TextReader"/> 
+    /// that will stream out the results of the render.
+    abstract member RenderTemplate: path:string * ITypeResolver * context:IDictionary<string, obj> -> TextReader
 
     /// given the path to the template and context returns the template implementation
-    abstract member GetTemplate: path:string -> ITemplate
+    abstract member GetTemplate: template:(string * ITypeResolver) -> ITemplate
+
+    /// given the path to the template and context returns the template implementation
+    abstract member GetTemplate: template:string -> ITemplate
 
 /// Template imeplementation. This interface effectively represents the root-level node
 /// in the Django AST.
@@ -212,27 +237,6 @@ and INodeImpl =
     /// Processes this node and advances the walker to reflect the progress made
     abstract member walk: manager:ITemplateManager -> walker:Walker -> Walker
     
-type DjangoType =
-    | Type
-    | DjangoType
-    | Dictionary
-    | List
-    | Value
-
-type IDjangoType =
-    
-    abstract member Name : string
-    
-    abstract member Type : DjangoType
-    
-    abstract member Members : IDjangoType seq
-    
-type ValueDjangoType(name) =
-    interface IDjangoType with
-        member x.Name = name
-        member x.Type = Value
-        member x.Members = seq []
-
 /// Parsing interface definition
 type IParser =
     /// Produces a commited node list and uncommited token list as a result of parsing until
@@ -240,7 +244,10 @@ type IParser =
     abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> context:ParsingContext -> (INodeImpl list * LazyList<Lexer.Token>)
    
     /// Parses the template From the source in the reader into the node list
-    abstract member ParseTemplate: template:TextReader -> INodeImpl list
+    abstract member ParseTemplate: template:(TextReader) -> INodeImpl list
+   
+    /// Parses the template From the source in the reader into the node list
+    abstract member ParseTemplate: template:(TextReader * ITypeResolver) -> INodeImpl list
    
     /// Produces an uncommited token list as a result of parsing until
     /// a block from the string list is encotuntered
@@ -266,16 +273,14 @@ and ITemplateManagerProvider =
 
     /// Retrieves the requested template checking first the global
     /// dictionary and validating the timestamp
-    abstract member GetTemplate: string -> (ITemplate * System.DateTime)
+    abstract member GetTemplate: (string * ITypeResolver) -> (ITemplate * System.DateTime)
 
     /// Retrieves the requested template without checking the 
     /// local dictionary and/or timestamp
     /// the retrieved template is placed in the dictionary replacing 
     /// the existing template with the same name (if any)
-    abstract member LoadTemplate: string -> (ITemplate * System.DateTime)
+    abstract member LoadTemplate: (string * ITypeResolver) -> (ITemplate * System.DateTime)
 
-    abstract member GetMembersOfType: string -> IDjangoType seq
-    
 /// A tag implementation
 and ITag = 
     ///<summary>
@@ -294,25 +299,25 @@ and ITag =
     abstract member is_header_tag: bool
     
 /// Parsing context is a container for information specific to the tag being parsed
-and ParsingContext(provider: ITemplateManagerProvider, parent, closures: string list, is_in_header, model_type, vars: IDjangoType list) =
+and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, parent, closures: string list, is_in_header, model_type, vars: IDjangoType list) =
     
     let combine extra_vars =
         vars |> List.filter (fun var -> List.contains var <| vars) |> List.append extra_vars 
 
-    new (provider)
-        = new ParsingContext(provider, None, [], true, "", [])
+    new (provider, resolver)
+        = new ParsingContext(provider, resolver, None, [], true, "", [])
         
-    member x.ChildOf = new ParsingContext(provider, Some x, closures, is_in_header, model_type, vars)
+    member x.ChildOf = new ParsingContext(provider, resolver, Some x, closures, is_in_header, model_type, vars)
         
-    member x.BodyContext = new ParsingContext(provider, parent, closures, false, model_type, vars)
+    member x.BodyContext = new ParsingContext(provider, resolver, parent, closures, false, model_type, vars)
 
-    member x.WithClosures(new_closures) = new ParsingContext(provider, parent, new_closures, is_in_header, model_type, vars)
+    member x.WithClosures(new_closures) = new ParsingContext(provider, resolver, parent, new_closures, is_in_header, model_type, vars)
 
-    member x.WithModelType(new_model_type) = new ParsingContext(provider, parent, closures, is_in_header, new_model_type, vars)
+    member x.WithModelType(new_model_type) = new ParsingContext(provider, resolver, parent, closures, is_in_header, new_model_type, vars)
 
     member 
         x.WithExtraVariables(extra_vars) = 
-            new ParsingContext(provider, parent, closures, is_in_header, model_type, combine extra_vars)
+            new ParsingContext(provider, resolver, parent, closures, is_in_header, model_type, combine extra_vars)
 
     /// a sequence of all registered tag names
     member x.Tags = provider.Tags |> Map.toSeq |> Seq.map (fun tag -> tag |> fst) 
@@ -330,7 +335,9 @@ and ParsingContext(provider: ITemplateManagerProvider, parent, closures: string 
     member x.IsInHeader = is_in_header
     
     /// a list of all variables available in the context
-    member x.Variables = provider.GetMembersOfType model_type |> Seq.toList |> combine
+    member x.Variables = resolver.Resolve model_type |> Seq.toList |> combine
+
+    member x.Resolver = resolver
     
 /// A representation of a node of the template abstract syntax tree    
 type INode =

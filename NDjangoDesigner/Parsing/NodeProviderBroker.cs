@@ -33,6 +33,9 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using NDjango.Interfaces;
+using IOLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using System.ComponentModel.Design;
+using Microsoft.VisualStudio.Shell.Design;
 
 namespace NDjango.Designer.Parsing
 {
@@ -127,8 +130,14 @@ namespace NDjango.Designer.Parsing
                 serviceProvider = value;
                 taskList = new TaskProvider(serviceProvider);
                 rdt = GetService<IVsRunningDocumentTable>(typeof(SVsRunningDocumentTable));
+                typeService = GetService<DynamicTypeService>();
                 ErrorHandler.ThrowOnFailure(rdt.AdviseRunningDocTableEvents(this, out rdtEventsCookie));
             }
+        }
+
+        private T GetService<T>()
+        {
+            return (T)ServiceProvider.GetService(typeof(T));
         }
 
         private T GetService<T>(Type serviceType)
@@ -221,7 +230,7 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="template">a reader with the template</param>
         /// <returns>A list of the syntax nodes</returns>
-        public Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template)
+        public Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template, ITypeResolver)
         {
             return parser.ParseTemplate(template);
         }
@@ -258,7 +267,21 @@ namespace NDjango.Designer.Parsing
             NodeProvider provider;
             if (!buffer.Properties.TryGetProperty(typeof(NodeProvider), out provider))
             {
-                provider = new NodeProvider(this, buffer);
+                var adapter = editorFactoryService.GetBufferAdapter(buffer);
+                string filename;
+                uint format;
+                ErrorHandler.ThrowOnFailure(((IPersistFileFormat)adapter).GetCurFile(out filename, out format));
+
+                IVsHierarchy hier;
+                uint itemId;
+                IntPtr docData;
+                uint cookie;
+                rdt.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, filename, out hier, out itemId, out docData, out cookie);
+                if (IntPtr.Zero != docData)
+                    Marshal.Release(docData);
+
+
+                provider = new NodeProvider(this, buffer, typeService.GetContextTypeResolver(hier), typeService.GetTypeResolutionService(hier));
                 buffer.Properties.AddProperty(typeof(NodeProvider), provider);
             }
             return provider;
@@ -270,6 +293,8 @@ namespace NDjango.Designer.Parsing
         IVsRunningDocumentTable rdt;
 
         uint rdtEventsCookie;
+
+        DynamicTypeService typeService;
 
 
         #region IVsRunningDocTableEvents Members

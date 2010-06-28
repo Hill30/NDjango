@@ -33,12 +33,12 @@ module internal ASTNodes =
     /// retrieves a template given the template name. The name is supplied as a FilterExpression
     /// which when resolved should eithter get a ready to use template, or a string (url)
     /// to the source code for the template
-    let get_template (manager:ITemplateManager) (templateRef:FilterExpression) context =
+    let get_template (manager:ITemplateManager) resolver (templateRef:FilterExpression) context =
         match fst (templateRef.Resolve context false) with  // ignoreFailures is false because we have to have a name.
         | Some o -> 
             match o with
             | :? ITemplate as template -> template
-            | :? string as name -> manager.GetTemplate name
+            | :? string as name -> manager.GetTemplate ((name, resolver))
             | _ -> raise (RenderingError (sprintf "Invalid template name in 'extends' tag. Can't construct template from %A" o))
         | _ -> raise (RenderingError (sprintf "Invalid template name in 'extends' tag. Variable %A is undefined" templateRef))
 
@@ -161,4 +161,4 @@ module internal ASTNodes =
                 | Some v -> walker.context.add ("__blockmap", (join_replace (v:?> Map<_,_>) (Map.toList blocks) :> obj))
                 | None -> walker.context.add ("__blockmap", (blocks :> obj))
        
-            {walker with nodes=(get_template manager parent context).Nodes; context = context}
+            {walker with nodes=(get_template manager parsing_context.Resolver parent context).Nodes; context = context}

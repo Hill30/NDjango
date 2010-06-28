@@ -31,7 +31,7 @@ open NDjango.Interfaces
 open NDjango.Variables
 open NDjango.Expressions
 open NDjango.ParserNodes
-//open NDjango.TypeResolver
+open NDjango.TypeResolver
 
 module internal For =
 
@@ -313,7 +313,7 @@ module internal For =
 
                 let variable_descriptors =
                     variables |> 
-                        List.filter (fun var -> (snd var).IsNone) |> List.map (fun var -> NDjango.TypeResolver.ValueType(fst var) :> IDjangoType)
+                        List.filter (fun var -> (snd var).IsNone) |> List.map (fun var -> NDjango.TypeResolver.ValueDjangoType(fst var) :> IDjangoType)
                 let variable_descriptors = (ForContextDescriptor(context) :> IDjangoType) :: variable_descriptors
 
                 let node_list_body, remaining = 

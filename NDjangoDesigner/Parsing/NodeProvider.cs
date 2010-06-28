@@ -29,6 +29,8 @@ using Microsoft.VisualStudio.Text;
 using NDjango.Interfaces;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Shell;
+using System.Runtime.Remoting.Messaging;
+using System.ComponentModel.Design;
 
 namespace NDjango.Designer.Parsing
 {
@@ -55,16 +57,23 @@ namespace NDjango.Designer.Parsing
         /// between sequential changes less then PARSING_DELAY, then rebuild process would be invoked only once.
         /// </summary>
         private Timer parserTimer;
-        
+
+        private IDisposable resolver_container;
+
+        private ITypeResolutionService type_resolver;
+
         /// <summary>
         /// Creates a new node provider
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider(INodeProviderBroker broker, ITextBuffer buffer)
+        public NodeProvider(INodeProviderBroker broker, ITextBuffer buffer, IDisposable resolver_container, ITypeResolutionService type_resolver)
         {
             Broker = broker;
             this.buffer = buffer;
+            this.resolver_container = resolver_container;
+            this.type_resolver = type_resolver;
+
             FilePath = ((ITextDocument)buffer.Properties[typeof(ITextDocument)]).FilePath;
 
             buffer.Changed += new EventHandler<TextContentChangedEventArgs>(buffer_Changed);
@@ -130,6 +139,7 @@ namespace NDjango.Designer.Parsing
         private void rebuildNodes(object snapshotObject)
         {
             ITextSnapshot snapshot = (ITextSnapshot)snapshotObject;
+            CallContext.SetData(typeof(TypeResolver).FullName, type_resolver);
             List<DesignerNode> nodes = Broker.ParseTemplate(new SnapshotReader(snapshot))
                 .Aggregate(
                     new List<DesignerNode>(),
@@ -251,7 +261,8 @@ namespace NDjango.Designer.Parsing
 
         internal void Dispose()
         {
-            nodes.ForEach(node => node.Dispose()); 
+            nodes.ForEach(node => node.Dispose());
+            resolver_container.Dispose();
         }
     }
 }

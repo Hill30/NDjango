@@ -26,14 +26,11 @@ open NDjango.Expressions
 
 module TypeResolver =
     
-    type ITypeResolver =
-        abstract member Resolve: type_name: string -> IDjangoType seq
-        
-    type DefaultTypeResolver() =
+   type DefaultTypeResolver() =
         interface ITypeResolver with
             member x.Resolve type_name = [] |> List.toSeq
             
-    let private resolver = 
+   let private resolver = 
         let resolver_type =
             System.AppDomain.CurrentDomain.GetAssemblies() |> 
                 Array.tryPick 
@@ -52,9 +49,9 @@ module TypeResolver =
         | Some resolver_type -> System.Activator.CreateInstance(resolver_type) :?> ITypeResolver
         | None -> DefaultTypeResolver() :> ITypeResolver
     
-    let Resolve = resolver.Resolve
+   let Resolve = resolver.Resolve
         
-    type ValueType(name) =
+   type ValueDjangoType(name) =
         interface IDjangoType with
             member x.Name = name
             member x.Type = DjangoType.Value

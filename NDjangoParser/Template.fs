@@ -31,18 +31,19 @@ open NDjango.Filters
 open NDjango.Constants
 open NDjango.Tags
 open NDjango.Tags.Misc
+open NDjango.TypeResolver
 
 module internal Template =    
-
 
     type internal Manager(provider:ITemplateManagerProvider, templates) =
         
         let templates = ref(templates)
         
-        let load_template name validated =
+        let load_template template validated =
+            let name, _ = template
             let tr = 
-                if validated then provider.LoadTemplate name
-                else provider.GetTemplate name
+                if validated then provider.LoadTemplate template
+                else provider.GetTemplate template
             templates := Map.add name tr !templates
             fst tr
 
@@ -54,21 +55,36 @@ module internal Template =
             member x.RenderTemplate (name, context) =
                 ((x :>ITemplateManager).GetTemplate name).Walk x context
 
-            member x.GetTemplate name =
+            member x.RenderTemplate (name, resolver, context) =
+                ((x :>ITemplateManager).GetTemplate ((name, resolver))).Walk x context
+
+            member x.GetTemplate template =
+                let name, _ = template
                 match Map.tryFind name !templates with
-                | Some (template, ts) -> 
-                    if validate_template (name, ts) then
-                       load_template name true
+                | Some (t, timestamp) -> 
+                    if validate_template (name, timestamp) then
+                       load_template template true
                     else
-                       template
+                       t
                 | None ->
-                       load_template name false
+                       load_template template false
+        
+            member x.GetTemplate name =
+                let template = (name, (new DefaultTypeResolver() :> ITypeResolver))
+                match Map.tryFind name !templates with
+                | Some (t, timestamp) -> 
+                    if validate_template (name, timestamp) then
+                       load_template template true
+                    else
+                       t
+                | None ->
+                       load_template template false
         
             
     /// Implements the template (ITemplate interface)
-    and internal Impl(provider : ITemplateManagerProvider, template: TextReader) =
+    and internal Impl(provider : ITemplateManagerProvider, template: TextReader, resolver) =
         
-        let node_list = (provider :?> IParser).ParseTemplate template
+        let node_list = (provider :?> IParser).ParseTemplate ((template, resolver))
         interface ITemplate with
             member this.Walk manager context=
                 new NDjango.ASTWalker.Reader (
