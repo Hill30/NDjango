@@ -22,24 +22,58 @@
 namespace NDjango
 
 open NDjango.Interfaces
+open NDjango.Expressions
 
 module TypeResolver =
     
     type ITypeResolver =
         abstract member Resolve: type_name: string -> IDjangoType list
         
+    type AnotherTypeResolver() =
+        interface ITypeResolver with
+            member x.Resolve type_name = []
+            
     type DefaultTypeResolver() =
         interface ITypeResolver with
             member x.Resolve type_name = []
             
+    let private resolver = 
+        let resolver_type =
+            System.AppDomain.CurrentDomain.GetAssemblies() |> 
+                Array.tryPick 
+                    (fun assembly ->
+                        if not (assembly.FullName.StartsWith("NDjango")) then None
+                        else assembly.GetTypes() |>
+                                Array.tryPick
+                                    (fun clrType ->
+                                        if clrType = typeof<DefaultTypeResolver> then None
+                                        else if clrType = typeof<ITypeResolver> then None
+                                        else if typeof<ITypeResolver>.IsAssignableFrom(clrType) then Some clrType
+                                        else None
+                                    )
+                        )
+        match resolver_type with
+        | Some resolver_type -> System.Activator.CreateInstance(resolver_type) :?> ITypeResolver
+        | None -> DefaultTypeResolver() :> ITypeResolver
+    
+    let Resolve = resolver.Resolve
+        
     type ValueType(name) =
         interface IDjangoType with
             member x.Name = name
             member x.Type = DjangoType.Value
             member x.Members = Seq.empty
-            
-    let private resolver = DefaultTypeResolver() :> ITypeResolver
-    
-    let Resolve = resolver.Resolve
-        
+
+    type CLRTypeMember(expression: FilterExpression, member_name:string) =
+        interface IDjangoType with
+            member x.Name = member_name
+            member x.Type = DjangoType.Value
+            member x.Members = Seq.empty
+
+    type CLRType(name, type_name) =
+        interface IDjangoType with
+            member x.Name = name
+            member x.Type = DjangoType.Type
+            member x.Members = Resolve type_name |> Seq.ofList
+           
     

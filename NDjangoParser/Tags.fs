@@ -31,6 +31,7 @@ open NDjango.ASTNodes
 open NDjango.Variables
 open NDjango.Expressions
 open NDjango.ParserNodes
+open NDjango.TypeResolver
 
 module internal Misc =
 
@@ -443,16 +444,31 @@ module internal Misc =
         interface ITag with
             member x.is_header_tag = false
             member this.Perform token context tokens =
-                let nodes, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endwith"]))
-                match token.Args with
-                | var::MatchToken("as")::name::[] ->
-                    let expression = new FilterExpression(context, var)
+                let expression, name =
+                    match token.Args with
+                    | var::MatchToken("as")::name::[] ->
+                        Some (FilterExpression(context, var)), name.RawText
+                    | _ -> None, ""
+                let extra_vars =
+                    match expression with
+                    | Some expression -> [CLRTypeMember(expression, name):>IDjangoType]
+                    | None -> []
+                let nodes, remaining = 
+                    (context.Provider :?> IParser).Parse 
+                        (Some token) 
+                        tokens 
+                        (context
+                            .WithClosures(["endwith"])
+                            .WithExtraVariables(extra_vars)
+                        )
+                match expression with
+                | Some expression ->
                     (({
                         new TagNode(context, token) with
                             override this.walk manager walker = 
                                 let context = 
                                     match fst <| expression.Resolve walker.context false with
-                                    | Some v -> walker.context.add(name.RawText, v)
+                                    | Some v -> walker.context.add(name, v)
                                     | None -> walker.context
                                 {walker with 
                                     parent=Some walker; 
