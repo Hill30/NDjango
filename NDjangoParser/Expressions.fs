@@ -124,7 +124,7 @@ module Expressions =
                         if offset < mtch.Index 
                         then
                             raise (SyntaxError 
-                                        (sprintf "Could not parse some characters %s|%s|%s" 
+                                        (sprintf "Could not parse some characters %s>%s<%s" 
                                             expression_text.[..offset-1] 
                                             expression_text.[offset..mtch.Index] 
                                             expression_text.[mtch.Index..]
@@ -150,6 +150,11 @@ module Expressions =
                     | _ -> reraise()
                 ) 
                 (0, Error.None, None, [])
+
+        let variable =
+            match variable with 
+            | Some v -> v
+            | None -> new Variable(context, expression)
         
         // check if we reached the end of the expression string        
         let error = 
@@ -172,20 +177,16 @@ module Expressions =
         /// if ignoreFailures is true, None is returned for failed expressions, otherwise an exception is thrown.
         member this.Resolve (context: IContext) ignoreFailures =
             let resolved_value =
-                match variable with 
-                | Some v -> 
-                    try
-                        let result = v.Resolve context
-                        (Some (fst <| result), snd <| result)
-                    with
-                        | _ as exc -> 
-                            if ignoreFailures then
-                                (None, false)
-                            else
-                                reraise()
-                 | None ->
-                    raise (SyntaxException(error.Message, Text expression))
-            
+                try
+                    let result = variable.Resolve context
+                    (Some (fst <| result), snd <| result)
+                with
+                    | _ as exc -> 
+                        if ignoreFailures then
+                            (None, false)
+                        else
+                            reraise()
+
             filters |> List.fold 
                 (fun input filter ->
                     match fst input with
@@ -243,9 +244,7 @@ module Expressions =
                 let elements = 
                     filters |> Seq.ofList |> Seq.map (fun f -> f:>INode) 
                 let elements =
-                    match variable with
-                    | Some v -> [(v :> INode)] |> Seq.append elements
-                    | None -> elements 
+                    [variable :> INode] |> Seq.append elements
                 new Map<string, IEnumerable<INode>>([]) 
                     |> Map.add Constants.NODELIST_TAG_ELEMENTS elements 
                         :> IDictionary<string, IEnumerable<INode>>

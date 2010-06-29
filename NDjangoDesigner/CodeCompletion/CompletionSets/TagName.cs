@@ -11,9 +11,9 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
     /// <summary>
     /// Represents a list of completions for available tag names
     /// </summary>
-    class TagNameCompletionSet : AbstractCompletionSet
+    class TagName : AbstractCompletionSet
     {
-        internal TagNameCompletionSet(Source source, DesignerNode node, SnapshotPoint point)
+        internal TagName(Source source, DesignerNode node, SnapshotPoint point)
             : base(source, node, point)
         { }
 

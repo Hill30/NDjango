@@ -9,10 +9,10 @@ using NDjango.Interfaces;
 
 namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
-    class TemplateNameCompletionSet: AbstractCompletionSet
+    class TemplateName: AbstractCompletionSet
     {
         char quote_char;
-        public TemplateNameCompletionSet() { }
+        public TemplateName() { }
 
         protected override void Initialize(Source source, DesignerNode node, SnapshotPoint point)
         {

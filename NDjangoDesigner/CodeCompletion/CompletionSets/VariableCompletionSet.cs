@@ -11,7 +11,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
     /// <summary>
     /// Builds completion sets for 'django variable' constructs
     /// </summary>
-    class VariableCompletionSet : AbstractMemberCompletionSet
+    class VariableCompletionSet : AbstractMember
     {
         protected override string Prefix { get { return "{ "; } }
 

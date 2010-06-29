@@ -88,10 +88,15 @@ namespace NDjango.Designer.CodeCompletion
                             );
 
                 case CompletionContext.FilterName:
-                    return AbstractCompletionSet.Create<FilterCompletionSet>(
+                    return AbstractCompletionSet.Create<FilterName>(
                         this, point,
                             nodeProvider.GetNodes(point, n => n.NodeType == NodeType.ParsingContext).FindLast(n => true)
                             );
+
+                case CompletionContext.FilterArgument:
+                    return AbstractCompletionSet.Create<FilterArgument>(
+                        this, point,
+                        nodeProvider.GetNodes(point, n => n.NodeType == NodeType.Filter).FindLast(n => true));
 
                 case CompletionContext.Word:
                     // Get the list of all nodes with non-empty value lists
@@ -101,19 +106,19 @@ namespace NDjango.Designer.CodeCompletion
                     if (node == null)
                         return null;
                     if (node.NodeType == NodeType.Reference)
-                        return AbstractCompletionSet.Create<MemberCompletionSet>(this, point, node);
+                        return AbstractCompletionSet.Create<Member>(this, point, node);
                     if (node.NodeType == NodeType.TagName)
-                        return new TagNameCompletionSet(this, node, point);
+                        return new TagName(this, node, point);
                     return new ValueCompletionSet(this, node, point);
 
                 case CompletionContext.NewMemberReference:
-                    return AbstractCompletionSet.Create<NewMemberCompletionSet>(
+                    return AbstractCompletionSet.Create<NewMember>(
                         this, point,
                         nodeProvider.GetNodes(point, n => n.NodeType == NodeType.Reference).FindLast(n => true));
 
                 case CompletionContext.AposString:
                 case CompletionContext.QuotedString:
-                    return AbstractCompletionSet.Create<TemplateNameCompletionSet>(
+                    return AbstractCompletionSet.Create<TemplateName>(
                         this, point, 
                         nodeProvider.GetNodes(point, n => n.NodeType == NodeType.TemplateName).FindLast(n=>true));
 

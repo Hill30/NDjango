@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
-    class MemberCompletionSet : AbstractMemberCompletionSet
+    class Member : AbstractMember
     {
         /// <summary>
         /// returns the text to prepend to the name of the selected member

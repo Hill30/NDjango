@@ -111,12 +111,13 @@
     </Compile>
     <Compile Include="Classifiers\Highlighter.cs" />
     <Compile Include="CodeCompletion\CompletionSets\AbstractCompletionSet.cs" />
-    <Compile Include="CodeCompletion\CompletionSets\FilterCompletionSet.cs" />
-    <Compile Include="CodeCompletion\CompletionSets\AbstractMemberCompletionSet.cs" />
-    <Compile Include="CodeCompletion\CompletionSets\MemberCompletionSet.cs" />
-    <Compile Include="CodeCompletion\CompletionSets\NewMemberCompletionSet.cs" />
-    <Compile Include="CodeCompletion\CompletionSets\TagNameCompletionSet.cs" />
-    <Compile Include="CodeCompletion\CompletionSets\TemplateNameCompletionSet.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\FilterArgument.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\FilterName.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\AbstractMember.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\Member.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\NewMember.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\TagName.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\TemplateName.cs" />
     <Compile Include="CodeCompletion\CompletionSets\ValueCompletionSet.cs" />
     <Compile Include="CodeCompletion\CompletionSets\VariableCompletionSet.cs" />
     <Compile Include="CodeCompletion\Controller.cs" />

@@ -114,7 +114,7 @@ module internal Misc =
                 | name::[] -> 
                     (new TagNode(context, token) :> INodeImpl), context.WithModelType(name.RawText), tokens
                 | _ ->
-                    raise (SyntaxError("block tag requires exactly one argument"))
+                    raise (SyntaxError("model tag requires exactly one argument"))
 
     /// Outputs the first variable passed that is not False.
     /// 

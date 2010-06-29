@@ -356,6 +356,9 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
                 case '|':
                     return CompletionContext.FilterName;
 
+                case ':':
+                    return CompletionContext.FilterArgument;
+
                 case '\'':
                     return CompletionContext.AposString;
 
@@ -391,6 +394,11 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         FilterName,
 
         /// <summary>
+        /// A filter argument context - triggered by ':'
+        /// </summary>
+        FilterArgument,
+
+        /// <summary>
         /// A new variable context - triggered if a '{' is entered right after '{'
         /// </summary>
         Variable,
@@ -400,10 +408,19 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         /// </summary>
         Word,
 
+        /// <summary>
+        /// A new member on a variable - triggered by '.'
+        /// </summary>
         NewMemberReference,
-
+        
+        /// <summary>
+        /// Start of a string literal - triggered by '"'
+        /// </summary>
         QuotedString,
 
+        /// <summary>
+        /// Start of a string literal - triggered by '''
+        /// </summary>
         AposString,
 
         /// <summary>

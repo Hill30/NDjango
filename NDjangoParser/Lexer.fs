@@ -263,7 +263,7 @@ module Lexer =
 
         let expression = 
             let body, location = block_body text location
-            if (body = "") then raise (LexerError("Empty variable block"))
+            //if (body = "") then raise (LexerError("Empty variable block"))
             new TextToken(body, location)
         
         /// <summary>

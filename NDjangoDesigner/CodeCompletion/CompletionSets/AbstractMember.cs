@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
-    abstract class AbstractMemberCompletionSet : AbstractCompletionSet
+    abstract class AbstractMember : AbstractCompletionSet
     {
         string[] facets;
 

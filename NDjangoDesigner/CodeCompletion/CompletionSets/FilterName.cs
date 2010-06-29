@@ -11,10 +11,10 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
     /// <summary>
     /// Represents a list of completions for available filter names
     /// </summary>
-    class FilterCompletionSet : AbstractCompletionSet
+    class FilterName : AbstractCompletionSet
     {
 
-        public FilterCompletionSet() { }
+        public FilterName() { }
 
         protected override int FilterOffset { get { return 1; } }
 
