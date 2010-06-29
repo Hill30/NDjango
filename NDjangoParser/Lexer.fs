@@ -211,7 +211,8 @@ module Lexer =
     /// </summary>
     let block_body (text:string) (location:Location) = 
         let body = text.[2..text.Length-3].Trim()
-        body, new Location(location, (text.IndexOf body, body.Length))
+        let text = text.[2..]
+        body, new Location(location, (2 + text.IndexOf body, body.Length))
     
     /// <summary>
     /// RegExp to locate the tag fragments: the tag name and tag arguments by splitting the text into pieces by whitespaces
