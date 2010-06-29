@@ -23,35 +23,11 @@ namespace NDjango
 
 open NDjango.Interfaces
 open NDjango.Expressions
+open System.Reflection
 
 module TypeResolver =
     
-   type DefaultTypeResolver() =
-        interface ITypeResolver with
-            member x.Resolve type_name = [] |> List.toSeq
-            
-   let private resolver = 
-        let resolver_type =
-            System.AppDomain.CurrentDomain.GetAssemblies() |> 
-                Array.tryPick 
-                    (fun assembly ->
-                        if not (assembly.FullName.StartsWith("NDjango")) then None
-                        else assembly.GetTypes() |>
-                                Array.tryPick
-                                    (fun clrType ->
-                                        if clrType = typeof<DefaultTypeResolver> then None
-                                        else if clrType = typeof<ITypeResolver> then None
-                                        else if typeof<ITypeResolver>.IsAssignableFrom(clrType) then Some clrType
-                                        else None
-                                    )
-                        )
-        match resolver_type with
-        | Some resolver_type -> System.Activator.CreateInstance(resolver_type) :?> ITypeResolver
-        | None -> DefaultTypeResolver() :> ITypeResolver
-    
-   let Resolve = resolver.Resolve
-        
-   type ValueDjangoType(name) =
+    type ValueDjangoType(name) =
         interface IDjangoType with
             member x.Name = name
             member x.Type = DjangoType.Value
@@ -63,10 +39,55 @@ module TypeResolver =
             member x.Type = DjangoType.Value
             member x.Members = Seq.empty
 
-    type CLRType(name, type_name) =
+    type TypedValueDjangoType(name, _type) =
+        
+        let resolve (_type:System.Type) =
+
+            let build_descriptor name _type mbrs =
+                let result = TypedValueDjangoType(name, _type) :> IDjangoType
+                [result] |> List.toSeq |> Seq.append mbrs
+
+
+            let validate_method (_method:MethodInfo) = 
+                if _method.ContainsGenericParameters then false
+                else if _method.IsGenericMethodDefinition then false
+                else if _method.IsGenericMethod then false
+                else if _method.IsConstructor then false
+                else if _method.GetParameters().Length > 0 then false
+                else if _method.ReturnType = null then false
+                else true
+                    
+
+            if _type = null then Seq.empty
+            else
+                _type.GetMembers() |>
+                Array.toSeq |>
+                Seq.fold 
+                    (fun mbrs mbr ->
+                        match mbr.MemberType with
+                        | MemberTypes.Field -> build_descriptor mbr.Name (mbr :?> FieldInfo).FieldType mbrs
+                        | MemberTypes.Property -> build_descriptor mbr.Name (mbr :?> PropertyInfo).PropertyType mbrs
+                        | MemberTypes.Method when validate_method (mbr :?> MethodInfo) -> 
+                            build_descriptor mbr.Name (mbr :?> MethodInfo).ReturnType mbrs
+                        | _ -> mbrs
+                        ) 
+                    Seq.empty
+
         interface IDjangoType with
             member x.Name = name
-            member x.Type = DjangoType.Type
-            member x.Members = Resolve type_name
-           
-    
+            member x.Type = DjangoType.Value
+            member x.Members = resolve _type
+
+    type AbstractTypeResolver() =
+        
+        abstract member GetType: string -> System.Type
+        default x.GetType type_name : System.Type = null
+        
+        interface ITypeResolver with
+            member x.Resolve name = 
+               (TypedValueDjangoType("", x.GetType(name)) :> IDjangoType).Members
+
+    type DefaultTypeResolver() =
+        interface ITypeResolver with
+            member x.Resolve type_name = [] |> List.toSeq
+            

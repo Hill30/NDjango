@@ -190,14 +190,14 @@ type ITemplateManager =
     
     /// given the path to the template and context returns the <see cref="System.IO.TextReader"/> 
     /// that will stream out the results of the render.
-    abstract member RenderTemplate: path:string * context:IDictionary<string, obj> -> TextReader
-    
+    abstract member RenderTemplate: path:string * resolver:ITypeResolver * context:IDictionary<string, obj> -> TextReader
+
     /// given the path to the template and context returns the <see cref="System.IO.TextReader"/> 
     /// that will stream out the results of the render.
-    abstract member RenderTemplate: path:string * ITypeResolver * context:IDictionary<string, obj> -> TextReader
-
+    abstract member RenderTemplate: path:string * context:IDictionary<string, obj> -> TextReader
+    
     /// given the path to the template and context returns the template implementation
-    abstract member GetTemplate: template:(string * ITypeResolver) -> ITemplate
+    abstract member GetTemplate: template:string * resolver:ITypeResolver -> ITemplate
 
     /// given the path to the template and context returns the template implementation
     abstract member GetTemplate: template:string -> ITemplate
@@ -244,10 +244,10 @@ type IParser =
     abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> context:ParsingContext -> (INodeImpl list * LazyList<Lexer.Token>)
    
     /// Parses the template From the source in the reader into the node list
-    abstract member ParseTemplate: template:(TextReader) -> INodeImpl list
+    abstract member ParseTemplate: template:TextReader * resolver:ITypeResolver -> INodeImpl list
    
     /// Parses the template From the source in the reader into the node list
-    abstract member ParseTemplate: template:(TextReader * ITypeResolver) -> INodeImpl list
+    abstract member ParseTemplate: template:TextReader -> INodeImpl list
    
     /// Produces an uncommited token list as a result of parsing until
     /// a block from the string list is encotuntered

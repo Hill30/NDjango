@@ -60,7 +60,7 @@ namespace NDjango.Designer.Parsing
 
         private IDisposable resolver_container;
 
-        private ITypeResolutionService type_resolver;
+        private ITypeResolver type_resolver;
 
         /// <summary>
         /// Creates a new node provider
@@ -72,7 +72,7 @@ namespace NDjango.Designer.Parsing
             Broker = broker;
             this.buffer = buffer;
             this.resolver_container = resolver_container;
-            this.type_resolver = type_resolver;
+            this.type_resolver = new TypeResolver(type_resolver);
 
             FilePath = ((ITextDocument)buffer.Properties[typeof(ITextDocument)]).FilePath;
 
@@ -139,8 +139,7 @@ namespace NDjango.Designer.Parsing
         private void rebuildNodes(object snapshotObject)
         {
             ITextSnapshot snapshot = (ITextSnapshot)snapshotObject;
-            CallContext.SetData(typeof(TypeResolver).FullName, type_resolver);
-            List<DesignerNode> nodes = Broker.ParseTemplate(new SnapshotReader(snapshot))
+            List<DesignerNode> nodes = Broker.ParseTemplate(new SnapshotReader(snapshot), type_resolver)
                 .Aggregate(
                     new List<DesignerNode>(),
                     (list, node) => { list.Add(CreateDesignerNode(null, snapshot, (INode)node)); return list; }

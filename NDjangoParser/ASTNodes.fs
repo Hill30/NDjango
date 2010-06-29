@@ -38,7 +38,7 @@ module internal ASTNodes =
         | Some o -> 
             match o with
             | :? ITemplate as template -> template
-            | :? string as name -> manager.GetTemplate ((name, resolver))
+            | :? string as name -> manager.GetTemplate(name, resolver)
             | _ -> raise (RenderingError (sprintf "Invalid template name in 'extends' tag. Can't construct template from %A" o))
         | _ -> raise (RenderingError (sprintf "Invalid template name in 'extends' tag. Variable %A is undefined" templateRef))
 

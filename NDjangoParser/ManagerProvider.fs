@@ -451,11 +451,10 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
         
         /// Parses the template From the source in the reader into the node list
         member x.ParseTemplate template = 
-            (x :> IParser).ParseTemplate ((template, new NDjango.TypeResolver.DefaultTypeResolver() :> ITypeResolver))
+            (x :> IParser).ParseTemplate (template, new NDjango.TypeResolver.DefaultTypeResolver() :> ITypeResolver)
 
         /// Parses the template From the source in the reader into the node list
-        member x.ParseTemplate template =
-            let template, resolver = template
+        member x.ParseTemplate (template, resolver) =
             // this will cause the TextReader to be closed when the template goes out of scope
             use template = template
             (x :> IParser).Parse None (NDjango.Lexer.tokenize template) (ParsingContext(x, resolver)) |> fst

@@ -6,22 +6,22 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Design;
 using System.Runtime.Remoting.Messaging;
+using System.Reflection;
 
 namespace NDjango.Designer.Parsing
 {
-    public class TypeResolver : NDjango.Interfaces.ITypeResolver
+    public class TypeResolver : NDjango.TypeResolver.AbstractTypeResolver
     {
-
-        #region ITypeResolver Members
-
-        public IEnumerable<Interfaces.IDjangoType> Resolve(string type_name)
+        ITypeResolutionService type_resolver;
+        public TypeResolver(ITypeResolutionService type_resolver)
         {
-            var type_resolver = (ITypeResolutionService)CallContext.GetData(typeof(TypeResolver).FullName);
-            var type = type_resolver.GetType(type_name);
-            foreach (var member in type.GetMembers())
-                yield return new NDjango.TypeResolver.ValueDjangoType(member.Name);
+            this.type_resolver = type_resolver;
         }
 
-        #endregion
+        public override Type GetType(string type_name)
+        {
+            return type_resolver.GetType(type_name);
+        }
+
     }
 }

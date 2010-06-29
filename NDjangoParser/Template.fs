@@ -49,25 +49,24 @@ module internal Template =
 
         let validate_template = 
             if (provider.Settings.[Constants.RELOAD_IF_UPDATED] :?> bool) then provider.Loader.IsUpdated
-            else (fun (name,ts) -> false) 
+            else (fun (name, ts) -> false) 
         
         interface ITemplateManager with
             member x.RenderTemplate (name, context) =
                 ((x :>ITemplateManager).GetTemplate name).Walk x context
 
             member x.RenderTemplate (name, resolver, context) =
-                ((x :>ITemplateManager).GetTemplate ((name, resolver))).Walk x context
+                ((x :>ITemplateManager).GetTemplate (name, resolver)).Walk x context
 
-            member x.GetTemplate template =
-                let name, _ = template
+            member x.GetTemplate(name, resolver) =
                 match Map.tryFind name !templates with
-                | Some (t, timestamp) -> 
+                | Some (template, timestamp) -> 
                     if validate_template (name, timestamp) then
-                       load_template template true
+                       load_template (name, resolver) true
                     else
-                       t
+                       template
                 | None ->
-                       load_template template false
+                       load_template (name, resolver) false
         
             member x.GetTemplate name =
                 let template = (name, (new DefaultTypeResolver() :> ITypeResolver))
@@ -84,7 +83,7 @@ module internal Template =
     /// Implements the template (ITemplate interface)
     and internal Impl(provider : ITemplateManagerProvider, template: TextReader, resolver) =
         
-        let node_list = (provider :?> IParser).ParseTemplate ((template, resolver))
+        let node_list = (provider :?> IParser).ParseTemplate(template, resolver)
         interface ITemplate with
             member this.Walk manager context=
                 new NDjango.ASTWalker.Reader (

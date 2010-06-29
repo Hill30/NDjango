@@ -44,7 +44,7 @@ namespace NDjango.Designer.Parsing
     {
         NodeProvider GetNodeProvider(ITextBuffer buffer);
         bool IsNDjango(ITextBuffer buffer);
-        Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template);
+        Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template, ITypeResolver resolver);
         void ShowDiagnostics(ErrorTask task);
         void RemoveDiagnostics(ErrorTask task);
         ITemplateManager TemplateManager { get; }
@@ -230,9 +230,9 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="template">a reader with the template</param>
         /// <returns>A list of the syntax nodes</returns>
-        public Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template, ITypeResolver)
+        public Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template, ITypeResolver resolver)
         {
-            return parser.ParseTemplate(template);
+            return parser.ParseTemplate(template, resolver);
         }
 
         /// <summary>
