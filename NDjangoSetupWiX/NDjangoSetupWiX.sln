@@ -1,20 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "NDjangoSetupWiX2008", "NDjangoSetupWiX2008.wixproj", "{7EDCF53C-2150-4A6F-A60D-4B0870922EE2}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4} = {B75384C4-C545-4511-A7FE-93D438B8AFA4}
-	EndProjectSection
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NDjangoParser2008", "..\NDjangoParser\NDjangoParser2008.fsproj", "{B75384C4-C545-4511-A7FE-93D438B8AFA4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoParserFilters2008", "..\NDjangoParserFilters\NDjangoParserFilters2008.csproj", "{89DC9575-C706-4D0D-944A-79E5865FFE88}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVCIntegration2008", "..\..\Integration\ASP.MVC\ASPMVCIntegration2008.csproj", "{F8D5E545-691B-4743-9177-3FF50CC67E74}"
-	ProjectSection(ProjectDependencies) = postProject
-		{89DC9575-C706-4D0D-944A-79E5865FFE88} = {89DC9575-C706-4D0D-944A-79E5865FFE88}
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4} = {B75384C4-C545-4511-A7FE-93D438B8AFA4}
-	EndProjectSection
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "NDjangoSetupWiX", "NDjangoSetupWiX.wixproj", "{7EDCF53C-2150-4A6F-A60D-4B0870922EE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,36 +23,6 @@ Global
 		{7EDCF53C-2150-4A6F-A60D-4B0870922EE2}.Release|Mixed Platforms.Build.0 = Release|x86
 		{7EDCF53C-2150-4A6F-A60D-4B0870922EE2}.Release|x86.ActiveCfg = Release|x86
 		{7EDCF53C-2150-4A6F-A60D-4B0870922EE2}.Release|x86.Build.0 = Release|x86
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{B75384C4-C545-4511-A7FE-93D438B8AFA4}.Release|x86.ActiveCfg = Release|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|Any CPU.Build.0 = Release|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{89DC9575-C706-4D0D-944A-79E5865FFE88}.Release|x86.ActiveCfg = Release|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{F8D5E545-691B-4743-9177-3FF50CC67E74}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
