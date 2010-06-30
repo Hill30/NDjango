@@ -101,19 +101,39 @@ module internal For =
         parentloop:  obj
         }
 
-    type private ForContextDescriptor(parent:ParsingContext) =
+    type private ParentContextDescriptor(orig: IDjangoType) =
+        interface IDjangoType with
+            member x.Name = "parent"
+            member x.Type = DjangoType.LoopDescriptor
+            member x.Members = orig.Members
+
+    and private ForContextDescriptor(context) =
         interface IDjangoType with
             member x.Name = "forloop"
-            member x.Type = DjangoType.Value
-            member x.Members = 
+            member x.Type = DjangoType.LoopDescriptor
+            member x.Members =
+                
+                let rec parent_lookup (context:ParsingContext) =
+                    match context.Variables |> List.tryFind (fun var -> var.Type = DjangoType.LoopDescriptor) with
+                    | Some forloop -> Some forloop
+                    | None -> 
+                        match context.Parent with
+                        | Some context -> parent_lookup context
+                        | None -> None
+
+                let parent = 
+                    match parent_lookup context with
+                    | Some parent -> Seq.ofList [ParentContextDescriptor(parent) :> IDjangoType]
+                    | None -> Seq.empty
+
                 seq [
-                    ValueDjangoType("counter");
-                    ValueDjangoType("counter0");
-                    ValueDjangoType("revcounter");
-                    ValueDjangoType("revcounter0");
-                    ValueDjangoType("first");
-                    ValueDjangoType("last");
-                    ]
+                    ValueDjangoType("counter") :> IDjangoType;
+                    ValueDjangoType("counter0") :> IDjangoType;
+                    ValueDjangoType("revcounter") :> IDjangoType;
+                    ValueDjangoType("revcounter0") :> IDjangoType;
+                    ValueDjangoType("first") :> IDjangoType;
+                    ValueDjangoType("last") :> IDjangoType;
+                    ] |> Seq.append parent
     
     type TagNode(
                 provider,

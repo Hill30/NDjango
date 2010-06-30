@@ -168,6 +168,8 @@ type IContext =
     
 type DjangoType =
     | Type
+    | LoopDescriptor
+
     | DjangoType
     | Dictionary
     | List
@@ -301,8 +303,13 @@ and ITag =
 /// Parsing context is a container for information specific to the tag being parsed
 and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, parent, closures: string list, is_in_header, model_type, vars: IDjangoType list) =
     
-    let combine extra_vars =
-        vars |> List.filter (fun var -> List.contains var <| vars) |> List.append extra_vars 
+    let combine (vars:IDjangoType list) (extra_vars:IDjangoType list) =
+        vars |> 
+            List.filter 
+                (fun old_var -> 
+                    not (extra_vars |> List.exists (fun new_var -> old_var.Name = new_var.Name))
+                    ) 
+        |> List.append extra_vars 
 
     new (provider, resolver)
         = new ParsingContext(provider, resolver, None, [], true, "", [])
@@ -317,7 +324,7 @@ and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, 
 
     member 
         x.WithExtraVariables(extra_vars) = 
-            new ParsingContext(provider, resolver, parent, closures, is_in_header, model_type, combine extra_vars)
+            new ParsingContext(provider, resolver, parent, closures, is_in_header, model_type, combine vars extra_vars)
 
     /// a sequence of all registered tag names
     member x.Tags = provider.Tags |> Map.toSeq |> Seq.map (fun tag -> tag |> fst) 
@@ -335,9 +342,11 @@ and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, 
     member x.IsInHeader = is_in_header
     
     /// a list of all variables available in the context
-    member x.Variables = resolver.Resolve model_type |> Seq.toList |> combine
+    member x.Variables = resolver.Resolve model_type |> Seq.toList |> combine vars
 
     member x.Resolver = resolver
+
+    member x.Parent = parent
     
 /// A representation of a node of the template abstract syntax tree    
 type INode =
