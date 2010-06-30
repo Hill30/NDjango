@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Vsix Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
+  <Identifier Id="NDjangoDesigner.Hill30.c025f4a8-7b64-4151-a02b-2211842d078f">
+    <Name>NDjangoDesigner</Name>
+    <Author>Hill30</Author>
+    <Version>1.0</Version>
+    <Description>NDjango Template Editor.</Description>
+    <Locale>1033</Locale>
+    <Icon>VSIXProject_small.png</Icon>
+    <PreviewImage>VSIXProject_large.png</PreviewImage>
+    <SupportedProducts>
+      <VisualStudio Version="10.0">
+        <Edition>VST_All</Edition>
+        <Edition>Pro</Edition>
+      </VisualStudio>
+    </SupportedProducts>
+    <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.0"></SupportedFrameworkRuntimeEdition>
+  </Identifier>
+  <References />
+  <Content>
+    <MefComponent>NDjango.Designer.dll</MefComponent>
+  </Content>
+</Vsix>
