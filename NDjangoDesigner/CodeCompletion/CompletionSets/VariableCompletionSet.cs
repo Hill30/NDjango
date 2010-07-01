@@ -13,6 +13,8 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
     /// </summary>
     class VariableCompletionSet : AbstractMember
     {
+        protected override int FilterOffset { get { return 1; } }
+
         protected override string Prefix { get { return "{ "; } }
 
         protected override string Suffix { get { return " }}"; } }

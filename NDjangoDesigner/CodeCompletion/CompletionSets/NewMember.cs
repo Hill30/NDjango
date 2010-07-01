@@ -24,6 +24,8 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             return (span_text + '.').LastIndexOf('.');
         }
 
+        protected override int FilterOffset { get { return 1; } }
+
         protected override string Prefix { get { return "."; } }
 
         /// <summary>

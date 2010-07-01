@@ -38,7 +38,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         {
             if (facets.Count == 1)
                 return members;
-            var instance = Node.Context.Variables.FirstOrDefault(member => member.Name == facets[0]);
+            var instance = members.FirstOrDefault(member => member.Name == facets[0]);
             if (instance == null)
                 return new List<Interfaces.IDjangoType>();
             facets.RemoveAt(0);

@@ -95,6 +95,7 @@ namespace NDjango.Designer.CodeCompletion
                     e.Handled = true;
                     return;
 
+                case Key.Back:
                 case Key.Left:
                     if (textView.Caret.Position.BufferPosition.Position <= triggerPosition)
                         // we went too far to the left
