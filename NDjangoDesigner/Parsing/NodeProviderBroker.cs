@@ -44,7 +44,7 @@ namespace NDjango.Designer.Parsing
     {
         NodeProvider GetNodeProvider(ITextBuffer buffer);
         bool IsNDjango(ITextBuffer buffer);
-        Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template, ITypeResolver resolver);
+        Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(string filename, TextReader template, ITypeResolver resolver);
         void ShowDiagnostics(ErrorTask task);
         void RemoveDiagnostics(ErrorTask task);
         ITemplateManager TemplateManager { get; }
@@ -61,8 +61,8 @@ namespace NDjango.Designer.Parsing
 
         public NodeProviderBroker()
         {
-            parser = InitializeParser();
             template_loader = new TemplateLoader();
+            parser = InitializeParser();
         }
 
         IParser parser;
@@ -99,7 +99,8 @@ namespace NDjango.Designer.Parsing
             return parser
                     .WithTags(tags)
                     .WithFilters(filters)
-                    .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false);
+                    .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false)
+                    .WithLoader(template_loader);
 
         }
 
@@ -233,9 +234,10 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="template">a reader with the template</param>
         /// <returns>A list of the syntax nodes</returns>
-        public Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(TextReader template, ITypeResolver resolver)
+        public Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(string filename, TextReader template, ITypeResolver resolver)
         {
-            return parser.ParseTemplate(template, resolver);
+            return ((TemplateManagerProvider)parser).GetNewManager().GetTemplate(filename).Nodes;
+            //return parser.ParseTemplate(template, resolver);
         }
 
         /// <summary>
@@ -283,7 +285,12 @@ namespace NDjango.Designer.Parsing
                 if (IntPtr.Zero != docData)
                     Marshal.Release(docData);
 
-                provider = new NodeProvider(this, buffer, new TypeResolver(typeService.GetContextTypeResolver(hier), typeService.GetTypeResolutionService(hier)));
+                provider = 
+                    new NodeProvider(
+                        this, 
+                        buffer,
+                        filename,
+                        new TypeResolver(typeService.GetContextTypeResolver(hier), typeService.GetTypeResolutionService(hier)));
                 buffer.Properties.AddProperty(typeof(NodeProvider), provider);
                 template_loader.Register(filename, buffer, provider);
             }

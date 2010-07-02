@@ -60,15 +60,18 @@ namespace NDjango.Designer.Parsing
 
         private TypeResolver type_resolver;
 
+        private string filename;
+
         /// <summary>
         /// Creates a new node provider
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider(INodeProviderBroker broker, ITextBuffer buffer, TypeResolver type_resolver)
+        public NodeProvider(INodeProviderBroker broker, ITextBuffer buffer, string filename, TypeResolver type_resolver)
         {
             Broker = broker;
             this.buffer = buffer;
+            this.filename = filename;
             this.type_resolver = type_resolver;
 
             FilePath = ((ITextDocument)buffer.Properties[typeof(ITextDocument)]).FilePath;
@@ -136,7 +139,7 @@ namespace NDjango.Designer.Parsing
         private void rebuildNodes(object snapshotObject)
         {
             ITextSnapshot snapshot = (ITextSnapshot)snapshotObject;
-            List<DesignerNode> nodes = Broker.ParseTemplate(new SnapshotReader(snapshot), type_resolver)
+            List<DesignerNode> nodes = Broker.ParseTemplate(filename, new SnapshotReader(snapshot), type_resolver)
                 .Aggregate(
                     new List<DesignerNode>(),
                     (list, node) => { list.Add(CreateDesignerNode(null, snapshot, (INode)node)); return list; }
