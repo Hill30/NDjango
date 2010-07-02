@@ -10,12 +10,14 @@ using System.Reflection;
 
 namespace NDjango.Designer.Parsing
 {
-    public class TypeResolver : NDjango.TypeResolver.AbstractTypeResolver
+    public class TypeResolver : NDjango.TypeResolver.AbstractTypeResolver, IDisposable
     {
         ITypeResolutionService type_resolver;
-        public TypeResolver(ITypeResolutionService type_resolver)
+        IDisposable container;
+        public TypeResolver(IDisposable container, ITypeResolutionService type_resolver)
         {
             this.type_resolver = type_resolver;
+            this.container = container;
         }
 
         public override Type GetType(string type_name)
@@ -23,5 +25,14 @@ namespace NDjango.Designer.Parsing
             return type_resolver.GetType(type_name);
         }
 
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            container.Dispose();
+        }
+
+        #endregion
     }
 }

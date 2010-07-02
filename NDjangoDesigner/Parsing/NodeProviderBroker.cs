@@ -62,9 +62,12 @@ namespace NDjango.Designer.Parsing
         public NodeProviderBroker()
         {
             parser = InitializeParser();
+            template_loader = new TemplateLoader();
         }
 
         IParser parser;
+
+        TemplateLoader template_loader;
 
         [Import]
         public ITemplateManager TemplateManager { get; private set; }
@@ -280,9 +283,9 @@ namespace NDjango.Designer.Parsing
                 if (IntPtr.Zero != docData)
                     Marshal.Release(docData);
 
-
-                provider = new NodeProvider(this, buffer, typeService.GetContextTypeResolver(hier), typeService.GetTypeResolutionService(hier));
+                provider = new NodeProvider(this, buffer, new TypeResolver(typeService.GetContextTypeResolver(hier), typeService.GetTypeResolutionService(hier)));
                 buffer.Properties.AddProperty(typeof(NodeProvider), provider);
+                template_loader.Register(filename, buffer, provider);
             }
             return provider;
         }
@@ -292,10 +295,35 @@ namespace NDjango.Designer.Parsing
 
         IVsRunningDocumentTable rdt;
 
+        void ApplyToProvider(Func<IntPtr> docGetter, Action<NodeProvider> action)
+        {
+            var docData = docGetter();
+            try
+            {
+                IVsTextLines textLines = Marshal.GetObjectForIUnknown(docData) as IVsTextLines;
+                if (textLines == null)
+                {
+                    IVsTextBufferProvider vsTextBufferProvider = Marshal.GetObjectForIUnknown(docData) as IVsTextBufferProvider;
+                    if (vsTextBufferProvider != null)
+                        ErrorHandler.ThrowOnFailure(vsTextBufferProvider.GetTextBuffer(out textLines));
+                }
+                if (textLines != null)
+                {
+                    var textBuffer = editorFactoryService.GetDocumentBuffer((IVsTextBuffer)textLines);
+                    NodeProvider provider;
+                    if (textBuffer.Properties.TryGetProperty<NodeProvider>(typeof(NodeProvider), out provider))
+                        action(provider);
+                }
+            }
+            finally
+            {
+                Marshal.Release(docData);
+            }
+        }
+
         uint rdtEventsCookie;
 
         DynamicTypeService typeService;
-
 
         #region IVsRunningDocTableEvents Members
 
@@ -326,50 +354,38 @@ namespace NDjango.Designer.Parsing
 
         int IVsRunningDocTableEvents.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
         {
-        	uint pgrfRDTFlags;
-	        uint pdwReadLocks;
-	        uint pdwEditLocks;
-	        string pbstrMkDocument;
-	        IVsHierarchy ppHier;
-	        uint pitemid;
-	        IntPtr ppunkDocData;
 
-            ErrorHandler.ThrowOnFailure(rdt.GetDocumentInfo(docCookie, out pgrfRDTFlags, out pdwReadLocks, out pdwEditLocks, out pbstrMkDocument, out ppHier, out pitemid, out ppunkDocData));
-            try
-            {
-                if (pdwReadLocks == 0 && pdwEditLocks == 0)
-                {
-                    // The last lock removed - the buffer will be destroyed. 
-                    // Let's try to remove any diagnostic messages associated with it
-                    IVsTextLines textLines = Marshal.GetObjectForIUnknown(ppunkDocData) as IVsTextLines;
-                    if (textLines == null)
+            if (dwEditLocksRemaining == 0 && dwReadLocksRemaining == 0)
+                ApplyToProvider(
+                    () =>
                     {
-                        IVsTextBufferProvider vsTextBufferProvider = Marshal.GetObjectForIUnknown(ppunkDocData) as IVsTextBufferProvider;
-                        if (vsTextBufferProvider != null)
-                        {
-                            ErrorHandler.ThrowOnFailure(vsTextBufferProvider.GetTextBuffer(out textLines));
-                        }
-                    }
-                    if (textLines != null)
-                    {
-                        var textBuffer = editorFactoryService.GetDocumentBuffer((IVsTextBuffer)textLines);
-                        NodeProvider provider;
-                        if (textBuffer.Properties.TryGetProperty<NodeProvider>(typeof(NodeProvider), out provider))
-                        {
-                            provider.Dispose();
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                Marshal.Release(ppunkDocData);
-            }
-               
+                        uint pgrfRDTFlags;
+                        uint pdwReadLocks;
+                        uint pdwEditLocks;
+                        string pbstrMkDocument;
+                        IVsHierarchy ppHier;
+                        uint pitemid;
+                        IntPtr ppunkDocData;
 
+                        ErrorHandler.ThrowOnFailure(
+                            rdt.GetDocumentInfo(
+                                docCookie,
+                                out pgrfRDTFlags,
+                                out pdwReadLocks,
+                                out pdwEditLocks,
+                                out pbstrMkDocument,
+                                out ppHier,
+                                out pitemid,
+                                out ppunkDocData));
+                        template_loader.Unregister(pbstrMkDocument);
+                        return ppunkDocData;
+                    },
+                        provider => { provider.Dispose(); }
+                            );
             return VSConstants.S_OK;
         }
 
         #endregion
+
     }
 }

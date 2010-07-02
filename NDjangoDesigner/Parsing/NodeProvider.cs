@@ -58,21 +58,18 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         private Timer parserTimer;
 
-        private IDisposable resolver_container;
-
-        private ITypeResolver type_resolver;
+        private TypeResolver type_resolver;
 
         /// <summary>
         /// Creates a new node provider
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider(INodeProviderBroker broker, ITextBuffer buffer, IDisposable resolver_container, ITypeResolutionService type_resolver)
+        public NodeProvider(INodeProviderBroker broker, ITextBuffer buffer, TypeResolver type_resolver)
         {
             Broker = broker;
             this.buffer = buffer;
-            this.resolver_container = resolver_container;
-            this.type_resolver = new TypeResolver(type_resolver);
+            this.type_resolver = type_resolver;
 
             FilePath = ((ITextDocument)buffer.Properties[typeof(ITextDocument)]).FilePath;
 
@@ -261,7 +258,7 @@ namespace NDjango.Designer.Parsing
         internal void Dispose()
         {
             nodes.ForEach(node => node.Dispose());
-            resolver_container.Dispose();
+            type_resolver.Dispose();
         }
     }
 }
