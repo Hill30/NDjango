@@ -59,7 +59,7 @@ module internal Misc =
                     | _ -> fail <| token.CreateToken(token.Location.Length - 2, 0)
 
                 (({
-                    new TagNode(context, token) with
+                    new TagNode(context, token, this) with
                         override x.walk manager walker = 
                             {walker with 
                                 parent=Some walker; 
@@ -79,7 +79,7 @@ module internal Misc =
             member x.is_header_tag = false
             member this.Perform token context tokens =
                 let remaining = (context.Provider :?> IParser).Seek tokens ["endcomment"]
-                ((TagNode(context, token) :> INodeImpl), context, remaining)
+                ((TagNode(context, token, this) :> INodeImpl), context, remaining)
                 
     /// Outputs a whole load of debugging information, including the current
     /// context and imported modules.
@@ -94,7 +94,7 @@ module internal Misc =
         interface ITag with
             member x.is_header_tag = false
             member this.Perform token context tokens = 
-                ({new TagNode(context, token)
+                ({new TagNode(context, token, this)
                     with
                         override x.walk manager walker =
                             // the actual debug output is built by the context ToString method
@@ -112,7 +112,7 @@ module internal Misc =
             member this.Perform token context tokens =
                 match token.Args with 
                 | name::[] -> 
-                    (new TagNode(context, token) :> INodeImpl), context.WithModelType(name.RawText), tokens
+                    (new TagNode(context, token, this) :> INodeImpl), context.WithModelType(name.RawText), tokens
                 | _ ->
                     raise (SyntaxError("model tag requires exactly one argument"))
 
@@ -150,7 +150,7 @@ module internal Misc =
                     | _ -> 
                         let variables = token.Args |> List.map (fun (expression) -> new FilterExpression(context, expression))
                         ({
-                            new TagNode(context, token)
+                            new TagNode(context, token, this)
                             with 
                                 override this.walk manager walker =
                                     match variables |> List.tryPick (fun var -> var.ResolveForOutput manager walker ) with
@@ -284,7 +284,7 @@ module internal Misc =
                             | _ -> []
                         | None -> []
                     ({
-                        new TagNode(context, token)
+                        new TagNode(context, token, this)
                         with 
                             override this.walk manager walker =
                                 match regroup walker.context with
@@ -330,7 +330,7 @@ module internal Misc =
                 match token.Args with
                 | [] ->
                     ({
-                        new TagNode(context, token)
+                        new TagNode(context, token, this)
                         with 
                             override this.walk manager walker =
                                 let reader = 
@@ -380,7 +380,7 @@ module internal Misc =
                         | _ -> raise (SyntaxError ("invalid format for 'template' tag"))
                 //???let variables = token.Args |> List.map (fun (name) -> new FilterExpression(context, name))
                 ({
-                    new TagNode(context, token)
+                    new TagNode(context, token, this)
                     with 
                         override this.walk manager walker =
                             {walker with buffer = buf}
@@ -417,7 +417,7 @@ module internal Misc =
                     let maxValue = new FilterExpression(context, maxValue)
                     let width = try System.Int32.Parse(maxWidth.RawText) |> float with | _  -> raise (SyntaxError ("'widthratio' 3rd argument must be integer"))
                     (({
-                        new TagNode(context, token) with
+                        new TagNode(context, token, this) with
                             override this.walk manager walker = 
                                 let ratio = toFloat (fst <| value.Resolve walker.context false)
                                             / toFloat (fst <| maxValue.Resolve walker.context false) 
@@ -464,7 +464,7 @@ module internal Misc =
                 match expression with
                 | Some expression ->
                     (({
-                        new TagNode(context, token) with
+                        new TagNode(context, token, this) with
                             override this.walk manager walker = 
                                 let context = 
                                     match fst <| expression.Resolve walker.context false with
@@ -528,7 +528,7 @@ module Abstract =
                         new FilterExpression(context, path), argList, var
                 
                 (({
-                    new TagNode(context, token) with
+                    new TagNode(context, token, this) with
                         override x.walk manager walker =
                             let shortResolve (expr: FilterExpression) = 
                                 match fst <| expr.Resolve walker.context false with

@@ -87,8 +87,10 @@ namespace TemplateViewer
                 tnode.Nodes.Add("(Error)" + node.ErrorMessage.Message);
 
             string vlist = "";
-            foreach (string s in node.Values)
-                vlist += s + ' ';
+            var completion_provider = node as ICompletionProvider;
+            if (completion_provider != null)
+                foreach (string s in completion_provider.Values)
+                    vlist += s + ' ';
             if (!string.IsNullOrEmpty(vlist))
                 tnode.Nodes.Add("(Values) = " + vlist);
 

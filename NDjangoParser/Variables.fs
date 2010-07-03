@@ -285,7 +285,6 @@ module Variables =
             member x.NodeType = NodeType.Reference 
             member x.Position = token.Location.Offset
             member x.Length = token.Location.Length
-            member x.Values =  seq []
             member x.ErrorMessage = error
             member x.Description = ""
             member x.Nodes = Map.empty :> IDictionary<string, IEnumerable<INode>>

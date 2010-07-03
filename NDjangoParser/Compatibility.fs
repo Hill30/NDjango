@@ -80,7 +80,7 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
                     if nested then (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["end" + name]))
                     else [], tokens
                     
-                ({new TagNode(context, token)
+                ({new TagNode(context, token, x)
                     with
                         override this.walk manager walker =
                             let resolved_parms =  resolve_all parms walker.context

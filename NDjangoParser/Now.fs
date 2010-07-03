@@ -183,7 +183,7 @@ module public Now =
                 match token.Args with
                     | f::[] ->
                         ({
-                            new TagNode(context, token)
+                            new TagNode(context, token, this)
                             with
                                 override this.walk manager walker = 
                                     {walker with buffer = f.RawText |> format |> System.DateTime.Now.ToString }

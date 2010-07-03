@@ -34,8 +34,8 @@ module internal Filter =
 
     let FILTER_VARIABLE_NAME = "$filter"
 
-    type FilterNode(provider, token, filter: FilterExpression, node_list) =
-        inherit TagNode(provider, token)
+    type FilterNode(provider, token, tag, filter: FilterExpression, node_list) =
+        inherit TagNode(provider, token, tag)
 
         override this.walk manager walker = 
             let reader = 
@@ -73,7 +73,7 @@ module internal Filter =
                     let prefix = FILTER_VARIABLE_NAME + "|"
                     let map = Some [prefix.Length, false; filter.Value.Length, true]
                     let filter_expr = new FilterExpression(context, filter.WithValue(prefix + filter.Value) map)
-                    (new FilterNode(context, token, filter_expr, node_list) :> INodeImpl), context, remaining
+                    (new FilterNode(context, token, this, filter_expr, node_list) :> INodeImpl), context, remaining
                 | _ -> raise (SyntaxError (
                                 "'filter' tag requires one argument",
                                 node_list,

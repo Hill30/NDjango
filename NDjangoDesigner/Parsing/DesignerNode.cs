@@ -47,7 +47,7 @@ namespace NDjango.Designer.Parsing
             {
                 snapshotSpan = new SnapshotSpan(snapshot, node.Position, node.Length);
                 int offset = 0;
-                if (IsIntellisenseProvider)
+                if (IsCompletionProvider)
                 {
                     ITextSnapshotLine line = snapshot.GetLineFromPosition(node.Position);
 
@@ -71,16 +71,10 @@ namespace NDjango.Designer.Parsing
             }
             foreach (IEnumerable<INode> list in node.Nodes.Values)
                 foreach (INode child in list)
-                    children.Add(provider.CreateDesignerNode(this, snapshot, child));
+                    children.Add(new DesignerNode(provider, this, snapshot, child));
         }
 
-        protected virtual bool IsIntellisenseProvider
-        {
-            get
-            {
-                return node.Values.GetEnumerator().MoveNext();
-            }
-        }
+        public bool IsCompletionProvider { get { return node is ICompletionProvider; } }
 
         /// <summary>
         /// Parent node of the current node. For the topmoste nodes returns null
@@ -178,7 +172,13 @@ namespace NDjango.Designer.Parsing
 
         public virtual IEnumerable<string> Values
         {
-            get { return node.Values; }
+            get 
+            {
+                var completion_provider = node as ICompletionProvider;
+                if (completion_provider == null)
+                    return new List<string>();
+                return completion_provider.Values; 
+            }
         }
 
         public ParsingContext Context { get { return node.Context; } }

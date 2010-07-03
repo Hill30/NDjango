@@ -32,15 +32,6 @@ open NDjango.Expressions
 
 module internal LoaderTags =
 
-    type TemplateNameExpression(context:ParsingContext, expression: TextToken) =
-        inherit FilterExpression (context, expression)
-
-        interface INode with            
-                     
-            /// TagNode type = Expression
-            member x.NodeType = NodeType.TemplateName
-
-
     /// Define a block that can be overridden by child templates.
     [<Description("Defines a block that can be overridden by child templates.")>]
     type BlockTag() =
@@ -52,7 +43,7 @@ module internal LoaderTags =
                     let node_list, remaining = 
                         (context.Provider :?> IParser).Parse (Some token) tokens 
                             (context.WithClosures(["endblock"; "endblock " + name.RawText])(*.WithExtraVariables(["super"])*))
-                    (new BlockNode(context, token, name.RawText, node_list) :> INodeImpl), context, remaining
+                    (new BlockNode(context, token, this, name, node_list) :> INodeImpl), context, remaining
                 | _ ->
                     let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"]))
                     raise (SyntaxError("block tag requires exactly one argument", 
@@ -73,7 +64,6 @@ module internal LoaderTags =
 
             member x.is_header_tag = true
             member this.Perform token context tokens = 
-                let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens context
                 match token.Args with
                 | parent::tail -> 
                     
@@ -81,6 +71,8 @@ module internal LoaderTags =
                     let parent_name_expr = 
                         new TemplateNameExpression(context, parent)
                         
+                    let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithBase(parent_name_expr :> INode))
+
                     /// a list of all blocks in the template starting with the extends tag
                     let node_list = 
                         node_list |> List.choose 
@@ -102,6 +94,7 @@ module internal LoaderTags =
                                                 override x.elements = []
                                             } :> INode
                                     Some marked
+                                | :? TagNode as node when node.Tag.is_header_tag -> Some (node :> INode)
                                 | _ -> 
                                     if (context.Provider.Settings.[NDjango.Constants.EXCEPTION_IF_ERROR] :?> bool)
                                     then None
@@ -122,8 +115,24 @@ module internal LoaderTags =
                                 with override x.elements = []
                                 } :> INode] 
                     
-                    ((new ExtendsNode(context, token, node_list, parent_name_expr) :> INodeImpl), 
-                       context, remaining)
+                    /// produces a flattened list of all nodes and child nodes within a 'node list'.
+                    /// the 'node list' is a list of all nodes collected from Nodes property of the INode interface
+                    let rec unfold_nodes = function
+                    | (h:INode)::t -> 
+                        h :: unfold_nodes 
+                            (h.Nodes.Values |> Seq.cast |> Seq.map(fun (seq) -> (Seq.toList seq)) |>
+                                List.concat |>
+                                    List.filter (fun node -> match node with | :? Node -> true | _ -> false))
+                                         @ unfold_nodes t
+                    | _ -> []
+
+                    // even though the extends filters its node list, we still need to filter the flattened list because of nested blocks
+                    let blocks = Map.ofList <| List.choose 
+                                    (fun (node: INode) ->  match node with | :? BlockNode as block -> Some (block.Name,[block]) | _ -> None) 
+                                    (unfold_nodes node_list)                      
+
+                    ((new ExtendsNode(context, token, this, node_list, blocks, parent_name_expr) :> INodeImpl), 
+                        context, remaining)
                 | _ -> 
                     // this is a fictitious node created only for the purpose of providing the intellisense
                     // we need to position it right before the closing bracket
@@ -132,6 +141,9 @@ module internal LoaderTags =
                             override x.node_type = NodeType.TemplateName
                             override x.elements = []
                             } :> INode
+
+                    let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens context
+
                     raise (SyntaxError (
                                  "extends tag - missing template name",
                                  Some (Seq.ofList node_list),
@@ -172,7 +184,7 @@ module internal LoaderTags =
                         new TemplateNameExpression(context, name)
                     ({
                         //todo: we're not producing a node list here. may have to revisit
-                        new TagNode(context, token) 
+                        new TagNode(context, token, this) 
                         with
                             override this.walk manager walker = 
                                 {walker with parent=Some walker; nodes=(get_template manager context.Resolver template_name walker.context).Nodes}
@@ -197,8 +209,8 @@ module internal LoaderTags =
 
     type Reader = Path of string | TextReader of System.IO.TextReader
 
-    type SsiNode(provider, token, reader: Reader, loader: string->TextReader) = 
-        inherit TagNode(provider, token)
+    type SsiNode(provider, token, tag, reader: Reader, loader: string->TextReader) = 
+        inherit TagNode(provider, token, tag)
 
         override this.walk manager walker =
             let templateReader =  
@@ -211,7 +223,7 @@ module internal LoaderTags =
             let nodes = 
                 if length = 0 
                 then templateReader.Close(); walker.nodes
-                else (new SsiNode(provider, token, TextReader templateReader, loader) :> INodeImpl) :: walker.nodes
+                else (new SsiNode(provider, token, tag, TextReader templateReader, loader) :> INodeImpl) :: walker.nodes
             {walker with buffer = buffer; nodes=nodes}
 
     [<Description("Outputs the contents of a given file into the page.")>]
@@ -221,12 +233,12 @@ module internal LoaderTags =
             member x.is_header_tag = false
             member this.Perform token context tokens = 
                 match token.Args with
-                | path::[] -> (new SsiNode(context, token, Path path.Value, context.Provider.Loader.GetTemplate) :> INodeImpl), context, tokens
+                | path::[] -> (new SsiNode(context, token, this, Path path.Value, context.Provider.Loader.GetTemplate) :> INodeImpl), context, tokens
                 | path::MatchToken("parsed")::[] ->
 // TODO: ExpressionToken
                     let templateRef = FilterExpression (context, path.WithValue("\"" + path.Value + "\"") (Some [1,false;path.Value.Length,true;1,false]))
                     ({
-                        new TagNode(context, token) 
+                        new TagNode(context, token, this) 
                         with
                             override this.walk manager walker = 
                                 {walker with parent=Some walker; nodes=(get_template manager context.Resolver templateRef walker.context).Nodes}

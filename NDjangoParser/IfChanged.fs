@@ -94,7 +94,7 @@ module internal IfChanged =
                             | Some o when not <| matchValues o newValues -> {walker with nodes = List.append nodes_ifsame walker.nodes}
                             | _ -> {walker with nodes = List.append nodes_ifchanged walker.nodes; context=walker.context.add("$oldValue", (newValues :> obj))}
                 (({
-                    new TagNode(context, token)
+                    new TagNode(context, token, this)
                     with
                         override this.walk manager walker =
                             createWalker manager walker 

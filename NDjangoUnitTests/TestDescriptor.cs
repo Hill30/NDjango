@@ -171,20 +171,25 @@ namespace NDjango.UnitTests
             //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
             List<INode> nodes = GetNodes(template.Nodes.ToList<INodeImpl>().ConvertAll
                 (node => (INode)node)).FindAll(node =>
-                    (node.Values.ToList().Count != 0) 
+                    (node is ICompletionProvider) 
                     || (node.NodeType == NodeType.ParsingContext) 
                     || (node.ErrorMessage.Message != ""));
             List<DesignerData> actualResult = nodes.ConvertAll(
                 node =>
                 {
-                    List<string> contextValues = new List<string>(node.Values);
+                    var value_provider = node as ICompletionProvider;
+                    var values =
+                        value_provider == null ?
+                            new List<string>()
+                            : value_provider.Values;
+                    List<string> contextValues = new List<string>(values);
                     if (node.NodeType == NodeType.ParsingContext)
                     {
                         contextValues.InsertRange(0 ,(node.Context.TagClosures));
                         return new DesignerData(node.Position, node.Length, contextValues.ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
                     }
                     else
-                        return new DesignerData(node.Position, node.Length, new List<string>(node.Values).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
+                        return new DesignerData(node.Position, node.Length, new List<string>(values).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
                 });
             
             for (int i = 0; i < actualResult.Count; i++)

@@ -138,13 +138,14 @@ module internal For =
     type TagNode(
                 provider,
                 token,
+                tag,
                 enumerator : FilterExpression, 
                 variables : string list, 
                 bodyNodes : NDjango.Interfaces.INodeImpl list, 
                 emptyNodes: NDjango.Interfaces.INodeImpl list,
                 reversed: bool
                 ) =
-        inherit NDjango.ParserNodes.TagNode(provider, token)
+        inherit NDjango.ParserNodes.TagNode(provider, token, tag)
 
         /// Creates a new ForContext object to represent the current iteration
         /// for the loop. The third parameter (context) is a context for the 
@@ -233,7 +234,7 @@ module internal For =
                     let rec createWalker (first:bool) (walker:Walker) (enumerator: obj seq) =
                         {walker with 
                             parent = Some walker; 
-                            nodes = bodyNodes @ [(Repeater(provider, token, Seq.skip 1 enumerator, createWalker false) :> NDjango.Interfaces.INodeImpl)];
+                            nodes = bodyNodes @ [(Repeater(provider, token, tag, Seq.skip 1 enumerator, createWalker false) :> NDjango.Interfaces.INodeImpl)];
                             context = enumerator |> Seq.head |> createContext first walker
                             }
                     
@@ -254,8 +255,8 @@ module internal For =
     /// for the loop body into the walker, it adds the Repeater as the last one. The repeater checks for
     /// the endloop condition and if another iteration is necessary re-adds the list of nodes and itself to 
     /// the walker
-    and Repeater(provider, token, enumerator, createWalker) =
-        inherit NDjango.ParserNodes.TagNode(provider, token)
+    and Repeater(provider, token, tag, enumerator, createWalker) =
+        inherit NDjango.ParserNodes.TagNode(provider, token, tag)
         
         override this.walk manager walker =
             if Seq.isEmpty enumerator then
@@ -355,7 +356,7 @@ module internal For =
                          let dups = variables |> List.filter (fun var -> (snd var).IsSome) |> List.map (fun var -> (snd var).Value)
                          let variables = variables |> List.map (fun var -> fst var)
                          (({
-                            new TagNode(context, token, enumerator, variables, node_list_body, node_list_empty, reversed)
+                            new TagNode(context, token, this, enumerator, variables, node_list_body, node_list_empty, reversed)
                                 with
                                     override x.elements =
                                         (enumerator :> INode) :: dups @ base.elements

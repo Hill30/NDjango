@@ -42,16 +42,52 @@ module internal ASTNodes =
             | _ -> raise (RenderingError (sprintf "Invalid template name in 'extends' tag. Can't construct template from %A" o))
         | _ -> raise (RenderingError (sprintf "Invalid template name in 'extends' tag. Variable %A is undefined" templateRef))
 
+    type TemplateNameExpression(context:ParsingContext, expression: TextToken) =
+        inherit FilterExpression (context, expression)
+
+        member x.GetParentNodes = 
+            try
+                (context.Provider.GetTemplate(expression.RawText, context.Resolver) |> fst).Nodes
+            with
+            |_ -> []
+
+        interface INode with            
+                     
+            /// TagNode type = Expression
+            member x.NodeType = NodeType.TemplateName
+
+
+    /// a node representing a block name. carries a list of valid block names 
+    type BlockNameNode (context:ParsingContext, token) =
+        inherit ValueListNode
+            (
+                context,
+                NodeType.TagName, 
+                token,
+                []
+            )
+        interface ICompletionProvider with
+            override x.Values =
+                match context.Base with 
+                | Some _base ->
+                    match _base with
+                    | :? TemplateNameExpression as _base -> 
+                        _base.GetParentNodes |> 
+                            List.map (fun item -> item.Token.TextToken.RawText) |> Seq.ofList
+                    | _ -> Seq.ofList []
+                | None -> Seq.ofList []
+            
+            
     type SuperBlockPointer = {super:TagNode}
-    
+
     //SuperBlock that can be inserted into context to use it while rendering {{block.super}} variable
-    and SuperBlock (context: ParsingContext, token:BlockToken, parents: BlockNode list) =
-        inherit TagNode(context, token)
+    and SuperBlock (context, token, tag, parents: BlockNode list) =
+        inherit TagNode(context, token, tag)
         
         let nodes, parent = 
             match parents with
             | h::[] -> h.nodelist, None
-            | h::t -> h.nodelist, Some <| new SuperBlock(context, token,t)
+            | h::t -> h.nodelist, Some <| new SuperBlock(context, token, tag, t)
             | _ -> [], None
         
         override this.walk manager walker = 
@@ -78,8 +114,8 @@ module internal ASTNodes =
     //to the walker in order to implement the blocks overriding. 
     //Moreover, we will use the rest (=parents) of the list for {{super.bock}} issues.
     //This rest of the list will be added to context with a "block" key.
-    and BlockNode(parsing_context: ParsingContext, token: BlockToken, name: string, nodelist: INodeImpl list) =
-        inherit TagNode(parsing_context, token)
+    and BlockNode(parsing_context, token, tag, name: TextToken, nodelist: INodeImpl list) =
+        inherit TagNode(parsing_context, token, tag)
 
         //get the head's nodes to give them later to the walker
         //the rest of the list will be given to the context for {{super.block}} issues
@@ -94,7 +130,9 @@ module internal ASTNodes =
                 | [] -> x.nodelist, []
             | None -> x.nodelist, []
         
-        member x.Name = name
+        member x.Name = name.RawText
+
+        override x.elements = BlockNameNode(parsing_context, Text name) :> INode :: base.elements
         
         //get the final_nodelist and parents from the "__blockmap" dictionary using MapNodes function
         override x.walk manager walker =
@@ -111,32 +149,16 @@ module internal ASTNodes =
                     if  not (List.isEmpty parents) then
                         //add SuperBlockPointer to the context. Later, when we will render {{block.super}} variable,
                         //we will get inside this inserted SuperBlock and 'walk' it.
-                        walker.context.add("block", ({super = new SuperBlock(parsing_context, token, parents)} :> obj))
+                        walker.context.add("block", ({super = new SuperBlock(parsing_context, token, tag, parents)} :> obj))
                     else
                         walker.context
             }
             
         override x.nodelist = nodelist
-       
-    and ExtendsNode(parsing_context: ParsingContext, token: BlockToken, nodes: INode list, parent: Expressions.FilterExpression) =
-        inherit TagNode(parsing_context, token)
+
+    and ExtendsNode(parsing_context, token, tag, nodes: INode list, blocks: Map<string, BlockNode list>, parent: Expressions.FilterExpression) =
+        inherit TagNode(parsing_context, token, tag)
         
-        /// produces a flattened list of all nodes and child nodes within a 'node list'.
-        /// the 'node list' is a list of all nodes collected from Nodes property of the INode interface
-        let rec unfold_nodes = function
-        | (h:INode)::t -> 
-            h :: unfold_nodes 
-                (h.Nodes.Values |> Seq.cast |> Seq.map(fun (seq) -> (Seq.toList seq)) |>
-                    List.concat |>
-                        List.filter (fun node -> match node with | :? Node -> true | _ -> false))
-                             @ unfold_nodes t
-        | _ -> []
-
-        // even though the extends filters its node list, we still need to filter the flattened list because of nested blocks
-        let blocks = Map.ofList <| List.choose 
-                        (fun (node: INode) ->  match node with | :? BlockNode as block -> Some (block.Name,[block]) | _ -> None) 
-                        (unfold_nodes nodes)                      
-
         let add_if_missing key value map = 
             match Map.tryFind key map with
             | Some v -> Map.add key (map.[key] @ value) map

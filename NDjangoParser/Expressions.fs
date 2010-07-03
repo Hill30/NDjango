@@ -97,7 +97,6 @@ module Expressions =
             member x.NodeType = NodeType.Filter
             member x.Position = filter_token.Location.Offset
             member x.Length = filter_token.Location.Length
-            member x.Values = seq []
             member x.ErrorMessage = error
             member x.Description = ""
             member x.Nodes = 
@@ -230,9 +229,6 @@ module Expressions =
             /// Length - the expression length
             member x.Length = expression.Location.Length
 
-            /// List of available values empty
-            member x.Values =  seq []
-            
             /// error message associated with the node
             member x.ErrorMessage = error
             

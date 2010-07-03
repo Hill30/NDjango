@@ -100,7 +100,7 @@ namespace NDjango.Designer.CodeCompletion
 
                 case CompletionContext.Word:
                     // Get the list of all nodes with non-empty value lists
-                    List<DesignerNode> nodes = nodeProvider.GetNodes(point, n => n.NodeType == NodeType.Reference || n.Values.GetEnumerator().MoveNext());
+                    List<DesignerNode> nodes = nodeProvider.GetNodes(point, n => n.IsCompletionProvider || n.NodeType == NodeType.Reference);
                     // out of the list get the last node which is not a parsing context
                     DesignerNode node = nodes.FindLast(n => n.NodeType != NodeType.ParsingContext);
                     if (node == null)

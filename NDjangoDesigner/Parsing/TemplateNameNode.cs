@@ -17,7 +17,7 @@ namespace NDjango.Designer.Parsing
         {
             get
             {
-                return true;
+                return true
             }
         }
 

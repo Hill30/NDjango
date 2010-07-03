@@ -131,7 +131,6 @@
     <Compile Include="Parsing\DesignerNode.cs" />
     <Compile Include="Parsing\NodeProvider.cs" />
     <Compile Include="Parsing\NodeProviderBroker.cs" />
-    <Compile Include="Parsing\TemplateNameNode.cs" />
     <Compile Include="Parsing\TypeResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuickInfo\Controller.cs">

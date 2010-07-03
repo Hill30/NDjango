@@ -301,7 +301,7 @@ and ITag =
     abstract member is_header_tag: bool
     
 /// Parsing context is a container for information specific to the tag being parsed
-and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, parent, closures: string list, is_in_header, model_type, vars: IDjangoType list) =
+and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, parent, closures: string list, is_in_header, model_type, vars: IDjangoType list, _base: INode option) =
     
     let combine (vars:IDjangoType list) (extra_vars:IDjangoType list) =
         vars |> 
@@ -312,19 +312,22 @@ and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, 
         |> List.append extra_vars 
 
     new (provider, resolver)
-        = new ParsingContext(provider, resolver, None, [], true, "", [])
+        = new ParsingContext(provider, resolver, None, [], true, "", [], None)
         
-    member x.ChildOf = new ParsingContext(provider, resolver, Some x, closures, is_in_header, model_type, vars)
+    member x.ChildOf = new ParsingContext(provider, resolver, Some x, closures, is_in_header, model_type, vars, _base)
         
-    member x.BodyContext = new ParsingContext(provider, resolver, parent, closures, false, model_type, vars)
+    member x.BodyContext = new ParsingContext(provider, resolver, parent, closures, false, model_type, vars, _base)
 
-    member x.WithClosures(new_closures) = new ParsingContext(provider, resolver, parent, new_closures, is_in_header, model_type, vars)
+    member x.WithClosures(new_closures) = new ParsingContext(provider, resolver, parent, new_closures, is_in_header, model_type, vars, _base)
 
-    member x.WithModelType(new_model_type) = new ParsingContext(provider, resolver, parent, closures, is_in_header, new_model_type, vars)
+    member x.WithModelType(new_model_type) = new ParsingContext(provider, resolver, parent, closures, is_in_header, new_model_type, vars, _base)
 
     member 
         x.WithExtraVariables(extra_vars) = 
-            new ParsingContext(provider, resolver, parent, closures, is_in_header, model_type, combine vars extra_vars)
+            new ParsingContext(provider, resolver, parent, closures, is_in_header, model_type, combine vars extra_vars, _base)
+    member 
+        x.WithBase(new_base) = 
+            new ParsingContext(provider, resolver, parent, closures, is_in_header, model_type, combine vars vars, Some new_base)
 
     /// a sequence of all registered tag names
     member x.Tags = provider.Tags |> Map.toSeq |> Seq.map (fun tag -> tag |> fst) 
@@ -347,9 +350,11 @@ and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, 
     member x.Resolver = resolver
 
     member x.Parent = parent
+
+    member x.Base = _base
     
 /// A representation of a node of the template abstract syntax tree    
-type INode =
+and INode =
 
     /// TagNode type
     abstract member NodeType: NodeType 
@@ -360,9 +365,6 @@ type INode =
     /// Length of the node text
     abstract member Length: int
 
-    /// a list of values allowed for the node
-    abstract member Values: IEnumerable<string>
-    
     /// message associated with the node
     abstract member ErrorMessage: Error
     
@@ -373,6 +375,12 @@ type INode =
     abstract member Nodes: IDictionary<string, IEnumerable<INode>>
 
     abstract member Context : ParsingContext
+
+type ICompletionProvider =
+
+    /// a list of values allowed for the node
+    abstract member Values: IEnumerable<string>
+    
 
 /// This exception is thrown if a problem encountered while rendering the template
 /// This exception will be later caught in the ASTWalker and re-thrown as the 

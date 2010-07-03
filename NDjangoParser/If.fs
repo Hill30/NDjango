@@ -96,12 +96,13 @@ module internal If =
     type TagNode(
                 provider,
                 token,
+                tag,
                 bool_vars: (bool * FilterExpression) list, 
                 node_list_true: NDjango.Interfaces.INodeImpl list, 
                 node_list_false: NDjango.Interfaces.INodeImpl list, 
                 link_type: IfLinkType
                 ) =
-        inherit NDjango.ParserNodes.TagNode(provider, token)
+        inherit NDjango.ParserNodes.TagNode(provider, token, tag)
         
         /// Evaluates a single filter expression against the context. Results are intepreted as follows: 
         /// None: false (or invalid values, as FilterExpression.Resolve is called with ignoreFailure = true)
@@ -201,7 +202,7 @@ module internal If =
                     |_ -> reraise()
                   
                 (({
-                    new TagNode(context, token, bool_vars, node_list_true, node_list_false, link_type)
+                    new TagNode(context, token, this, bool_vars, node_list_true, node_list_false, link_type)
                         with
                             override this.elements
                                 with get()=

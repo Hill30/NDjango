@@ -38,11 +38,6 @@ module public ParserNodes =
     [<AbstractClass>]
     type Node(context, token) =
 
-        /// Methods/Properties for the INodeImpl interface
-        /// Indicates whether this node must be the first non-text node in the template
-        abstract member is_header_tag: bool
-        default x.is_header_tag = false
-        
         /// The token that defined the node
         member x.Token = token
 
@@ -76,10 +71,6 @@ module public ParserNodes =
                     (new ConstructBracketNode(context, token, Close) :> INode)
                 ]
         
-        /// A list of all values allowed for the node, i.e. for the tag name node a list of all registered tags
-        abstract member Values: IEnumerable<string>
-        default x.Values = seq []
-            
         /// Error message represented by this node
         abstract member ErrorMessage: Error
         default x.ErrorMessage = Error.None
@@ -95,7 +86,6 @@ module public ParserNodes =
             member x.Position = token.Position
             /// Length - length of the token
             member x.Length = token.Length
-            member x.Values = x.Values
             member x.ErrorMessage = x.ErrorMessage
             member x.Description = x.Description
             member x.Nodes = x.Nodes :> IDictionary<string, IEnumerable<INode>>
@@ -122,9 +112,6 @@ module public ParserNodes =
             /// Length of the marker = 2
             member x.Length = 2
 
-            /// No values allowed for the node
-            member x.Values = seq []
-            
             /// No message associated with the node
             member x.ErrorMessage = Error.None
             
@@ -146,7 +133,6 @@ module public ParserNodes =
             member x.NodeType = nodeType 
             member x.Position = token.Position
             member x.Length = token.Length
-            member x.Values = values
             /// No message associated with the node
             member x.ErrorMessage = Error.None
             /// No description 
@@ -155,6 +141,9 @@ module public ParserNodes =
             member x.Nodes = Map.empty :> IDictionary<string, IEnumerable<INode>>
 
             member x.Context = context
+
+        interface ICompletionProvider with
+            member x.Values = values
             
     /// a node representing a tag name. carries a list of valid tag names 
     type TagNameNode (context, token) =
@@ -197,11 +186,13 @@ module public ParserNodes =
             member x.Position = position
             /// Length - length of the context
             member x.Length = length
-            member x.Values = context.Tags
             member x.ErrorMessage = Error.None
             member x.Description = ""
             member x.Nodes = Map.empty :> IDictionary<string, IEnumerable<INode>>
             member x.Context = context
+
+        interface ICompletionProvider with
+            member x.Values = context.Tags
             
         interface INodeImpl with
             member x.Token = failwith ("Token on the ParsingContextNode should not be accessed")
@@ -215,16 +206,16 @@ module public ParserNodes =
         member x.Description = description
 
     /// Base class for all syntax nodes representing django tags
-    type TagNode(context: ParsingContext, token: BlockToken) =
+    type TagNode(context: ParsingContext, token: BlockToken, tag: ITag) =
         inherit Node(context, Block token)
+
+        member x.Tag = tag
 
         /// NodeType = Tag
         override x.node_type = NodeType.Construct   
+
+        override x.elements = TagNameNode(context, Text token.Verb) :> INode :: base.elements
         
-        /// Add TagName node to the list of elements
-        override x.elements =
-            (new TagNameNode(context, Text token.Verb) :> INode) :: base.elements
-            
         override x.Description =
             match context.Provider.Tags.TryFind(token.Verb.RawText) with
             | None -> ""
@@ -232,12 +223,15 @@ module public ParserNodes =
                 let attrs = tag.GetType().GetCustomAttributes(typeof<DescriptionAttribute>, false)
                 attrs |> Array.fold (fun text attr -> text + (attr :?> DescriptionAttribute).Description ) ""
             
-    /// Base class for all syntax nodes representing django tags
     type CloseTagNode(context: ParsingContext, token: BlockToken) =
-        inherit TagNode(context, token)
+        inherit Node(context, Block token)
 
         override x.node_type = NodeType.CloseTag   
 
+        /// Add TagName node to the list of elements
+        override x.elements =
+            (new TagNameNode(context, Text token.Verb) :> INode) :: base.elements
+            
         override x.Description = "end of the nested node list"
     
     
