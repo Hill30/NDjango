@@ -14,11 +14,37 @@ namespace TemplateViewer
 {
     public partial class Viewer : Form
     {
-        IParser provider;
+        ITemplateManager provider;
         public Viewer()
         {
             InitializeComponent();
-            provider = new TemplateManagerProvider().WithSetting(Constants.EXCEPTION_IF_ERROR, false);
+            provider = new TemplateManagerProvider()
+                .WithSetting(Constants.EXCEPTION_IF_ERROR, false)
+                .WithLoader(new TemplateLoader(templateSource))
+                .GetNewManager();
+        }
+
+        class TemplateLoader : ITemplateLoader
+        {
+            RichTextBox source;
+            public TemplateLoader(RichTextBox source)
+            {
+                this.source = source;
+            }
+
+            #region ITemplateLoader Members
+
+            public TextReader GetTemplate(string path)
+            {
+                return new StringReader(source.Text);
+            }
+
+            public bool IsUpdated(string path, DateTime timestamp)
+            {
+                return true;
+            }
+
+            #endregion
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -34,10 +60,9 @@ namespace TemplateViewer
         {
             templateTree.Nodes.Clear();
             Diagonstics.Clear();
-            StringReader reader = new StringReader(templateSource.Text);
             try
             {
-                foreach (INode node in provider.ParseTemplate(reader))
+                foreach (INode node in provider.GetTemplate("does not matter").Nodes)
                     Process(templateTree.Nodes, node);
             }
             catch (Exception ex)

@@ -121,7 +121,7 @@ namespace NDjango.Designer.Parsing
             {
                 ITextSnapshotLine line = snapshotSpan.Snapshot.GetLineFromPosition(node.Position);
                 errorTask = new ErrorTask();
-                errorTask.Document = Provider.FilePath;
+                errorTask.Document = Provider.Filename;
                 errorTask.Line = line.LineNumber; // The task list does +1 before showing this number.
                 errorTask.Column = node.Position - line.Extent.Start;// line.Start;
                 errorTask.Text = node.ErrorMessage.Message;

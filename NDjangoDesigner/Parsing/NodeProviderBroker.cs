@@ -36,6 +36,7 @@ using NDjango.Interfaces;
 using IOLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell.Design;
+using Microsoft.FSharp.Collections;
 
 namespace NDjango.Designer.Parsing
 {
@@ -44,10 +45,12 @@ namespace NDjango.Designer.Parsing
     {
         NodeProvider GetNodeProvider(ITextBuffer buffer);
         bool IsNDjango(ITextBuffer buffer);
-        Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(string filename, TextReader template, ITypeResolver resolver);
+        FSharpList<INodeImpl> ParseTemplate(string filename, ITypeResolver resolver);
+        ITextSnapshot GetSnapshot(string filename);
         void ShowDiagnostics(ErrorTask task);
         void RemoveDiagnostics(ErrorTask task);
-        ITemplateManager TemplateManager { get; }
+        ITemplateDirectory TemplateManager { get; }
+
     }
 
     /// <summary>
@@ -65,14 +68,14 @@ namespace NDjango.Designer.Parsing
             parser = InitializeParser();
         }
 
-        IParser parser;
+        ITemplateManager parser;
 
         TemplateLoader template_loader;
 
         [Import]
-        public ITemplateManager TemplateManager { get; private set; }
+        public ITemplateDirectory TemplateManager { get; private set; }
 
-        private IParser InitializeParser()
+        private ITemplateManager InitializeParser()
         {
             string path = typeof(TemplateManagerProvider).Assembly.CodeBase;
             List<Tag> tags = new List<Tag>();
@@ -95,12 +98,13 @@ namespace NDjango.Designer.Parsing
                     }
                 }
 
-            TemplateManagerProvider parser = new TemplateManagerProvider();
-            return parser
+            TemplateManagerProvider provider = new TemplateManagerProvider();
+            return provider
                     .WithTags(tags)
                     .WithFilters(filters)
                     .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false)
-                    .WithLoader(template_loader);
+                    .WithLoader(template_loader)
+                    .GetNewManager();
 
         }
 
@@ -234,10 +238,14 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="template">a reader with the template</param>
         /// <returns>A list of the syntax nodes</returns>
-        public Microsoft.FSharp.Collections.FSharpList<INodeImpl> ParseTemplate(string filename, TextReader template, ITypeResolver resolver)
+        public FSharpList<INodeImpl> ParseTemplate(string filename, ITypeResolver resolver)
         {
-            return ((TemplateManagerProvider)parser).GetNewManager().GetTemplate(filename).Nodes;
-            //return parser.ParseTemplate(template, resolver);
+            return parser.GetTemplate(filename).Nodes;
+        }
+
+        public ITextSnapshot GetSnapshot(string filename)
+        {
+            return template_loader.GetSnapshot(filename);
         }
 
         /// <summary>
@@ -287,8 +295,7 @@ namespace NDjango.Designer.Parsing
 
                 provider = 
                     new NodeProvider(
-                        this, 
-                        buffer,
+                        this,
                         filename,
                         new TypeResolver(typeService.GetContextTypeResolver(hier), typeService.GetTypeResolutionService(hier)));
                 buffer.Properties.AddProperty(typeof(NodeProvider), provider);

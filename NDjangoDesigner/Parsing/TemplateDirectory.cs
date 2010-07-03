@@ -11,20 +11,20 @@ using System.Runtime.InteropServices;
 
 namespace NDjango.Designer.Parsing
 {
-    public interface ITemplateManager
+    public interface ITemplateDirectory
     {
         IEnumerable<string> GetTemplates(string root);
         IEnumerable<string> Recent5Templates { get; }
         void RegisterInserted(string inserted);
     }
 
-    [Export(typeof(ITemplateManager))]
-    public class TemplateManager : ITemplateManager
+    [Export(typeof(ITemplateDirectory))]
+    public class TemplateDirectory : ITemplateDirectory
     {
-        public TemplateManager() { }
+        public TemplateDirectory() { }
 
         [Import]
-        private SVsServiceProvider serviceProvider;
+        private SVsServiceProvider serviceProvider = null;
 
 
         #region ITemplateManager Members

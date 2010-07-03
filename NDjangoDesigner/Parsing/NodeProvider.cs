@@ -45,7 +45,6 @@ namespace NDjango.Designer.Parsing
         
         // this lock is used to synchronize access to the nodes list
         private object node_lock = new object();
-        private ITextBuffer buffer;
         public INodeProviderBroker Broker { get; private set; }
 
         /// <summary>
@@ -60,27 +59,21 @@ namespace NDjango.Designer.Parsing
 
         private TypeResolver type_resolver;
 
-        private string filename;
-
         /// <summary>
         /// Creates a new node provider
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider(INodeProviderBroker broker, ITextBuffer buffer, string filename, TypeResolver type_resolver)
+        public NodeProvider(INodeProviderBroker broker, string filename, TypeResolver type_resolver)
         {
             Broker = broker;
-            this.buffer = buffer;
-            this.filename = filename;
             this.type_resolver = type_resolver;
+            Filename = filename;
 
-            FilePath = ((ITextDocument)buffer.Properties[typeof(ITextDocument)]).FilePath;
-
-            buffer.Changed += new EventHandler<TextContentChangedEventArgs>(buffer_Changed);
             // we need to run rebuildNodes on a separate thread. Using timer
             // for this seems to be an overkill, but we need the timer anyway so - why not
             parserTimer =
-                new Timer(rebuildNodes, buffer.CurrentSnapshot, 0, Timeout.Infinite);
+                new Timer(rebuildNodes, null, 0, Timeout.Infinite);
         }
 
         /// <summary>
@@ -95,7 +88,7 @@ namespace NDjango.Designer.Parsing
             
             // put the call to the rebuildNodes on timer
             parserTimer = 
-                new Timer(rebuildNodes,  e.After,  PARSING_DELAY, Timeout.Infinite);
+                new Timer(rebuildNodes,  null,  PARSING_DELAY, Timeout.Infinite);
         }
 
         /// <summary>
@@ -110,49 +103,34 @@ namespace NDjango.Designer.Parsing
         public event SnapshotEvent NodesChanged;
 
         /// <summary>
-        /// TextReader wrapper around text in the buffer
-        /// </summary>
-        class SnapshotReader : TextReader
-        {
-            ITextSnapshot snapshot;
-            int pos = 0;
-            public SnapshotReader(ITextSnapshot snapshot)
-            {
-                this.snapshot = snapshot;
-            }
-
-            public override int Read(char[] buffer, int index, int count)
-            {
-                int actual = snapshot.Length - pos;
-                if (actual > count)
-                    actual = count;
-                if (actual > 0)
-                    snapshot.ToCharArray(pos, actual).CopyTo(buffer, index);
-                pos += actual;
-                return actual;
-            }
-        }
-
-        /// <summary>
         /// Builds a list of syntax nodes for a snapshot. This method is called on a separate thread
         /// </summary>
         private void rebuildNodes(object snapshotObject)
         {
-            ITextSnapshot snapshot = (ITextSnapshot)snapshotObject;
-            List<DesignerNode> nodes = Broker.ParseTemplate(filename, new SnapshotReader(snapshot), type_resolver)
-                .Aggregate(
-                    new List<DesignerNode>(),
-                    (list, node) => { list.Add(CreateDesignerNode(null, snapshot, (INode)node)); return list; }
-                        );
-            List<DesignerNode> oldNodes;
-            lock (node_lock)
+            var nodes = Broker.ParseTemplate(Filename, type_resolver);
+            // get the snapshot used to parse the template. In theory it is possible to get a different one
+            // if the parsing was requested again and there were changes since, by I do not think this is 
+            // something to really happen
+            var snapshot = Broker.GetSnapshot(Filename);
+            if (snapshot != null) // this is an overkill, I know
             {
-                oldNodes = this.nodes;
-                this.nodes = nodes;
+                snapshot.TextBuffer.Changed -= new EventHandler<TextContentChangedEventArgs>(buffer_Changed); // just to prevent double-firing
+                snapshot.TextBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(buffer_Changed);
+                List<DesignerNode> designer_nodes = nodes
+                    .Aggregate(
+                        new List<DesignerNode>(),
+                        (list, node) => { list.Add(CreateDesignerNode(null, snapshot, (INode)node)); return list; }
+                            );
+                List<DesignerNode> oldNodes;
+                lock (node_lock)
+                {
+                    oldNodes = this.nodes;
+                    this.nodes = designer_nodes;
+                }
+                oldNodes.ForEach(node => node.Dispose());
+                designer_nodes.ForEach(node => node.ShowDiagnostics());
+                RaiseNodesChanged(snapshot);
             }
-            oldNodes.ForEach(node => node.Dispose());
-            nodes.ForEach(node => node.ShowDiagnostics());
-            RaiseNodesChanged(snapshot);
         }
 
         internal DesignerNode CreateDesignerNode(DesignerNode parent, ITextSnapshot snapshot, INode node)
@@ -256,7 +234,7 @@ namespace NDjango.Designer.Parsing
             return GetNodes(new SnapshotSpan(point.Snapshot, point.Position, 0), predicate);
         }
 
-        public string FilePath { get; private set; }
+        public string Filename { get; private set; }
 
         internal void Dispose()
         {

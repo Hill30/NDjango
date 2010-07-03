@@ -240,7 +240,7 @@ and INodeImpl =
     abstract member walk: manager:ITemplateManager -> walker:Walker -> Walker
     
 /// Parsing interface definition
-type IParser =
+type internal IParser =
     /// Produces a commited node list and uncommited token list as a result of parsing until
     /// a block from the string list is encotuntered
     abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> context:ParsingContext -> (INodeImpl list * LazyList<Lexer.Token>)
