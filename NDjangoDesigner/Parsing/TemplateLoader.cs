@@ -93,7 +93,14 @@ namespace NDjango.Designer.Parsing
         {
             if (path.StartsWith((string)project_directory)) 
                 return path;
-            return Path.Combine((string)project_directory, path);
+            if (path.Length > 2 && (path.StartsWith("\"") && path.EndsWith("\"") || path.StartsWith("'") && path.EndsWith("'")))
+                try
+                {
+                    return Path.Combine((string)project_directory, path.Substring(1, path.Length-2));
+                }
+                catch (Exception) // if it failed to combine - I do not want to deal with it
+                {}
+            return path;
         }
 
         #region ITemplateLoader Members
