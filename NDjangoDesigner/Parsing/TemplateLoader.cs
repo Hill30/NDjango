@@ -5,6 +5,7 @@ using System.Text;
 using NDjango.Interfaces;
 using Microsoft.VisualStudio.Text;
 using System.IO;
+using System.Runtime.Remoting.Messaging;
 
 namespace NDjango.Designer.Parsing
 {
@@ -82,10 +83,19 @@ namespace NDjango.Designer.Parsing
                 return null;
         }
 
+        private string get_absolute_path(string path)
+        {
+            //var project_directory = CallContext.GetData("project directory");
+            //if (path.StartsWith((string)project_directory)) 
+                return path;
+            //return Path.Combine((string) project_directory, path);
+        }
+
         #region ITemplateLoader Members
 
         public TextReader GetTemplate(string path)
         {
+            path = get_absolute_path(path);
             BufferRecord record;
             if (templates.TryGetValue(path, out record) && record.Item1 != null)
             {
@@ -100,6 +110,7 @@ namespace NDjango.Designer.Parsing
 
         public bool IsUpdated(string path, DateTime timestamp)
         {
+            path = get_absolute_path(path);
             BufferRecord record;
             if (templates.TryGetValue(path, out record) && record.Item1 != null)
                 return record.IsUpdated;

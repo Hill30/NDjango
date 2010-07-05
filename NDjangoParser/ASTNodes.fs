@@ -56,28 +56,6 @@ module internal ASTNodes =
             /// TagNode type = Expression
             member x.NodeType = NodeType.TemplateName
 
-
-    /// a node representing a block name. carries a list of valid block names 
-    type BlockNameNode (context:ParsingContext, token) =
-        inherit ValueListNode
-            (
-                context,
-                NodeType.TagName, 
-                token,
-                []
-            )
-        interface ICompletionProvider with
-            override x.Values =
-                match context.Base with 
-                | Some _base ->
-                    match _base with
-                    | :? TemplateNameExpression as _base -> 
-                        _base.GetParentNodes |> 
-                            List.map (fun item -> item.Token.TextToken.RawText) |> Seq.ofList
-                    | _ -> Seq.ofList []
-                | None -> Seq.ofList []
-            
-            
     type SuperBlockPointer = {super:TagNode}
 
     //SuperBlock that can be inserted into context to use it while rendering {{block.super}} variable
@@ -107,6 +85,41 @@ module internal ASTNodes =
             
         override this.nodelist with get() = nodes
 
+    /// a node representing a block name. carries a list of valid block names 
+    and BlockNameNode (context:ParsingContext, token) =
+        inherit ValueListNode
+            (
+                context,
+                NodeType.BlockName, 
+                token,
+                []
+            )
+
+
+        /// produces a flattened list of all nodes and child nodes within a 'node list'.
+        /// the 'node list' is a list of all nodes collected from Nodes property of the INode interface
+        let rec unfold_nodes nodes =
+            match nodes with
+            | (h:INode)::t ->
+                unfold_nodes t |> Seq.append
+                    (h.Nodes.Values |> Seq.cast |> Seq.concat |>
+                            Seq.choose (fun (node:INode) -> match node with | :? Node -> Some node | _ -> None))
+            | [] -> Seq.empty
+
+        interface ICompletionProvider with
+            override x.Values =
+                match context.Base with 
+                | Some _base ->
+                    match _base with
+                    | :? TemplateNameExpression as _base -> 
+                        _base.GetParentNodes |> 
+                            List.map (fun node -> node :?> INode) |>
+                            unfold_nodes |>
+                            Seq.choose (fun node -> match node with | :? BlockNode as block -> Some (block.Name) | _ -> None)
+                    | _ -> Seq.ofList []
+                | None -> Seq.ofList []
+            
+            
     //During parsing the templates, we build(see ExtendsNode) dictionary "__blockmap" consisting 
     //of different blocks. For each block name we have a list of blocks, 
     //where the most child block is in the head and the most parental - in the tail of the list.
@@ -134,8 +147,9 @@ module internal ASTNodes =
 
         override x.elements = BlockNameNode(parsing_context, Text name) :> INode :: base.elements
         
-        //get the final_nodelist and parents from the "__blockmap" dictionary using MapNodes function
         override x.walk manager walker =
+
+        //get the final_nodelist and parents from the "__blockmap" dictionary using MapNodes function
             let final_nodelist, parents =
                 match walker.context.tryfind "__blockmap" with
                 | None -> x.nodelist, []

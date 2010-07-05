@@ -145,6 +145,7 @@
     <Compile Include="QuickInfo\Source.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="GlobalServices.cs" />
     <Compile Include="Tags\Tagger.cs">
       <SubType>Code</SubType>
     </Compile>

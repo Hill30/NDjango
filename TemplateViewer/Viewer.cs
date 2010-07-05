@@ -76,7 +76,17 @@ namespace TemplateViewer
 
         private void Process(TreeNodeCollection treeNodeCollection, INode node)
         {
-            string text = node.NodeType.ToString();
+            string text = node.GetType().Name;
+            switch (node.NodeType)
+            {
+                case NodeType.Text:
+                    text = node.NodeType.ToString();
+                    break;
+                default:
+                    break;
+            }
+            if (typeof(NDjango.ParserNodes.ErrorNode).IsAssignableFrom(node.GetType()))
+                text = "ErrorNode";
             text += ": " + templateSource.Text.Substring(node.Position, node.Length);
             
             TreeNode tnode = new TreeNode(text);
@@ -88,9 +98,9 @@ namespace TemplateViewer
 
             string vlist = "";
             var completion_provider = node as ICompletionProvider;
-            if (completion_provider != null)
-                foreach (string s in completion_provider.Values)
-                    vlist += s + ' ';
+            //if (completion_provider != null)
+            //    foreach (string s in completion_provider.Values)
+            //        vlist += s + ' ';
             if (!string.IsNullOrEmpty(vlist))
                 tnode.Nodes.Add("(Values) = " + vlist);
 

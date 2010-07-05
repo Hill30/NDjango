@@ -46,8 +46,9 @@ module internal LoaderTags =
                     (new BlockNode(context, token, this, name, node_list) :> INodeImpl), context, remaining
                 | _ ->
                     let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"]))
-                    raise (SyntaxError("block tag requires exactly one argument", 
-                            node_list,
+                    raise (SyntaxError("block tag requires exactly one argument",
+                            (node_list |> Seq.ofList), 
+                            [BlockNameNode(context, Text (token.CreateToken(token.Location.Length - 2, 0))) :> INode], 
                             remaining))
                 
 
@@ -99,9 +100,12 @@ module internal LoaderTags =
                                     if (context.Provider.Settings.[NDjango.Constants.EXCEPTION_IF_ERROR] :?> bool)
                                     then None
                                     else
-                                        Some (new ErrorNode
+                                        Some ({new ErrorNode
                                                 (context, node.Token, 
                                                  new Error(1, "All content except 'block' tags inside extending template is ignored"))
+                                                 with 
+                                                    override x.elements = [node :?> INode]
+                                                 }
                                                     :> INode)
                             )
 

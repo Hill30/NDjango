@@ -73,6 +73,9 @@ namespace NDjango.Designer.Parsing
         TemplateLoader template_loader;
 
         [Import]
+        GlobalServices services;
+
+        [Import]
         public ITemplateDirectory TemplateManager { get; private set; }
 
         private ITemplateManager InitializeParser()
@@ -127,35 +130,7 @@ namespace NDjango.Designer.Parsing
 
         #endregion
 
-        private SVsServiceProvider serviceProvider;
-
-        [Import]
-        internal SVsServiceProvider ServiceProvider
-        {
-            get { return serviceProvider; }
-            private set
-            {
-                serviceProvider = value;
-                taskList = new TaskProvider(serviceProvider);
-                rdt = GetService<IVsRunningDocumentTable>(typeof(SVsRunningDocumentTable));
-                typeService = GetService<DynamicTypeService>();
-                ErrorHandler.ThrowOnFailure(rdt.AdviseRunningDocTableEvents(this, out rdtEventsCookie));
-            }
-        }
-
-        private T GetService<T>()
-        {
-            return (T)ServiceProvider.GetService(typeof(T));
-        }
-
-        private T GetService<T>(Type serviceType)
-        {
-            return (T)ServiceProvider.GetService(serviceType);
-        }
-
         #region Diagnostic handling
-
-        private TaskProvider taskList;
 
         /// <summary>
         /// Adds a diganostic message defined by the parameter to the tasklist
@@ -164,7 +139,7 @@ namespace NDjango.Designer.Parsing
         public void ShowDiagnostics(ErrorTask task)
         {
             task.Navigate += new EventHandler(NavigateTo);
-            taskList.Tasks.Add(task);
+            GlobalServices.TaskList.Tasks.Add(task);
         }
 
         /// <summary>
@@ -173,7 +148,7 @@ namespace NDjango.Designer.Parsing
         /// <param name="task">the object representing the error message</param>
         public void RemoveDiagnostics(ErrorTask task)
         {
-            taskList.Tasks.Remove(task);
+            GlobalServices.TaskList.Tasks.Remove(task);
         }
 
         /// <summary>
@@ -191,7 +166,7 @@ namespace NDjango.Designer.Parsing
             if (String.IsNullOrEmpty(task.Document))
                 return;
 
-            IVsUIShellOpenDocument openDoc = serviceProvider.GetService(typeof(IVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
+            IVsUIShellOpenDocument openDoc = services.GetService<IVsUIShellOpenDocument>();
             if (openDoc == null)
                 return;
 
@@ -224,7 +199,7 @@ namespace NDjango.Designer.Parsing
             }
 
             // Finally, perform the navigation.
-            IVsTextManager mgr = serviceProvider.GetService(typeof(VsTextManagerClass)) as IVsTextManager;
+            IVsTextManager mgr = services.GetService<IVsTextManager>(typeof(VsTextManagerClass));
             if (mgr == null)
                 return;
 
@@ -289,15 +264,18 @@ namespace NDjango.Designer.Parsing
                 uint itemId;
                 IntPtr docData;
                 uint cookie;
-                rdt.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, filename, out hier, out itemId, out docData, out cookie);
+                GlobalServices.RDT.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, filename, out hier, out itemId, out docData, out cookie);
                 if (IntPtr.Zero != docData)
                     Marshal.Release(docData);
+
+                object objDirectory;
+                ErrorHandler.ThrowOnFailure(hier.GetProperty((uint)VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectDir, out objDirectory));
 
                 provider = 
                     new NodeProvider(
                         this,
                         filename,
-                        new TypeResolver(typeService.GetContextTypeResolver(hier), typeService.GetTypeResolutionService(hier)));
+                        new TypeResolver(GlobalServices.TypeService.GetContextTypeResolver(hier), GlobalServices.TypeService.GetTypeResolutionService(hier)));
                 buffer.Properties.AddProperty(typeof(NodeProvider), provider);
                 template_loader.Register(filename, buffer, provider);
             }
@@ -306,8 +284,6 @@ namespace NDjango.Designer.Parsing
 
         [Import]
         IVsEditorAdaptersFactoryService editorFactoryService = null; // null is not really necessary, but to keep the compiler happy...
-
-        IVsRunningDocumentTable rdt;
 
         void ApplyToProvider(Func<IntPtr> docGetter, Action<NodeProvider> action)
         {
@@ -334,10 +310,6 @@ namespace NDjango.Designer.Parsing
                 Marshal.Release(docData);
             }
         }
-
-        uint rdtEventsCookie;
-
-        DynamicTypeService typeService;
 
         #region IVsRunningDocTableEvents Members
 
@@ -382,7 +354,7 @@ namespace NDjango.Designer.Parsing
                         IntPtr ppunkDocData;
 
                         ErrorHandler.ThrowOnFailure(
-                            rdt.GetDocumentInfo(
+                            GlobalServices.RDT.GetDocumentInfo(
                                 docCookie,
                                 out pgrfRDTFlags,
                                 out pdwReadLocks,

@@ -116,6 +116,11 @@ type NodeType =
         /// </summary>
         | TemplateName = 0x000f
 
+        /// <summary>
+        /// a special expression node representing the block name
+        /// </summary>
+        | BlockName = 0x0010
+
 /// Error message
 type Error(severity:int, message:string) =
     /// indicates the severity of the error with 0 being the information message
@@ -422,6 +427,8 @@ type SyntaxError (message, nodes: seq<INodeImpl> option, pattern:INode list opti
     new (message, pattern) = new SyntaxError(message, None, Some pattern, None)
     
     new (message, pattern, remaining) = new SyntaxError(message, None, Some pattern, Some remaining)
+
+    new (message, nodes, pattern:INode list, remaining) = new SyntaxError(message, Some nodes, Some pattern, Some remaining)
     
     /// list (sequence) of nodes related to the error
     member x.Nodes = match nodes with | Some n -> n | None -> seq []

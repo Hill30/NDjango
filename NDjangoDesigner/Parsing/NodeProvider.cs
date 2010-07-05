@@ -48,8 +48,9 @@ namespace NDjango.Designer.Parsing
         public INodeProviderBroker Broker { get; private set; }
 
         /// <summary>
-        /// indicates the delay (in milliseconds) of parser invoking. 
+        /// The delay (in milliseconds) of parser invoking. 
         /// </summary>
+        
         private const int PARSING_DELAY = 500;
         /// <summary>
         /// The timer for optimization the parsing process. If there would be some changes with time 
@@ -58,6 +59,8 @@ namespace NDjango.Designer.Parsing
         private Timer parserTimer;
 
         private TypeResolver type_resolver;
+
+        public string Filename { get; private set; }
 
         /// <summary>
         /// Creates a new node provider
@@ -222,8 +225,6 @@ namespace NDjango.Designer.Parsing
         {
             return GetNodes(new SnapshotSpan(point.Snapshot, point.Position, 0), predicate);
         }
-
-        public string Filename { get; private set; }
 
         internal void Dispose()
         {
