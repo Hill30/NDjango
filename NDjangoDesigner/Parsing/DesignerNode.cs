@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using System.Diagnostics;
+using System.ComponentModel.Composition;
 
 namespace NDjango.Designer.Parsing
 {

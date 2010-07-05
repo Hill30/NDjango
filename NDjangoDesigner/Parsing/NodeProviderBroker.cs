@@ -45,12 +45,8 @@ namespace NDjango.Designer.Parsing
     {
         NodeProvider GetNodeProvider(ITextBuffer buffer);
         bool IsNDjango(ITextBuffer buffer);
-        FSharpList<INodeImpl> ParseTemplate(string filename, ITypeResolver resolver);
-        ITextSnapshot GetSnapshot(string filename);
         void ShowDiagnostics(ErrorTask task);
         void RemoveDiagnostics(ErrorTask task);
-        ITemplateDirectory TemplateManager { get; }
-
     }
 
     /// <summary>
@@ -60,29 +56,11 @@ namespace NDjango.Designer.Parsing
     public class NodeProviderBroker : INodeProviderBroker, IVsRunningDocTableEvents
     {
 
-        #region Broker Initialization routines
-
         public NodeProviderBroker()
         {
-            template_loader = new TemplateLoader();
-            parser = InitializeParser();
-        }
+            ErrorHandler.ThrowOnFailure(GlobalServices.RDT.AdviseRunningDocTableEvents(this, out RDTEventsCookie));
 
-        ITemplateManager parser;
-
-        TemplateLoader template_loader;
-
-        [Import]
-        GlobalServices services;
-
-        [Import]
-        public ITemplateDirectory TemplateManager { get; private set; }
-
-        private ITemplateManager InitializeParser()
-        {
             string path = typeof(TemplateManagerProvider).Assembly.CodeBase;
-            List<Tag> tags = new List<Tag>();
-            List<Filter> filters = new List<Filter>();
             if (path.StartsWith("file:///"))
                 foreach (string file in
                     Directory.EnumerateFiles(
@@ -101,15 +79,12 @@ namespace NDjango.Designer.Parsing
                     }
                 }
 
-            TemplateManagerProvider provider = new TemplateManagerProvider();
-            return provider
-                    .WithTags(tags)
-                    .WithFilters(filters)
-                    .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false)
-                    .WithLoader(template_loader)
-                    .GetNewManager();
-
         }
+
+        private uint RDTEventsCookie;
+
+        List<Tag> tags = new List<Tag>();
+        List<Filter> filters = new List<Filter>();
 
         private static void CreateEntry<T>(List<T> list, Type t) where T : class
         {
@@ -128,7 +103,10 @@ namespace NDjango.Designer.Parsing
             list.Add((T)Activator.CreateInstance(typeof(T), attrs[0].Name, Activator.CreateInstance(t)));
         }
 
-        #endregion
+        private Dictionary<string, ProjectHandler> projects = new Dictionary<string, ProjectHandler>();
+
+        [Import]
+        GlobalServices services;
 
         #region Diagnostic handling
 
@@ -209,21 +187,6 @@ namespace NDjango.Designer.Parsing
         #endregion
 
         /// <summary>
-        /// Parses the template
-        /// </summary>
-        /// <param name="template">a reader with the template</param>
-        /// <returns>A list of the syntax nodes</returns>
-        public FSharpList<INodeImpl> ParseTemplate(string filename, ITypeResolver resolver)
-        {
-            return parser.GetTemplate(filename).Nodes;
-        }
-
-        public ITextSnapshot GetSnapshot(string filename)
-        {
-            return template_loader.GetSnapshot(filename);
-        }
-
-        /// <summary>
         /// Determines whether the buffer conatins ndjango code
         /// </summary>
         /// <param name="buffer"></param>
@@ -245,13 +208,16 @@ namespace NDjango.Designer.Parsing
             }
         }
 
+        [Import]
+        ITemplateDirectory template_directory;
+
         /// <summary>
         /// Retrieves or creates a node provider for a buffer
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
         public NodeProvider GetNodeProvider(ITextBuffer buffer)
-        {              
+        {
             NodeProvider provider;
             if (!buffer.Properties.TryGetProperty(typeof(NodeProvider), out provider))
             {
@@ -270,14 +236,23 @@ namespace NDjango.Designer.Parsing
 
                 object objDirectory;
                 ErrorHandler.ThrowOnFailure(hier.GetProperty((uint)VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectDir, out objDirectory));
+                
+                var project_directory = (string)objDirectory;
 
-                provider = 
-                    new NodeProvider(
-                        this,
-                        filename,
-                        new TypeResolver(GlobalServices.TypeService.GetContextTypeResolver(hier), GlobalServices.TypeService.GetTypeResolutionService(hier)));
-                buffer.Properties.AddProperty(typeof(NodeProvider), provider);
-                template_loader.Register(filename, buffer, provider);
+
+                ProjectHandler project;
+
+                lock (projects)
+                {
+                    if (!projects.TryGetValue(project_directory, out project))
+                    {
+                        project = new ProjectHandler(this, template_directory, tags, filters, project_directory);
+                        projects.Add(project_directory, project);
+                    }
+                }
+
+                provider = project.GetNodeProvider(project_directory, buffer, hier, filename);
+
             }
             return provider;
         }
@@ -363,7 +338,6 @@ namespace NDjango.Designer.Parsing
                                 out ppHier,
                                 out pitemid,
                                 out ppunkDocData));
-                        template_loader.Unregister(pbstrMkDocument);
                         return ppunkDocData;
                     },
                         provider => { provider.Dispose(); }

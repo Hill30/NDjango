@@ -45,7 +45,7 @@ namespace NDjango.Designer.Parsing
         
         // this lock is used to synchronize access to the nodes list
         private object node_lock = new object();
-        public INodeProviderBroker Broker { get; private set; }
+        public ProjectHandler Project { get; private set; }
 
         /// <summary>
         /// The delay (in milliseconds) of parser invoking. 
@@ -67,9 +67,9 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider(INodeProviderBroker broker, string filename, TypeResolver type_resolver)
+        public NodeProvider(ProjectHandler project, string filename, TypeResolver type_resolver)
         {
-            Broker = broker;
+            Project = project;
             this.type_resolver = type_resolver;
             Filename = filename;
 
@@ -110,11 +110,11 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         private void rebuildNodes(object snapshotObject)
         {
-            var nodes = Broker.ParseTemplate(Filename, type_resolver);
+            var nodes = Project.ParseTemplate(Filename, type_resolver);
             // get the snapshot used to parse the template. In theory it is possible to get a different one
             // if the parsing was requested again and there were changes since, by I do not think this is 
             // something to really happen
-            var snapshot = Broker.GetSnapshot(Filename);
+            var snapshot = Project.GetSnapshot(Filename);
             if (snapshot != null) // this is an overkill, I know
             {
                 snapshot.TextBuffer.Changed -= new EventHandler<TextContentChangedEventArgs>(buffer_Changed); // just to prevent double-firing
@@ -144,24 +144,6 @@ namespace NDjango.Designer.Parsing
         {
             if (NodesChanged != null)
                 NodesChanged(new SnapshotSpan(snapshot, 0, snapshot.Length));
-        }
-
-        /// <summary>
-        /// Shows diagnostic message associated with the node
-        /// </summary>
-        /// <param name="task"></param>
-        internal void ShowDiagnostics(ErrorTask task)
-        {
-            Broker.ShowDiagnostics(task);
-        }
-
-        /// <summary>
-        /// Removes diagnostic message associated with the node
-        /// </summary>
-        /// <param name="task"></param>
-        internal void RemoveDiagnostics(ErrorTask task)
-        {
-            Broker.RemoveDiagnostics(task);
         }
 
         /// <summary>
@@ -230,6 +212,17 @@ namespace NDjango.Designer.Parsing
         {
             nodes.ForEach(node => node.Dispose());
             type_resolver.Dispose();
+            Project.Unregister(Filename);
+        }
+
+        internal void RemoveDiagnostics(ErrorTask errorTask)
+        {
+            Project.RemoveDiagnostics(errorTask);
+        }
+
+        internal void ShowDiagnostics(ErrorTask errorTask)
+        {
+            Project.ShowDiagnostics(errorTask);
         }
     }
 }

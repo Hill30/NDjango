@@ -12,28 +12,34 @@ namespace NDjango.Designer.Parsing
     class TemplateLoader: ITemplateLoader
     {
         Dictionary<string, BufferRecord> templates = new Dictionary<string, BufferRecord>();
+        private string project_directory;
+
+        public TemplateLoader(string project_directory)
+        {
+            this.project_directory = project_directory;
+        }
 
         class BufferRecord : Tuple<ITextSnapshot>
         {
-            public BufferRecord(ITextSnapshot snapshot, bool is_dirty)
+            public BufferRecord(ITextSnapshot snapshot, DateTime timestamp)
                 : base(snapshot)
             {
                 snapshot.TextBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(buffer_Changed);
-                IsUpdated = is_dirty;
+                Timestamp = timestamp;
             }
 
             void buffer_Changed(object sender, TextContentChangedEventArgs e)
             {
-                IsUpdated = true;
+                Timestamp = DateTime.Now;
             }
 
-            public bool IsUpdated { get; private set; }
+            public DateTime Timestamp { get; private set; }
 
         }
 
         internal void Register(string path, ITextBuffer buffer, NodeProvider provider)
         {
-            templates[path] = new BufferRecord(buffer.CurrentSnapshot, true);
+            templates[path] = new BufferRecord(buffer.CurrentSnapshot, DateTime.Now);
         }
 
         internal void Unregister(string path)
@@ -85,10 +91,9 @@ namespace NDjango.Designer.Parsing
 
         private string get_absolute_path(string path)
         {
-            //var project_directory = CallContext.GetData("project directory");
-            //if (path.StartsWith((string)project_directory)) 
+            if (path.StartsWith((string)project_directory)) 
                 return path;
-            //return Path.Combine((string) project_directory, path);
+            return Path.Combine((string)project_directory, path);
         }
 
         #region ITemplateLoader Members
@@ -98,22 +103,18 @@ namespace NDjango.Designer.Parsing
             path = get_absolute_path(path);
             BufferRecord record;
             if (templates.TryGetValue(path, out record) && record.Item1 != null)
-            {
-                var new_record = new BufferRecord(record.Item1.TextBuffer.CurrentSnapshot, false);
-                templates[path] = new_record;
-                return new BufferReader(new_record.Item1);
-            }
+                return new BufferReader(record.Item1);
             if (File.Exists(path))
                 return new StreamReader(path);
             return new DummyReader();
         }
 
-        public bool IsUpdated(string path, DateTime timestamp)
+        public bool IsUpdated(string orig_path, DateTime timestamp)
         {
-            path = get_absolute_path(path);
+            var path = get_absolute_path(orig_path);
             BufferRecord record;
             if (templates.TryGetValue(path, out record) && record.Item1 != null)
-                return record.IsUpdated;
+                return record.Timestamp > timestamp;
             return File.GetLastWriteTime(path) > timestamp;
         }
 

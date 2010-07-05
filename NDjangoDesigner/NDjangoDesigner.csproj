@@ -125,6 +125,9 @@
     <Compile Include="CodeCompletion\Source.cs" />
     <Compile Include="CodeCompletion\SourceProvider.cs" />
     <Compile Include="CodeCompletion\CompletionSets\TagCompletionSet.cs" />
+    <Compile Include="Parsing\ProjectHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Parsing\TemplateLoader.cs" />
     <Compile Include="Parsing\TemplateDirectory.cs" />
     <Compile Include="Constants.cs" />
