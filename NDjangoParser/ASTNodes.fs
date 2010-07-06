@@ -56,6 +56,10 @@ module internal ASTNodes =
             /// TagNode type = Expression
             member x.NodeType = NodeType.TemplateName
 
+    type private BlockReference =
+    | Block of string
+    | Context of ParsingContext
+
     type SuperBlockPointer = {super:TagNode}
 
     //SuperBlock that can be inserted into context to use it while rendering {{block.super}} variable
@@ -85,40 +89,6 @@ module internal ASTNodes =
             
         override this.nodelist with get() = nodes
 
-    /// a node representing a block name. carries a list of valid block names 
-    and BlockNameNode (context:ParsingContext, token) =
-        inherit ValueListNode
-            (
-                context,
-                NodeType.BlockName, 
-                token,
-                []
-            )
-
-
-        /// produces a flattened list of all nodes and child nodes within a 'node list'.
-        /// the 'node list' is a list of all nodes collected from Nodes property of the INode interface
-        let rec unfold_nodes nodes =
-            match nodes with
-            | (h:INode)::t ->
-                unfold_nodes t |> Seq.append
-                    (h.Nodes.Values |> Seq.cast |> Seq.concat |>
-                            Seq.choose (fun (node:INode) -> match node with | :? Node -> Some node | _ -> None))
-            | [] -> Seq.empty
-
-        interface ICompletionProvider with
-            override x.Values =
-                match context.Base with 
-                | Some _base ->
-                    match _base with
-                    | :? TemplateNameExpression as _base -> 
-                        _base.GetParentNodes |> 
-                            List.map (fun node -> node :?> INode) |>
-                            unfold_nodes |>
-                            Seq.choose (fun node -> match node with | :? BlockNode as block -> Some (block.Name) | _ -> None)
-                    | _ -> Seq.ofList []
-                | None -> Seq.ofList []
-            
             
     //During parsing the templates, we build(see ExtendsNode) dictionary "__blockmap" consisting 
     //of different blocks. For each block name we have a list of blocks, 
@@ -170,6 +140,63 @@ module internal ASTNodes =
             
         override x.nodelist = nodelist
 
+    /// a node representing a block name. carries a list of valid block names 
+    and BlockNameNode (context:ParsingContext, token) =
+        inherit ValueListNode
+            (
+                context,
+                NodeType.BlockName, 
+                token,
+                []
+            )
+
+
+        /// produces a flattened list of all nodes and child nodes within a 'node list'.
+        /// the 'node list' is a list of all nodes collected from Nodes property of the INode interface
+        let rec unfold_nodes nodes =
+            match nodes with
+            | (h:INode)::t ->
+                unfold_nodes t |> Seq.append
+                    (h.Nodes.Values |> Seq.cast |> Seq.concat |>
+                            Seq.choose (fun (node:INode) -> match node with | :? Node -> Some node | _ -> None))
+            | [] -> Seq.empty
+
+        interface ICompletionProvider with
+            override x.Values =
+                let rec blocks_of_context (context:ParsingContext) =
+                    match context.Base with 
+                    | Some _base ->
+                        let block_refs = 
+                            match _base with
+                            | :? TemplateNameExpression as _base -> 
+                                _base.GetParentNodes |> 
+                                List.map (fun node -> node :?> INode) |>
+                                unfold_nodes |>
+                                Seq.choose 
+                                    (function
+                                        | :? BlockNode as block -> Some (Block block.Name)
+                                        | :? ParsingContextNode as context_node -> Some (Context (context_node :> INode).Context)
+                                        | _ as node -> None
+                                    )
+                            | _ -> Seq.empty
+                        block_refs |> Seq.collect (function | Block block_name -> seq [block_name] | _ -> Seq.empty)
+                        |> Seq.append <| match block_refs |> Seq.tryPick (function | Context context when Option.isSome context.Base -> Some context | _ -> None) with
+                                            | Some context -> blocks_of_context context
+                                            | None -> Seq.empty
+                        |> Seq.distinct
+                    | None -> Seq.empty
+                blocks_of_context context
+//                match context.Base with 
+//                | Some _base ->
+//                    match _base with
+//                    | :? TemplateNameExpression as _base -> 
+//                        _base.GetParentNodes |> 
+//                            List.map (fun node -> node :?> INode) |>
+//                            unfold_nodes |>
+//                            Seq.choose (fun node -> match node with | :? BlockNode as block -> Some (block.Name) | _ -> None)
+//                    | _ -> Seq.ofList []
+//                | None -> Seq.ofList []
+            
     and ExtendsNode(parsing_context, token, tag, nodes: INode list, blocks: Map<string, BlockNode list>, parent: Expressions.FilterExpression) =
         inherit TagNode(parsing_context, token, tag)
         
