@@ -52,8 +52,6 @@ module internal ASTNodes =
             |_ -> []
 
         interface INode with            
-                     
-            /// TagNode type = Expression
             member x.NodeType = NodeType.TemplateName
 
     type private BlockReference =
@@ -158,7 +156,7 @@ module internal ASTNodes =
             | (h:INode)::t ->
                 unfold_nodes t |> Seq.append
                     (h.Nodes.Values |> Seq.cast |> Seq.concat |>
-                            Seq.choose (fun (node:INode) -> match node with | :? Node -> Some node | _ -> None))
+                            Seq.choose (fun (node:INode) -> match node with | :? Node -> Some node | :? ParsingContextNode -> Some node| _ -> None))
             | [] -> Seq.empty
 
         interface ICompletionProvider with
@@ -179,23 +177,24 @@ module internal ASTNodes =
                                         | _ as node -> None
                                     )
                             | _ -> Seq.empty
-                        block_refs |> Seq.collect (function | Block block_name -> seq [block_name] | _ -> Seq.empty)
-                        |> Seq.append <| match block_refs |> Seq.tryPick (function | Context context when Option.isSome context.Base -> Some context | _ -> None) with
-                                            | Some context -> blocks_of_context context
-                                            | None -> Seq.empty
-                        |> Seq.distinct
+                        
+                        let result = 
+                            block_refs 
+                            |> Seq.fold 
+                                (fun state block_ref -> 
+                                    match block_ref with
+                                    | Block block_name -> (block_name :: fst state, snd state)
+                                    | Context context -> (fst state, Some context)
+                                ) 
+                                ([], None) 
+                        
+                        match snd result with
+                        | Some context -> fst result |> Seq.append (context |> blocks_of_context) |> Seq.distinct
+                        | None -> fst result |> Seq.ofList
+
                     | None -> Seq.empty
+
                 blocks_of_context context
-//                match context.Base with 
-//                | Some _base ->
-//                    match _base with
-//                    | :? TemplateNameExpression as _base -> 
-//                        _base.GetParentNodes |> 
-//                            List.map (fun node -> node :?> INode) |>
-//                            unfold_nodes |>
-//                            Seq.choose (fun node -> match node with | :? BlockNode as block -> Some (block.Name) | _ -> None)
-//                    | _ -> Seq.ofList []
-//                | None -> Seq.ofList []
             
     and ExtendsNode(parsing_context, token, tag, nodes: INode list, blocks: Map<string, BlockNode list>, parent: Expressions.FilterExpression) =
         inherit TagNode(parsing_context, token, tag)
