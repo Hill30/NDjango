@@ -21,25 +21,25 @@ namespace NDjango.Designer.Parsing
 
         class BufferRecord : Tuple<ITextSnapshot>
         {
-            public BufferRecord(ITextSnapshot snapshot, DateTime timestamp)
+            public BufferRecord(ITextSnapshot snapshot, bool is_dirty)
                 : base(snapshot)
             {
                 snapshot.TextBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(buffer_Changed);
-                Timestamp = timestamp;
+                IsUpdated = is_dirty;
             }
 
             void buffer_Changed(object sender, TextContentChangedEventArgs e)
             {
-                Timestamp = DateTime.Now;
+                IsUpdated = true;
             }
 
-            public DateTime Timestamp { get; private set; }
+            public bool IsUpdated { get; private set; }
 
         }
 
         internal void Register(string path, ITextBuffer buffer, NodeProvider provider)
         {
-            templates[path] = new BufferRecord(buffer.CurrentSnapshot, DateTime.Now);
+            templates[path] = new BufferRecord(buffer.CurrentSnapshot, true);
         }
 
         internal void Unregister(string path)
@@ -110,18 +110,22 @@ namespace NDjango.Designer.Parsing
             path = get_absolute_path(path);
             BufferRecord record;
             if (templates.TryGetValue(path, out record) && record.Item1 != null)
-                return new BufferReader(record.Item1);
+            {
+                var new_record = new BufferRecord(record.Item1.TextBuffer.CurrentSnapshot, false);
+                templates[path] = new_record;
+                return new BufferReader(new_record.Item1);
+            }
             if (File.Exists(path))
                 return new StreamReader(path);
             return new DummyReader();
         }
 
-        public bool IsUpdated(string orig_path, DateTime timestamp)
+        public bool IsUpdated(string path, DateTime timestamp)
         {
-            var path = get_absolute_path(orig_path);
+            path = get_absolute_path(path);
             BufferRecord record;
             if (templates.TryGetValue(path, out record) && record.Item1 != null)
-                return record.Timestamp > timestamp;
+                return record.IsUpdated;
             return File.GetLastWriteTime(path) > timestamp;
         }
 
