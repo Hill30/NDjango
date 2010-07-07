@@ -1,9 +1,9 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NDjangoParser2008", "NDjangoParser\NDjangoParser2008.fsproj", "{B75384C4-C545-4511-A7FE-93D438B8AFA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoUnitTests", "NDjangoUnitTests\NDjangoUnitTests.csproj", "{025EDC49-0088-4F5A-9270-E0A7461B4AFD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoUnitTests", "NDjangoUnitTests\NDjangoUnitTests2008.csproj", "{025EDC49-0088-4F5A-9270-E0A7461B4AFD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoParserFilters2008", "NDjangoParserFilters\NDjangoParserFilters2008.csproj", "{89DC9575-C706-4D0D-944A-79E5865FFE88}"
 EndProject
