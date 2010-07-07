@@ -54,9 +54,7 @@ module internal ASTNodes =
         interface INode with            
             member x.NodeType = NodeType.TemplateName
 
-        interface ICompletionProvider with
-            member x.Values = Seq.empty     // the actual value is provided by the designer
-            
+        interface ICompletionProvider 
 
     type private BlockReference =
     | Block of string
@@ -163,7 +161,7 @@ module internal ASTNodes =
                             Seq.choose (fun (node:INode) -> match node with | :? Node -> Some node | :? ParsingContextNode -> Some node| _ -> None))
             | [] -> Seq.empty
 
-        interface ICompletionProvider with
+        interface ICompletionValuesProvider with
             override x.Values =
                 let rec blocks_of_context (context:ParsingContext) =
                     match context.Base with 

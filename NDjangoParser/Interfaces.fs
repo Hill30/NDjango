@@ -121,6 +121,11 @@ type NodeType =
         /// </summary>
         | BlockName = 0x0010
 
+        /// <summary>
+        /// a special expression node representing the .NET type name - i.e. in the model tag
+        /// </summary>
+        | TypeName = 0x0010
+
 /// Error message
 type Error(severity:int, message:string) =
     /// indicates the severity of the error with 0 being the information message
@@ -381,11 +386,13 @@ and INode =
 
     abstract member Context : ParsingContext
 
-type ICompletionProvider =
+type ICompletionProvider = interface end
 
+type ICompletionValuesProvider =
+    inherit ICompletionProvider
+    
     /// a list of values allowed for the node
     abstract member Values: IEnumerable<string>
-    
 
 /// This exception is thrown if a problem encountered while rendering the template
 /// This exception will be later caught in the ASTWalker and re-thrown as the 

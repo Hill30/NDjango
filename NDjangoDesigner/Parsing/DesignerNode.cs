@@ -175,7 +175,7 @@ namespace NDjango.Designer.Parsing
         {
             get 
             {
-                var completion_provider = node as ICompletionProvider;
+                var completion_provider = node as ICompletionValuesProvider;
                 if (completion_provider == null)
                     return new List<string>();
                 return completion_provider.Values; 
