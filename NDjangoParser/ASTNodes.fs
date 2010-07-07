@@ -54,6 +54,10 @@ module internal ASTNodes =
         interface INode with            
             member x.NodeType = NodeType.TemplateName
 
+        interface ICompletionProvider with
+            member x.Values = Seq.empty     // the actual value is provided by the designer
+            
+
     type private BlockReference =
     | Block of string
     | Context of ParsingContext

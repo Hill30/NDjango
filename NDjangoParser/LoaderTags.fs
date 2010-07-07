@@ -140,11 +140,7 @@ module internal LoaderTags =
                 | _ -> 
                     // this is a fictitious node created only for the purpose of providing the intellisense
                     // we need to position it right before the closing bracket
-                    let parent_name_expr = 
-                        {new Node(context, Text (token.CreateToken(token.RawText.Length-2, 0))) with 
-                            override x.node_type = NodeType.TemplateName
-                            override x.elements = []
-                            } :> INode
+                    let parent_name_expr = TemplateNameExpression(context, token.CreateToken(token.RawText.Length-2, 0)) :> INode
 
                     let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens context
 
