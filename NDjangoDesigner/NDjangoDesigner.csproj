@@ -118,6 +118,7 @@
     <Compile Include="CodeCompletion\CompletionSets\NewMember.cs" />
     <Compile Include="CodeCompletion\CompletionSets\TagName.cs" />
     <Compile Include="CodeCompletion\CompletionSets\TemplateName.cs" />
+    <Compile Include="CodeCompletion\CompletionSets\TypeName.cs" />
     <Compile Include="CodeCompletion\CompletionSets\ValueCompletionSet.cs" />
     <Compile Include="CodeCompletion\CompletionSets\VariableCompletionSet.cs" />
     <Compile Include="CodeCompletion\Controller.cs" />

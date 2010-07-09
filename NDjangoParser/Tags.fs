@@ -112,9 +112,15 @@ module internal Misc =
             member this.Perform token context tokens =
                 match token.Args with 
                 | name::[] -> 
-                    (new TagNode(context, token, this) :> INodeImpl), context.WithModelType(name.RawText), tokens
+                    (
+                        {new TagNode(context, token, this) with
+                            override x.elements = (new TypeNameNode(context, Text name) :> INode) :: base.elements
+                        }
+                        :> INodeImpl), context.WithModelType(name.RawText), tokens
+                | [] ->
+                    raise (SyntaxError("missing type name in the model tag", [new TypeNameNode(context, Text (token.CreateToken(token.Location.Length - 2, 0))) :> INode]))
                 | _ ->
-                    raise (SyntaxError("model tag requires exactly one argument"))
+                    raise (SyntaxError("excessive arguments in the model tag"))
 
     /// Outputs the first variable passed that is not False.
     /// 

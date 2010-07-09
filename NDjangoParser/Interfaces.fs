@@ -124,7 +124,7 @@ type NodeType =
         /// <summary>
         /// a special expression node representing the .NET type name - i.e. in the model tag
         /// </summary>
-        | TypeName = 0x0010
+        | TypeName = 0x0011
 
 /// Error message
 type Error(severity:int, message:string) =

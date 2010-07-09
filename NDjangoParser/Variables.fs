@@ -290,3 +290,4 @@ module Variables =
             member x.Nodes = Map.empty :> IDictionary<string, IEnumerable<INode>>
             member x.Context = context
 
+        interface ICompletionProvider
