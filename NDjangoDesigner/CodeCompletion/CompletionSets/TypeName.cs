@@ -16,7 +16,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {
-            return BuildCompletions(new string[] {"Type1", "Type2"}, "", "");
+            return BuildCompletions(new string[] { }, "", "");
         }
     }
 

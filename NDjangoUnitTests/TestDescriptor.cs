@@ -171,13 +171,13 @@ namespace NDjango.UnitTests
             //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
             List<INode> nodes = GetNodes(template.Nodes.ToList<INodeImpl>().ConvertAll
                 (node => (INode)node)).FindAll(node =>
-                    (node is ICompletionProvider) 
+                    (node is ICompletionValuesProvider) 
                     || (node.NodeType == NodeType.ParsingContext) 
                     || (node.ErrorMessage.Message != ""));
             List<DesignerData> actualResult = nodes.ConvertAll(
                 node =>
                 {
-                    var value_provider = node as ICompletionProvider;
+                    var value_provider = node as ICompletionValuesProvider;
                     var values =
                         value_provider == null ?
                             new List<string>()

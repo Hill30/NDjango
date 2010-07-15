@@ -153,13 +153,15 @@ module internal ASTNodes =
 
         /// produces a flattened list of all nodes and child nodes within a 'node list'.
         /// the 'node list' is a list of all nodes collected from Nodes property of the INode interface
-        let rec unfold_nodes nodes =
-            match nodes with
-            | (h:INode)::t ->
-                unfold_nodes t |> Seq.append
-                    (h.Nodes.Values |> Seq.cast |> Seq.concat |>
-                            Seq.choose (fun (node:INode) -> match node with | :? Node -> Some node | :? ParsingContextNode -> Some node| _ -> None))
-            | [] -> Seq.empty
+        let rec unfold_nodes (nodes: INode seq) =
+            nodes |> 
+            Seq.choose 
+                (fun node ->
+                    match node with
+                    | :? Node | :? ParsingContextNode -> 
+                        Some (Seq.append [node] (Seq.concat node.Nodes.Values |> unfold_nodes))
+                    | _ -> None)
+            |> Seq.concat
 
         interface ICompletionValuesProvider with
             override x.Values =
@@ -168,11 +170,11 @@ module internal ASTNodes =
                     | Some _base ->
                         let block_refs = 
                             match _base with
-                            | :? TemplateNameExpression as _base -> 
-                                _base.GetParentNodes |> 
-                                List.map (fun node -> node :?> INode) |>
-                                unfold_nodes |>
-                                Seq.choose 
+                            | :? TemplateNameExpression as _base ->
+                                _base.GetParentNodes 
+                                |> Seq.map (fun i -> i :?> INode)
+                                |> unfold_nodes 
+                                |> Seq.choose 
                                     (function
                                         | :? BlockNode as block -> Some (Block block.Name)
                                         | :? ParsingContextNode as context_node -> Some (Context (context_node :> INode).Context)
