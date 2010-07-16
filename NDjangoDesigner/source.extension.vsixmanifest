@@ -16,8 +16,13 @@
     </SupportedProducts>
     <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.0"></SupportedFrameworkRuntimeEdition>
   </Identifier>
-  <References />
+  <References>
+    <Reference Id="Microsoft.VisualStudio.MPF" MinVersion="10.0">
+      <Name>Visual Studio MPF</Name>
+    </Reference>
+  </References>
   <Content>
-    <MefComponent>NDjango.Designer.dll</MefComponent>
+    <VsPackage>|%CurrentProject%;PkgdefProjectOutputGroup|</VsPackage>
+    <MefComponent>|%CurrentProject%|</MefComponent>
   </Content>
 </Vsix>

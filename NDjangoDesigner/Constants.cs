@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
+using System;
 
 namespace NDjango.Designer
 {
@@ -95,6 +96,17 @@ namespace NDjango.Designer
 
         internal const string NDJANGO_TEXT = "plaintext";
         internal const string NDJANGO_HTML = "HTML";
+
+        /// <summary>
+        /// Package constants
+        /// </summary>
+
+        public const string guidDesignerPkgString = "40154ca2-08a7-4440-89fb-e4b78ead53d9";
+        public const string guidDesignerCmdSetString = "e3233f52-718c-4dc5-a792-d92f77850b8b";
+
+        public static readonly Guid guidDesignerCmdSet = new Guid(guidDesignerCmdSetString);
+
+        public const uint cmdidAddView = 0x100;
 
     }
 }
