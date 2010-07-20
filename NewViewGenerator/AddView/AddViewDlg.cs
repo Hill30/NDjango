@@ -32,6 +32,7 @@ namespace NewViewGenerator
         private void FillModelList()
         {
             comboModel.Items.Clear();
+            comboModel.Items.Add("none");
             try
             {
                 List<Assembly> assmlist = wizard.GetReferences();
@@ -59,6 +60,7 @@ namespace NewViewGenerator
         private void FillAllTemplates()
         {
             comboBaseTemplate.Items.Clear();
+            comboBaseTemplate.Items.Add("none");
             IEnumerable<string> allTemplates = wizard.GetTemplates("");
             foreach (string item in allTemplates)
                 //if (!comboBaseTemplate.Items.Contains(item))
