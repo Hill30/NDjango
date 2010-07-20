@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Vsix Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
+<Vsix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
   <Identifier Id="NDjangoDesigner.Hill30.c025f4a8-7b64-4151-a02b-2211842d078f">
     <Name>NDjangoDesigner</Name>
     <Author>Hill 30</Author>
     <Version>1.0</Version>
-    <Description>NDjango Template Editor.</Description>
+    <Description xml:space="preserve">NDjango Template Editor.</Description>
     <Locale>1033</Locale>
     <Icon>VSIXProject_small.png</Icon>
     <PreviewImage>VSIXProject_large.png</PreviewImage>
@@ -14,7 +14,7 @@
         <Edition>Pro</Edition>
       </VisualStudio>
     </SupportedProducts>
-    <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.0"></SupportedFrameworkRuntimeEdition>
+    <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.0" />
   </Identifier>
   <References>
     <Reference Id="Microsoft.VisualStudio.MPF" MinVersion="10.0">
@@ -22,7 +22,6 @@
     </Reference>
   </References>
   <Content>
-    <VsPackage>|%CurrentProject%;PkgdefProjectOutputGroup|</VsPackage>
-    <MefComponent>|%CurrentProject%|</MefComponent>
+    <MefComponent>NDjango.Designer.dll</MefComponent>
   </Content>
 </Vsix>

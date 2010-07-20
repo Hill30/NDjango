@@ -25,14 +25,15 @@ namespace NDjango.Designer.Parsing
 
         [Import]
         private SVsServiceProvider serviceProvider = null;
-        public IVsMonitorSelection selectionTracker;
+        public IVsMonitorSelection selectionTrackerExternal;
 
         #region ITemplateManager Members
 
         public IEnumerable<string> GetTemplates(string root)
         {
             var result = new List<string>();
-            //var selectionTracker = (IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection));
+            IVsMonitorSelection selectionTracker;
+            selectionTracker = (serviceProvider != null)?(IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection)) : selectionTrackerExternal;
             IntPtr ppHier;
             uint pitemid;
             IVsMultiItemSelect ppMIS;

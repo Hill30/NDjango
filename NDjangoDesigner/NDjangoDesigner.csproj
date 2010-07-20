@@ -5,15 +5,15 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ProjectGuid>{3AC5B05C-E4FF-4C90-89CA-A1158F0815E5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NDjango.Designer</RootNamespace>
-    <AssemblyName>NDjango.Designer.10</AssemblyName>
+    <AssemblyName>NDjango.Designer</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -157,8 +157,7 @@
     <Compile Include="CodeCompletion\Source.cs" />
     <Compile Include="CodeCompletion\SourceProvider.cs" />
     <Compile Include="CodeCompletion\CompletionSets\TagCompletionSet.cs" />
-    <Compile Include="DjangoDesignerPackage.cs" />
-    <Compile Include="Parsing\ProjectHandler.cs" />
+    <Compile Include="Parsing\ProjectHandler.cs"/>
     <Compile Include="Parsing\TemplateLoader.cs" />
     <Compile Include="Parsing\TemplateDirectory.cs" />
     <Compile Include="Constants.cs" />
@@ -180,11 +179,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="GlobalServices.cs" />
-    <Compile Include="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Tags\Tagger.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -198,17 +192,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="DjangoDesigner.vsct">
-      <ManifestResourceName>NDjango.Menus</ManifestResourceName>
-    </VSCTCompile>
-    <Resource Include="Resources\Images_32bit.bmp" />
-    <Resource Include="Resources\Package.ico" />
-    <Content Include="VSIXProject_large.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="VSIXProject_small.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="VSIXProject_large.png" />
+    <Content Include="VSIXProject_small.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters2010.csproj">
@@ -227,17 +212,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="VSPackage.resx">
-      <MergeWithCTO>true</MergeWithCTO>
-      <ManifestResourceName>VSPackage</ManifestResourceName>
-    </EmbeddedResource>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v10.0\VSSDK\Microsoft.VsSDK.targets') " Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v10.0\VSSDK\Microsoft.VsSDK.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -53,7 +53,7 @@ namespace NewViewGenerator
             if (templatesDir == null)
             {
                 templatesDir = new TemplateDirectory();
-                templatesDir.selectionTracker = SelectionService;
+                templatesDir.selectionTrackerExternal = SelectionService;
             }
         }
         #region private fields

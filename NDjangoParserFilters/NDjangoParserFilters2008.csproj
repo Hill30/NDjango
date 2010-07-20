@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NDjango.FiltersCS</RootNamespace>
-    <AssemblyName>NDjangoFilters.NDjangoExtension.9</AssemblyName>
+    <AssemblyName>NDjangoFilters.NDjangoExtension</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

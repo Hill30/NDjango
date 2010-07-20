@@ -109,8 +109,7 @@ namespace NDjango.Designer.Parsing
         {
             if (path.StartsWith("temp://"))
             {
-                path.Remove(0,7);
-                byte[] byteArray = Encoding.ASCII.GetBytes(path); 
+                byte[] byteArray = Encoding.ASCII.GetBytes(path.Remove(0,7)); 
                 MemoryStream stream = new MemoryStream( byteArray);
                 return new StreamReader(stream);
             }
