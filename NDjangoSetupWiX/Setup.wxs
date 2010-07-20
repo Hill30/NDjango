@@ -35,6 +35,9 @@
     <Property Id="VS2010PROJECTTEMPLATESLOCATION">
       <RegistrySearch Id="UserProjectTemplates2010Location" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\10.0" Name="UserProjectTemplatesLocation" />
     </Property>
+    <Property Id="VS2010ITEMTEMPLATESLOCATION">
+      <RegistrySearch Id="UserItemTemplates2010Location" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\10.0" Name="UserItemTemplatesLocation" />
+    </Property>
     <Property Id="VS2008ITEMTEMPLATESLOCATION">
       <RegistrySearch Id="UserItemTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\9.0" Name="UserItemTemplatesLocation" />
     </Property>
@@ -48,11 +51,13 @@
       <RegistrySearch Id="RegSearch_DevenvExe_Path2008" Root="HKLM" Key="$(var.VisualStudioRegistryRoot2008)\Setup\VS" Name="EnvironmentPath" Type="raw" />
     </Property>
     <PropertyRef Id="NETFRAMEWORK35_SP_LEVEL" />
-    <Condition Message="This application requires Visual Studio 2008/2010. Please install the Visual Studio 2008/2010 then run this installer again.">Installed OR VS2008FOUND</Condition>
+    <Condition Message="This application requires Visual Studio 2008/2010. Please install the Visual Studio 2008/2010 then run this installer again.">Installed OR VS2008FOUND OR VS2010FOUND</Condition>
     <Condition Message="This application requires .NET Framework 3.5SP1. Please install the .NET Framework 3.5SP1 then run this installer again."><![CDATA[Installed OR (NETFRAMEWORK35_SP_LEVEL and NOT NETFRAMEWORK35_SP_LEVEL = "#0")]]></Condition>
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" Overridable="yes" />
     <WixVariable Id="WixUIBannerBmp" Value="bitmaps\bannrbmp.bmp" />
     <WixVariable Id="WixUIDialogBmp" Value="bitmaps\dlgbmp.bmp" />
+    <WixVariable Id="WixUICostingPopupOptOut" Value="1" Overridable="yes" />
+
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="VS10FILES" >
         <Directory Id="EXTENSIONSFILES" Name="Extensions">
@@ -82,12 +87,6 @@
                 <File Id="NDjango.Filters2008.dll" Name="NDjangoFilters.NDjangoExtension.dll" Source="lib\2008\NDjangoFilters.NDjangoExtension.dll" />
                 <RegistryValue Root="HKLM" Key="Software\Hill30\NDjango" Name="InstallDir2008" Type="string" Value="[NET35]" KeyPath="yes" />
               </Component>
-              <Component Id="Readme2008" Guid="39D6280B-D600-4A8E-A929-62578C3CA890">
-                <File Id="Readme2008.txt" Name="Readme.txt" Source="lib\2008\Readme.txt" />
-              </Component>
-              <Component Id="ReleaseNotes2008" Guid="0B12A82D-47CE-4334-A3C6-C02AA10AB12A">
-                <File Id="ReleaseNotes2008.htm" Name="ReleaseNotes.htm" Source="..\ReleaseNotes.htm" />
-              </Component>
               <Component Id="ThirdPartyComponents2008" Guid="B5E34D54-3914-4851-8602-19311D415912">
                 <File Id="StructureMap2008.dll" Name="StructureMap.dll" Source="lib\StructureMap.dll" />
               </Component>
@@ -102,16 +101,16 @@
                 <File Id="NDjango.Filters2010.dll" Name="NDjangoFilters.NDjangoExtension.dll" Source="lib\2010\NDjangoFilters.NDjangoExtension.dll" />
                 <RegistryValue Root="HKLM" Key="Software\Hill30\NDjango" Name="InstallDir2010" Type="string" Value="[NET40]" KeyPath="yes" />
               </Component>
-              <Component Id="Readme2010" Guid="437A42DC-2097-4AA7-A838-34A0A1E891CD">
-                <File Id="Readme2010.txt" Name="Readme.txt" Source="lib\2010\Readme.txt" />
-              </Component>
-              <Component Id="ReleaseNotes2010" Guid="154B27F5-663B-4652-8CF6-99171F3911A1">
-                <File Id="ReleaseNotes2010.htm" Name="ReleaseNotes.htm" Source="..\ReleaseNotes.htm" />
-              </Component>
               <Component Id="ThirdPartyComponents2010" Guid="1231329B-3AA0-4D86-9BCA-3608320C65E5">
                 <File Id="StructureMap2010.dll" Name="StructureMap.dll" Source="lib\StructureMap.dll" />
               </Component>
             </Directory>
+            <Component Id="Readme" Guid="437A42DC-2097-4AA7-A838-34A0A1E891CD">
+              <File Id="Readme.txt" Name="Readme.txt" Source="Readme.txt" />
+            </Component>
+            <Component Id="ReleaseNotes" Guid="154B27F5-663B-4652-8CF6-99171F3911A1">
+              <File Id="ReleaseNotes.htm" Name="ReleaseNotes.htm" Source="..\ReleaseNotes.htm" />
+            </Component>
 
           </Directory>
         </Directory>
@@ -119,7 +118,7 @@
       <Directory Id="VS2008ITEMTEMPLATESLOCATION">
         <Directory Id="vs2008CSharpItem" Name="Visual C#">
           <Directory Id="vs2008Web1Item" Name="Web">
-            <Component Id="ItemTemplates" Guid="27EF94C3-D513-4D79-B1BE-9401266B4319">
+            <Component Id="ItemTemplates2008" Guid="27EF94C3-D513-4D79-B1BE-9401266B4319">
               <RemoveFolder Id="vs2008Web1Item" Directory="vs2008Web1Item" On="uninstall" />
               <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
               <File Id="NDjangoTemplate" Name="NDjangoTemplate2008.zip" Source="Templates\2008\NDjangoTemplate.zip" />
@@ -130,7 +129,7 @@
       <Directory Id="VS2008PROJECTTEMPLATESLOCATION">
         <Directory Id="vs2008CSharp" Name="Visual C#">
           <Directory Id="vs2008Web1" Name="Web">
-            <Component Id="ProjectTemplates" Guid="F12101E4-615A-418F-9665-1D5C7B4ED5B8">
+            <Component Id="ProjectTemplates2008" Guid="F12101E4-615A-418F-9665-1D5C7B4ED5B8">
               <RemoveFolder Id="vs2008Web1" Directory="vs2008Web1" On="uninstall" />
               <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
               <File Id="NDjangoMVC" Name="NDjangoMVC2008.zip" Source="Templates\2008\NDjangoMVC.zip" />
@@ -175,45 +174,49 @@
         </RegistryKey>
       </Component>
     </Directory>
-    <Property Id="TEMPLATESNEEDED" Secure="yes" />
-    <Feature Id="InstallTemplates" Level="1">
-      <ComponentRef Id="ProjectTemplates" />
-      <ComponentRef Id="ItemTemplates" />
+    <Property Id="TEMPLATESNEEDED"/>
+    <Property Id="DESIGNERNEEDED" />
+    <Feature Id="InstallTemplates2008" Level="1">
+      <Condition Level="0"><![CDATA[VS2008FOUND = NULL]]></Condition>
+      <ComponentRef Id="ProjectTemplates2008" />
+      <ComponentRef Id="ItemTemplates2008" />
+    </Feature>
+    <Feature Id="ProductFeature2008" Level="1">
+      <Condition Level="0"><![CDATA[VS2008FOUND = NULL]]></Condition>
+      <ComponentRef Id="NDjangoAssemblies2008" />
+      <ComponentRef Id="RegisterDjangoExtensionForHTMLEditor" />
+      <ComponentRef Id="ThirdPartyComponents2008" />
+    </Feature>
+    <Feature Id="InstallTemplates2010" Level="1">
+      <Condition Level="0"><![CDATA[VS2010FOUND = NULL]]></Condition>
       <ComponentRef Id="ProjectTemplates2010"/>
       <ComponentRef Id="ItemTemplates2010" />
     </Feature>
-    <Feature Id="ProductFeature" Level="1">
-      <ComponentRef Id="NDjangoAssemblies2008" />
-      <ComponentRef Id="RegisterDjangoExtensionForHTMLEditor" />
-      <ComponentRef Id="Readme2008" />
-      <ComponentRef Id="ReleaseNotes2008" />
-      <ComponentRef Id="ThirdPartyComponents2008" />
+    <Feature Id="ProductFeature2010" Level="1">
+      <Condition Level="0"><![CDATA[VS2010FOUND = NULL]]></Condition>
       <ComponentRef Id="NDjangoAssemblies2010" />
-      <ComponentRef Id="Readme2010" />
-      <ComponentRef Id="ReleaseNotes2010" />
       <ComponentRef Id="ThirdPartyComponents2010" />
       <ComponentRef Id="NDjangoDesignerFiles" />
     </Feature>
     <Feature Id="InstallDesignerFiles" Level="1">
+      <Condition Level="0"><![CDATA[DESIGNERNEEDED <> "1"]]></Condition>
       <ComponentRef Id="NDjangoDesignerFiles" />
-      <Condition Level="0"><![CDATA[ DESIGNERNEEDED <> "1"]]></Condition>
+    </Feature>
+    <Feature Id="Documentation" Level="1">
+      <ComponentRef Id="Readme" />
+      <ComponentRef Id="ReleaseNotes" />
     </Feature>
     <Binary Id="EditTemplates" SourceFile="versionWriterFull.exe" />
     <CustomAction Id="UninstallDesignerFiles" Directory="EXTENSIONSHILL30" ExeCommand="&quot;cmd.exe&quot; /c rmdir /s /q &quot;NDjangoDesigner&quot;" Return="ignore" />
-    <Property Id="DESIGNERNEEDED" />
     <CustomAction Id="CA_DevenvSetup2008" Property="DEVENV_EXE_PATH2008" ExeCommand="/setup" Impersonate="no" Execute="commit" />
     <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2008PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoMVC2008.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2008" Return="ignore" Execute="commit"/>
     <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoMVC2010.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2010" Return="ignore" Execute="commit"/>
-    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[ENVDIR_2008]ProjectTemplates\Bistro\BistroProject2008.zip&quot;" Id="EditBistroProject2008CustomAction" Return="ignore" Execute="commit"/>
-    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[ENVDIR_2008]ProjectTemplates\Bistro\FSharp2008.zip&quot;" Id="EditFSharp2008CustomAction" Return="ignore" Execute="commit"/>
-    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[vs2010Web1]BistroProject.zip&quot;" Id="EditBistro2010CustomAction" Return="ignore" Execute="commit"/>
     <InstallExecuteSequence>
       <Custom Action="EditNDjangoMVCTemplate2008" After="WriteRegistryValues"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2008FOUND]]></Custom>
       <Custom Action="EditNDjangoMVCTemplate2010" After="EditNDjangoMVCTemplate2008"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
-      <Custom Action="EditBistro2010CustomAction" After="EditNDjangoMVCTemplate2010"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
+      <!--<Custom Action="EditBistro2010CustomAction" After="EditNDjangoMVCTemplate2010"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
       <Custom Action="EditBistroProject2008CustomAction" After="EditNDjangoMVCTemplate2010"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
-      <Custom Action="EditFSharp2008CustomAction" After="EditBistroProject2008CustomAction"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
-      <!--<Custom Action="CA_DevenvSetup2008" After="EditFSharp2008CustomAction" ><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>-->
+      <Custom Action="EditFSharp2008CustomAction" After="EditBistroProject2008CustomAction"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>-->
       <Custom Action="UninstallDesignerFiles" After="InstallInitialize"><![CDATA[REMOVE]]></Custom>
       <RemoveExistingProducts After="InstallInitialize" />
     </InstallExecuteSequence>
@@ -272,7 +275,7 @@
       <Dialog Id="InstallDirDlgCustom" Width="370" Height="270" Title="!(loc.InstallDirDlg_Title)">
         <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
           <Publish Event="AddLocal" Value="ALL">1</Publish>
-          <Publish Event="Remove" Value="InstallTemplates"><![CDATA[ (TEMPLATESNEEDED <> "1") OR (MVCFOUND = NULL) ]]></Publish>
+          <!--<Publish Event="Remove" Value="InstallTemplates2008"><![CDATA[ (TEMPLATESNEEDED <> "1") OR (MVCFOUND = NULL)]]></Publish>-->
         </Control>
         <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
         <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
@@ -288,9 +291,9 @@
         </Control>
         <Control Id="ChangeFolder" Type="PushButton" X="20" Y="120" Width="56" Height="17" Text="!(loc.InstallDirDlgChange)">
         </Control>
-        <Control Type="CheckBox" Id="TemplatesCheckBox" Width="317" Height="17" X="22" Y="149" CheckBoxValue="1" Property="TEMPLATESNEEDED" Text="Install NDjango templates for Visual Studio 2008 (ASP.NET MVC 2 is required)">
-          <Condition Action="enable"><![CDATA[ (VS2008FOUND <> NULL) AND MVCFOUND ]]></Condition>
-          <Condition Action="disable"><![CDATA[ (VS2008FOUND = NULL) OR (MVCFOUND = NULL)]]></Condition>
+        <Control Type="CheckBox" Id="TemplatesCheckBox" Width="317" Height="17" X="22" Y="149" CheckBoxValue="1"  Property="TEMPLATESNEEDED" Text="Install NDjango templates (ASP.NET MVC 2 is required)">
+          <Condition Action="enable"><![CDATA[MVCFOUND <> NULL]]></Condition>
+          <Condition Action="disable"><![CDATA[MVCFOUND = NULL]]></Condition>
         </Control>
         <Control Type="CheckBox" Id="DesignerCheckBox" Width="230" Height="17" X="22" Y="169" Property="DESIGNERNEEDED" CheckBoxValue="1" Text="Install NDjango Designer for Visual Studio 2010">
           <Condition Action="enable"><![CDATA[ VS2010FOUND <> NULL ]]></Condition>

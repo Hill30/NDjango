@@ -9,7 +9,7 @@ using System.Runtime.Remoting.Messaging;
 
 namespace NDjango.Designer.Parsing
 {
-    class TemplateLoader: ITemplateLoader
+    public class TemplateLoader: ITemplateLoader
     {
         Dictionary<string, BufferRecord> templates = new Dictionary<string, BufferRecord>();
         private string project_directory;
@@ -107,6 +107,13 @@ namespace NDjango.Designer.Parsing
 
         public TextReader GetTemplate(string path)
         {
+            if (path.StartsWith("temp://"))
+            {
+                path.Remove(0,7);
+                byte[] byteArray = Encoding.ASCII.GetBytes(path); 
+                MemoryStream stream = new MemoryStream( byteArray);
+                return new StreamReader(stream);
+            }
             path = get_absolute_path(path);
             BufferRecord record;
             if (templates.TryGetValue(path, out record) && record.Item1 != null)
@@ -122,6 +129,8 @@ namespace NDjango.Designer.Parsing
 
         public bool IsUpdated(string path, DateTime timestamp)
         {
+            if (path.StartsWith("temp://"))
+                return false;
             path = get_absolute_path(path);
             BufferRecord record;
             if (templates.TryGetValue(path, out record) && record.Item1 != null)

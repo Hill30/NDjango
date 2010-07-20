@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NDjango.FiltersCS</RootNamespace>
-    <AssemblyName>NDjangoFilters.NDjangoExtension</AssemblyName>
+    <AssemblyName>NDjangoFilters.NDjangoExtension.10</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -116,7 +116,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+    <!--<BootstrapperPackage Include=".NETFramework,Version=v4.0">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
       <Install>true</Install>
@@ -130,7 +130,7 @@
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
-    </BootstrapperPackage>
+    </BootstrapperPackage>-->
     <BootstrapperPackage Include="Microsoft.VisualBasic.PowerPacks.10.0">
       <Visible>False</Visible>
       <ProductName>Microsoft Visual Basic PowerPacks 10.0</ProductName>
