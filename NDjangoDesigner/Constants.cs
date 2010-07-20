@@ -39,7 +39,7 @@ namespace NDjango.Designer
         private static ClassificationTypeDefinition DjangoSelectedTag;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name("ndjango.selected.tag.format")]
+        [Name("NDjango Selected Tag")]
         [DisplayName("NDjango Selected Tag Format")]
         [UserVisible(true)]
         [ClassificationType(ClassificationTypeNames = DJANGO_SELECTED_TAG)]
@@ -58,7 +58,7 @@ namespace NDjango.Designer
         private static ClassificationTypeDefinition DjangoSelectedTagName;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name("ndjango.selected.tagname.format")]
+        [Name("NDjango Selected Tag Name")]
         [DisplayName("NDjango Selected Tag Name Format")]
         [UserVisible(true)]
         [ClassificationType(ClassificationTypeNames = DJANGO_SELECTED_TAGNAME)]
