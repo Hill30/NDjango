@@ -180,7 +180,7 @@ module Variables =
             var_list |> 
                 List.iter 
                     (fun v ->
-                        if v = "" || v.StartsWith("-") || v.StartsWith("_") 
+                        if v.Trim().Length = 0 || v.StartsWith("-") || v.StartsWith("_") 
                         then 
                             raise (SyntaxError 
                                     (sprintf "Variables and attributes may not be empty, begin with underscores or minus (-) signs: '%s'" v))

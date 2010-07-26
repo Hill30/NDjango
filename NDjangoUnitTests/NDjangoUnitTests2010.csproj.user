@@ -3,6 +3,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartAction>Program</StartAction>
     <StartProgram>C:\Program Files (x86)\NUnit 2.5.5\bin\net-2.0\nunit.exe</StartProgram>
-    <StartArguments>NDjango.UnitTests.10.dll /run</StartArguments>
+    <StartArguments>NDjango.UnitTests.dll /run</StartArguments>
   </PropertyGroup>
 </Project>

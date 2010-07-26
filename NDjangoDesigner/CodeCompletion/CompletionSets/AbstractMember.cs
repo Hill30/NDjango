@@ -31,6 +31,8 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         protected override int InitializeFilters(string existing)
         {
             facets = GetSpanText(existing).Split('.');
+            if (existing.Trim().Length == 0)
+                return existing.Length;
             return GetCompletionOffset(existing);
         }
 

@@ -263,9 +263,10 @@ module Lexer =
         inherit TextToken(text, location)
 
         let expression = 
-            let body, location = block_body text location
-            //if (body = "") then raise (LexerError("Empty variable block"))
-            new TextToken(body, location)
+            let body, body_location = block_body text location
+            if (body = "") 
+                then new TextToken(text.[2..text.Length-3], new Location(location, (2, text.Length-4)))
+                else new TextToken(body, body_location)
         
         /// <summary>
         /// token representing the expression
