@@ -1,0 +1,4 @@
+﻿{% extends 'Views\Shared\Site.django' %}
+{% block title %} {{ block.super }} - Introduction {% endblock title %}
+{% block MainContent %}
+{% endblock MainContent %}
