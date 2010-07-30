@@ -94,7 +94,7 @@
             <Directory Id="NET40" Name=".NET40">
               <Component Id="NDjangoAssemblies2010" Guid="322925F0-84C3-41EC-ACE8-D238D3CBF2ED">
                 <File Id="NDJANGODESIGNER" Name="NDjango.Designer.vsix" Source="lib\NDjango.Designer.vsix" />
-                <File Id="ASPMVCIntegration2010.dll" Name="ASPMVCIntegration.dll" Source="lib\2010\ASPMVCIntegration.dll" />
+                <File Id="NDjango.ASPMVCIntegration.dll" Name="NDjango.ASPMVCIntegration.dll" Source="lib\2010\NDjango.ASPMVCIntegration.dll" />
                 <!--File Id="NDjango.BistroIntegration.dll" Name="$(var.BistroIntegration.TargetFileName)" Source="$(var.BistroIntegration.TargetPath)" /-->
                 <!--File Id="Castle.Monorail.Views.NDjangoView.dll" Name="$(var.Castle.Monorail.Views.NDjangoView.TargetFileName)" Source="$(var.Castle.Monorail.Views.NDjangoView.TargetPath)" /-->
                 <File Id="NDjango.Core2010.dll" Name="NDjango.Core.dll" Source="lib\2010\NDjango.Core.dll" />
