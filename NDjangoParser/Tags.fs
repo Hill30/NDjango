@@ -113,8 +113,22 @@ module internal Misc =
                 match token.Args with 
                 | name::[] -> 
                     (
+                        let model_type = 
+                            System.AppDomain.CurrentDomain.GetAssemblies() 
+                            |> Seq.tryPick 
+                                (fun assembly -> 
+                                    match assembly.GetType(name.RawText) with
+                                    | null -> None
+                                    | _ as t -> Some t
+                                    )
                         {new TagNode(context, token, this) with
                             override x.elements = (new TypeNameNode(context, Text name) :> INode) :: base.elements
+
+                            override x.walk manager walker = 
+                                match model_type with
+                                | Some model -> 
+                                    {walker with context = walker.context.WithModelType(model)}
+                                | _ -> walker
                         }
                         :> INodeImpl), context.WithModelType(name.RawText), tokens
                 | [] ->

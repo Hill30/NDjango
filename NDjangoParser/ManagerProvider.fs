@@ -345,11 +345,41 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             new_tags |> Seq.fold (fun tags tag -> tags++(tag.name, tag.tag)) tags
             , filters, loader, dictionary)
 
+    member x.WithTagsFrom (assembly: System.Reflection.Assembly) =
+        new TemplateManagerProvider(settings, 
+            assembly.GetTypes() 
+                |> Seq.fold 
+                    (fun tags tag_type -> 
+                        let attrs = tag_type.GetCustomAttributes(typeof<NameAttribute>, false)
+                        if attrs.Length = 0 || not (typeof<ITag>.IsAssignableFrom(tag_type)) then tags
+                        else 
+                            try
+                                tags ++ ((attrs.[0] :?> NameAttribute).Name, (System.Activator.CreateInstance(tag_type) :?> ITag))
+                            with
+                            | _ -> tags
+                    ) tags
+            , filters, loader, dictionary)
+        
     member x.WithFilters (new_filters : Filter seq)  = 
         new TemplateManagerProvider(settings, tags, 
             new_filters |> Seq.fold (fun filters filter -> Map.add filter.name filter.filter filters) filters
             , loader, dictionary)
     
+    member x.WithFiltersFrom (assembly: System.Reflection.Assembly) =
+        new TemplateManagerProvider(settings, tags, 
+            assembly.GetTypes() 
+                |> Seq.fold 
+                    (fun filters filter_type -> 
+                        let attrs = filter_type.GetCustomAttributes(typeof<NameAttribute>, false)
+                        if attrs.Length = 0 || not (typeof<ISimpleFilter>.IsAssignableFrom(filter_type)) then filters
+                        else 
+                            try
+                                filters ++ ((attrs.[0] :?> NameAttribute).Name, (System.Activator.CreateInstance(filter_type) :?> ISimpleFilter))
+                            with
+                            | _ -> filters
+                    ) filters
+            , loader, dictionary)
+        
     member x.WithLoader new_loader = new TemplateManagerProvider(settings, tags, filters, new_loader, dictionary)
     
     member public x.GetNewManager() = lock lockProvider (fun() -> new Template.Manager(x, !templates) :> ITemplateManager)

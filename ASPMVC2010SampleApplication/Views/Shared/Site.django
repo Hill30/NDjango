@@ -14,7 +14,7 @@
             </div>
               
             <div id="logindisplay">
-                { % render-partial "LogOnUserControl" % }
+                {% render-partial "LogOnUserControl" %}
             </div> 
             
             <div id="menucontainer">

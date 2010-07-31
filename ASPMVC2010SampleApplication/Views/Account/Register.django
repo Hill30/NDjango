@@ -1,0 +1,57 @@
+﻿{% model ASPMVC2010SampleApplication.Models.RegisterModel %}
+{% extends 'Views\Shared\Site.django' %}
+{% block title %} {{ block.super }} - Registration {% endblock title %}
+{% block MainContent %}
+    <h2>Create a New Account</h2>
+    <p>
+        Use the form below to create a new account. 
+    </p>
+    <p>
+        Passwords are required to be a minimum of {{ Model.PasswordLength }} characters in length.
+    </p>
+
+    {% begin-form %}
+        {% validation-summary "Account creation was unsuccessful. Please correct the errors and try again." %}
+        <div>
+            <fieldset>
+                <legend>Account Information</legend>
+                
+                <div class="editor-label">
+                    {% label-for 'UserName' %}
+                </div>
+                <div class="editor-field">
+                    {% textbox-for "UserName" %}
+                    {% validation-message-for "UserName" %}
+                </div>
+                
+                <div class="editor-label">
+                    {% label-for 'Email' %}
+                </div>
+                <div class="editor-field">
+                    {% textbox-for "Email" %}
+                    {% validation-message-for "Email" %}
+                </div>
+                
+                <div class="editor-label">
+                    {% label-for 'Password' %}
+                </div>
+                <div class="editor-field">
+                    {% password-for "Password" %}
+                    {% validation-message-for "Password" %}
+                </div>
+                
+                <div class="editor-label">
+                    {% label-for 'ConfirmPassword' %}
+                </div>
+                <div class="editor-field">
+                    {% password-for "ConfirmPassword" %}
+                    {% validation-message-for "ConfirmPassword" %}
+                </div>
+                
+                <p>
+                    <input type="submit" value="Register" />
+                </p>
+            </fieldset>
+        </div>
+	</form>
+{% endblock MainContent %}

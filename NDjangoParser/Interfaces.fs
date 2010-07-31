@@ -175,6 +175,11 @@ type IContext =
     /// Translation routine - when applied to the value returns it translated 
     /// to the language for the user
     abstract member Translate: string -> string
+
+    /// Type of the model to be associated with the template
+    abstract member ModelType: System.Type option
+
+    abstract member WithModelType: System.Type -> IContext
     
 type DjangoType =
     | Type

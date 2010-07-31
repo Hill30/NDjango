@@ -97,14 +97,15 @@ module internal Template =
                             context, 
                             (new Map<string,obj>(context |> Seq.map (fun item-> (item.Key, item.Value)))),
                             provider.Settings.[Constants.DEFAULT_AUTOESCAPE] :?> bool,
-                            provider.CreateTranslator "en-US"
+                            provider.CreateTranslator "en-US",
+                            None
                             )
                     }) :> System.IO.TextReader
                 
             member this.Nodes = node_list
     
     /// implements the rendering context (IContext interface)        
-    and private Context (externalContext, variables, autoescape: bool, translator: string -> string) =
+    and private Context (externalContext, variables, autoescape: bool, translator: string -> string, model_type) =
 
         /// used in the Debug tag to display the content of the current context
         override this.ToString() =
@@ -122,7 +123,7 @@ module internal Template =
 
         interface IContext with
             member x.add(pair) =
-                new Context(externalContext, Map.add (fst pair) (snd pair) variables, autoescape, translator) :> IContext
+                new Context(externalContext, Map.add (fst pair) (snd pair) variables, autoescape, translator, (model_type: System.Type option)) :> IContext
                 
             member x.tryfind(name) =
                 match variables.TryFind(name) with
@@ -130,12 +131,17 @@ module internal Template =
                 | None -> None 
                 
             member x.remove(key) =
-                new Context(externalContext, Map.remove key variables, autoescape, translator) :> IContext
+                new Context(externalContext, Map.remove key variables, autoescape, translator, model_type) :> IContext
                 
             member x.Autoescape = autoescape
 
             member x.WithAutoescape(value) =
-                new Context(externalContext, variables, value, translator) :> IContext
+                new Context(externalContext, variables, value, translator, model_type) :> IContext
                 
             member x.Translate value = value |> translator
+
+            member x.ModelType = model_type
+
+            member x.WithModelType model_type = 
+                new Context(externalContext, variables, autoescape, translator, Some model_type) :> IContext
             

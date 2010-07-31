@@ -17,9 +17,17 @@ namespace ASPMVC2010SampleApplication
 
         public override string ProcessTag(NDjango.Interfaces.IContext context, string content, object[] parms)
         {
-            var htmlHelper =  context.tryfind("Html");
+            var htmlHelperOption = context.tryfind("Html");
+            if (htmlHelperOption == null)
+                return "";
 
-            return ((HtmlHelper)htmlHelper.Value).ActionLink(parms[0].ToString(), parms[1].ToString(), parms[2].ToString()).ToHtmlString();
+            var htmlHelper = (HtmlHelper)htmlHelperOption.Value;
+
+            var result = htmlHelper.ActionLink(parms[0].ToString(), parms[1].ToString(), parms[2].ToString()).ToHtmlString();
+            if (result == null)
+                return "";
+            else
+                return result;
         }
     }
 }
