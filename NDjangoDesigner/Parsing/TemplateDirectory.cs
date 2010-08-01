@@ -11,45 +11,33 @@ using System.Runtime.InteropServices;
 
 namespace NDjango.Designer.Parsing
 {
-    public interface ITemplateDirectory
+    public class TemplateDirectory
     {
-        IEnumerable<string> GetTemplates(string root);
-        IEnumerable<string> Recent5Templates { get; }
-        void RegisterInserted(string inserted);
-    }
 
-    [Export(typeof(ITemplateDirectory))]
-    public class TemplateDirectory : ITemplateDirectory
-    {
-        public TemplateDirectory() { }
+        string project_directory;
 
-        [Import]
-        private SVsServiceProvider serviceProvider = null;
-        public IVsMonitorSelection selectionTrackerExternal;
-
-        #region ITemplateManager Members
+        public TemplateDirectory(string project_directory) { this.project_directory = project_directory; }
 
         public IEnumerable<string> GetTemplates(string root)
         {
             var result = new List<string>();
-            IVsMonitorSelection selectionTracker;
-            selectionTracker = (serviceProvider != null)?(IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection)) : selectionTrackerExternal;
             IntPtr ppHier;
             uint pitemid;
             IVsMultiItemSelect ppMIS;
             IntPtr ppSC;
             object directory = ""; 
-            if (ErrorHandler.Succeeded(selectionTracker.GetCurrentSelection(out ppHier, out pitemid, out ppMIS, out ppSC)))
+            if (ErrorHandler.Succeeded(GlobalServices.SelectionTracker.GetCurrentSelection(out ppHier, out pitemid, out ppMIS, out ppSC)))
             {
                 try
                 {
                     IVsHierarchy hier = (IVsHierarchy)Marshal.GetObjectForIUnknown(ppHier);
                     if (ErrorHandler.Succeeded(hier.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectDir, out directory)))
-                    {
-                        result.AddRange(Directory.EnumerateFiles(directory + root, "*.django", SearchOption.AllDirectories));
-                        result.AddRange(Directory.EnumerateFiles(directory + root, "*.htm", SearchOption.AllDirectories));
-                        result.AddRange(Directory.EnumerateFiles(directory + root, "*.html", SearchOption.AllDirectories));
-                    }
+                        if (project_directory == (string)directory)
+                        {
+                            result.AddRange(Directory.EnumerateFiles(directory + root, "*.django", SearchOption.AllDirectories));
+                            result.AddRange(Directory.EnumerateFiles(directory + root, "*.htm", SearchOption.AllDirectories));
+                            result.AddRange(Directory.EnumerateFiles(directory + root, "*.html", SearchOption.AllDirectories));
+                        }
                 }
                 finally
                 {
@@ -76,6 +64,5 @@ namespace NDjango.Designer.Parsing
                 recent5.RemoveAt(5);
         }
 
-        #endregion
     }
 }

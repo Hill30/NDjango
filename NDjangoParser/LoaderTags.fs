@@ -32,6 +32,22 @@ open NDjango.Expressions
 
 module internal LoaderTags =
 
+    type private SuperVarDescriptor() =
+        interface IDjangoType with
+            member x.Name = "super"
+            member x.Type = DjangoType.DjangoType
+            member x.Members = Seq.ofList [x]
+            member x.IsList = false
+            member x.IsDictionary = false
+
+    type private BlockVarDescriptor() =
+        interface IDjangoType with
+            member x.Name = "block"
+            member x.Type = DjangoType.DjangoType
+            member x.Members = Seq.ofList [SuperVarDescriptor()]
+            member x.IsList = false
+            member x.IsDictionary = false
+
     /// Define a block that can be overridden by child templates.
     [<Description("Defines a block that can be overridden by child templates.")>]
     type BlockTag() =
@@ -42,7 +58,7 @@ module internal LoaderTags =
                 | name::[] -> 
                     let node_list, remaining = 
                         (context.Provider :?> IParser).Parse (Some token) tokens 
-                            (context.WithClosures(["endblock"; "endblock " + name.RawText])(*.WithExtraVariables(["super"])*))
+                            (context.WithClosures(["endblock"; "endblock " + name.RawText]).WithExtraVariables([BlockVarDescriptor()]))
                     (new BlockNode(context, token, this, name, node_list) :> INodeImpl), context, remaining
                 | _ ->
                     let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"]))
@@ -59,7 +75,7 @@ module internal LoaderTags =
     /// or ``{% extends variable %}`` uses the value of ``variable`` as either the
     /// name of the parent template to extend (if it evaluates to a string) or as
     /// the parent tempate itelf (if it evaluates to a Template object).
-    [<Description("Signals that this template extends a parent template.")>]
+    [<Description("Indicates that this template extends a parent template.")>]
     type ExtendsTag() =
         interface ITag with
 

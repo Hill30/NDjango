@@ -12,23 +12,25 @@ using NDjango.Interfaces;
 
 namespace NDjango.Designer.Parsing
 {
-    public class ProjectHandler
+    public class ProjectHandler: IDisposable
     {
         
-        public ITemplateDirectory TemplateManager { get; private set; }
+        public TemplateDirectory TemplateDirectory { get; private set; }
 
         private NodeProviderBroker broker;
 
-        public ProjectHandler(NodeProviderBroker broker, ITemplateDirectory template_manager, List<Tag> tags, List<Filter> filters, string project_directory)
+        public ProjectHandler(NodeProviderBroker broker, IVsHierarchy hier, string project_directory)
         {
             this.broker = broker;
-            TemplateManager = template_manager;
-            this.tags = tags;
-            this.filters = filters;
-            this.project_directory = project_directory;
             template_loader = new TemplateLoader(project_directory);
-
-            parser = InitializeParser();
+            type_resolver = new TypeResolver(hier);
+            TemplateDirectory = new TemplateDirectory(project_directory);
+            parser = new TemplateManagerProvider()
+                    .WithTags(type_resolver.Tags)
+                    .WithFilters(type_resolver.Filters)
+                    .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false)
+                    .WithLoader(template_loader)
+                    .GetNewManager();
         }
 
         ITemplateManager parser;
@@ -39,31 +41,14 @@ namespace NDjango.Designer.Parsing
         private string project_directory;
         TypeResolver type_resolver;
 
-        private ITemplateManager InitializeParser()
-        {
-
-            TemplateManagerProvider provider = new TemplateManagerProvider();
-            return provider
-                    .WithTags(tags)
-                    .WithFilters(filters)
-                    .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false)
-                    .WithLoader(template_loader)
-                    .GetNewManager();
-
-        }
-
         /// <summary>
         /// Retrieves or creates a node provider for a buffer
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        internal NodeProvider GetNodeProvider(string project_directory, ITextBuffer buffer, IVsHierarchy hier, string filename)
+        internal NodeProvider GetNodeProvider(ITextBuffer buffer, IVsHierarchy hier, string filename)
         {
-            var provider =
-                new NodeProvider(
-                    this,
-                    filename,
-                    new TypeResolver(GlobalServices.TypeService.GetContextTypeResolver(hier), GlobalServices.TypeService.GetTypeResolutionService(hier)));
+            var provider = new NodeProvider(this, filename, type_resolver);
             buffer.Properties.AddProperty(typeof(NodeProvider), provider);
             template_loader.Register(filename, buffer, provider);
             return provider;
@@ -99,5 +84,14 @@ namespace NDjango.Designer.Parsing
         {
             broker.ShowDiagnostics(errorTask);
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            type_resolver.Dispose();
+        }
+
+        #endregion
     }
 }

@@ -46,14 +46,15 @@ namespace NewViewGenerator
                 finally
                 {
                     Marshal.Release(ppHier);
+                    if (ppSC != IntPtr.Zero)
+                        Marshal.Release(ppSC);
                 }
             }
             if (parser == null)
                 parser = InitializeParser();
             if (templatesDir == null)
             {
-                templatesDir = new TemplateDirectory();
-                templatesDir.selectionTrackerExternal = SelectionService;
+                templatesDir = new TemplateDirectory(projectDir);
             }
         }
         #region private fields

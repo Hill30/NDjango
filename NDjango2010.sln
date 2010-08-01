@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVC2010Integration", "AS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVC2010SampleApplication", "ASPMVC2010SampleApplication\ASPMVC2010SampleApplication.csproj", "{B6A2346D-802D-47AE-AFE0-AE80294D0AF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVCSampleLibrary", "ASPMVCSampleLibrary\ASPMVCSampleLibrary.csproj", "{31DA6E9F-1CDC-48B7-B559-E60591DE8159}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +109,16 @@ Global
 		{B6A2346D-802D-47AE-AFE0-AE80294D0AF4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{B6A2346D-802D-47AE-AFE0-AE80294D0AF4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{B6A2346D-802D-47AE-AFE0-AE80294D0AF4}.Release|x86.ActiveCfg = Release|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{31DA6E9F-1CDC-48B7-B559-E60591DE8159}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

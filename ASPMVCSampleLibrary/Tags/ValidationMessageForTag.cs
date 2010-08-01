@@ -9,16 +9,17 @@ using NDjango.ASPMVC;
 
 namespace ASPMVC2010SampleApplication
 {
-    [Name("password-for")]
-    public class PasswordForTag : HtmlHelperTag
+    [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.ValidationMessageFor")]
+    [Name("validation-message-for")]
+    public class ValidationMessageForlTag : HtmlHelperTag
     {
-        public PasswordForTag()
+        public ValidationMessageForlTag()
             : base(false, 1)
         { }
 
         public override MvcHtmlString ProcessTag(HtmlHelper htmlHelper, IContext context, string content, object[] parms)
         {
-            return htmlHelper.Password(parms[0].ToString());
+            return htmlHelper.ValidationMessage(parms[0].ToString());
         }
 
     }

@@ -53,55 +53,17 @@ namespace NDjango.Designer.Parsing
     /// Allocates node porviders to text buffers
     /// </summary>
     [Export(typeof(INodeProviderBroker))]
-    public class NodeProviderBroker : INodeProviderBroker, IVsRunningDocTableEvents
+    public class NodeProviderBroker : INodeProviderBroker, IVsRunningDocTableEvents, IVsSolutionEvents
     {
 
         public NodeProviderBroker()
         {
             ErrorHandler.ThrowOnFailure(GlobalServices.RDT.AdviseRunningDocTableEvents(this, out RDTEventsCookie));
-
-            string path = typeof(TemplateManagerProvider).Assembly.CodeBase;
-            if (path.StartsWith("file:///"))
-                foreach (string file in
-                    Directory.EnumerateFiles(
-                        Path.GetDirectoryName(path.Substring(8)),
-                        "*.NDjangoExtension.dll",
-                        SearchOption.AllDirectories))
-                {
-                    AssemblyName name = new AssemblyName();
-                    name.CodeBase = file;
-                    foreach (Type t in Assembly.Load(name).GetExportedTypes())
-                    {
-                        if (typeof(ITag).IsAssignableFrom(t))
-                            CreateEntry<Tag>(tags, t);
-                        if (typeof(ISimpleFilter).IsAssignableFrom(t))
-                            CreateEntry<Filter>(filters, t);
-                    }
-                }
-
+            ErrorHandler.ThrowOnFailure(GlobalServices.Solution.AdviseSolutionEvents(this, out SolutionEventsCookie));
         }
 
         private uint RDTEventsCookie;
-
-        List<Tag> tags = new List<Tag>();
-        List<Filter> filters = new List<Filter>();
-
-        private static void CreateEntry<T>(List<T> list, Type t) where T : class
-        {
-            if (t.IsAbstract)
-                return;
-            if (t.IsInterface)
-                return;
-
-            var attrs = t.GetCustomAttributes(typeof(NameAttribute), false) as NameAttribute[];
-            if (attrs.Length == 0)
-                return;
-
-            if (t.GetConstructor(new Type[] { }) == null)
-                return;
-
-            list.Add((T)Activator.CreateInstance(typeof(T), attrs[0].Name, Activator.CreateInstance(t)));
-        }
+        private uint SolutionEventsCookie;
 
         private Dictionary<string, ProjectHandler> projects = new Dictionary<string, ProjectHandler>();
 
@@ -208,9 +170,6 @@ namespace NDjango.Designer.Parsing
             }
         }
 
-        [Import]
-        ITemplateDirectory template_directory;
-
         /// <summary>
         /// Retrieves or creates a node provider for a buffer
         /// </summary>
@@ -246,12 +205,12 @@ namespace NDjango.Designer.Parsing
                 {
                     if (!projects.TryGetValue(project_directory, out project))
                     {
-                        project = new ProjectHandler(this, template_directory, tags, filters, project_directory);
+                        project = new ProjectHandler(this, hier, project_directory);
                         projects.Add(project_directory, project);
                     }
                 }
 
-                provider = project.GetNodeProvider(project_directory, buffer, hier, filename);
+                provider = project.GetNodeProvider(buffer, hier, filename);
 
             }
             return provider;
@@ -347,5 +306,80 @@ namespace NDjango.Designer.Parsing
 
         #endregion
 
+        private void CloseProjectHandler(IVsHierarchy hier)
+        {
+            object objDirectory;
+            ErrorHandler.ThrowOnFailure(hier.GetProperty((uint)VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectDir, out objDirectory));
+
+            var project_directory = (string)objDirectory;
+
+
+            ProjectHandler project;
+
+            lock (projects)
+            {
+                if (projects.TryGetValue(project_directory, out project))
+                {
+                    project.Dispose();
+                    projects.Remove(project_directory);
+                }
+            }
+
+        }
+
+        #region IVsSolutionEvents Members
+
+        public int OnAfterCloseSolution(object pUnkReserved)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+        {
+            CloseProjectHandler(pHierarchy);
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeCloseSolution(object pUnkReserved)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
+        }
+
+        #endregion
     }
 }

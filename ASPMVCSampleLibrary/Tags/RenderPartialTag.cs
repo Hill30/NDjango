@@ -9,6 +9,7 @@ using System.IO;
 
 namespace ASPMVC2010SampleApplication
 {
+    [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.RenderPartial")]
     [Name("render-partial")]
     public class RenderPartialTag : NDjango.Compatibility.SimpleTag
     {

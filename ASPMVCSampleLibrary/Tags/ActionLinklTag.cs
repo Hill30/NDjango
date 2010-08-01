@@ -9,16 +9,17 @@ using NDjango.ASPMVC;
 
 namespace ASPMVC2010SampleApplication
 {
-    [Name("validation-message-for")]
-    public class ValidationMessageForlTag : HtmlHelperTag
+    [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.ActionLink")]
+    [Name("action-link")]
+    public class ActionLinklTag : HtmlHelperTag
     {
-        public ValidationMessageForlTag()
-            : base(false, 1)
+        public ActionLinklTag()
+            : base(false, 3)
         { }
 
         public override MvcHtmlString ProcessTag(HtmlHelper htmlHelper, IContext context, string content, object[] parms)
         {
-            return htmlHelper.ValidationMessage(parms[0].ToString());
+            return htmlHelper.ActionLink(parms[0].ToString(), parms[1].ToString(), parms[2].ToString());
         }
 
     }

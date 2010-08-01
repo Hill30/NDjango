@@ -3,7 +3,7 @@
 {% block MainContent %}
     <h2>Django Page</h2>
     <p>
-        Visit <a href="ndjango.com">Ndjango web site</a> to learn more about NDjango.
+        Visit <a href="ndjango.com">NDjango web site</a> to learn more about NDjango.
     </p>
 
 {% endblock MainContent %}

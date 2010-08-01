@@ -22,6 +22,10 @@ namespace NDjango.Designer
 
         public static DynamicTypeService TypeService { get; private set; }
 
+        public static IVsMonitorSelection SelectionTracker { get { return (IVsMonitorSelection)Package.GetGlobalService(typeof(SVsShellMonitorSelection)); } }
+
+        public static IVsSolution Solution { get; private set; }
+
         private static SVsServiceProvider serviceProvider;
 
         [Import]
@@ -34,6 +38,7 @@ namespace NDjango.Designer
                 TaskList = new TaskProvider(serviceProvider);
                 RDT = GetService<IVsRunningDocumentTable>(typeof(SVsRunningDocumentTable));
                 TypeService = GetService<DynamicTypeService>();
+                Solution = GetService<IVsSolution>();
             }
         }
 

@@ -9,6 +9,7 @@ using System.IO;
 
 namespace ASPMVC2010SampleApplication
 {
+    [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.BeginForm")]
     [Name("form")]
     public class FormTag : NDjango.Compatibility.SimpleTag
     {

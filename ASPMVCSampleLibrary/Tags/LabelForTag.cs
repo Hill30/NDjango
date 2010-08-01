@@ -8,6 +8,7 @@ using System.Web.Mvc.Html;
 
 namespace ASPMVC2010SampleApplication
 {
+    [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.LabelFor")]
     [Name("label-for")]
     public class LabelForlTag : NDjango.Compatibility.SimpleTag
     {

@@ -34,7 +34,7 @@ namespace ASPMVC2010SampleApplication
 
             ViewEngines.Engines.Insert(0, 
                 new NDjango.ASPMVC.DjangoViewEngine(
-                    pr => pr.WithTagsFrom(typeof(MvcApplication).Assembly)
+                    pr => pr.WithTagsFrom(typeof(ASPMVCSampleLibrary.SampleLibrary).Assembly)
                     ));
         }
     }

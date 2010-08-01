@@ -44,19 +44,19 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             if (!inserted.EndsWith("\""))
                 return;
             inserted = inserted.Substring(0, inserted.Length - 1);
-            Node.Provider.Project.TemplateManager.RegisterInserted(inserted);
+            Node.Provider.Project.TemplateDirectory.RegisterInserted(inserted);
         }
 
         protected override int FilterOffset { get { return 1; } }
 
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {
-            return BuildCompletions(Node.Provider.Project.TemplateManager.GetTemplates(null), quote_char.ToString(), quote_char.ToString());
+            return BuildCompletions(Node.Provider.Project.TemplateDirectory.GetTemplates(null), quote_char.ToString(), quote_char.ToString());
         }
 
         protected override IEnumerable<Completion> BuildNodeCompletionBuilders()
         {
-            return BuildCompletions(Node.Provider.Project.TemplateManager.Recent5Templates, quote_char.ToString(), quote_char.ToString());
+            return BuildCompletions(Node.Provider.Project.TemplateDirectory.Recent5Templates, quote_char.ToString(), quote_char.ToString());
         }
     }
 }

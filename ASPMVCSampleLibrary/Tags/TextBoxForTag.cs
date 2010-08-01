@@ -7,18 +7,19 @@ using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using NDjango.ASPMVC;
 
-namespace ASPMVC2010SampleApplication.Tags
+namespace ASPMVC2010SampleApplication
 {
-    [Name("validation-summary")]
-    public class ValidationSummaryTag : HtmlHelperTag
+    [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.TextBoxFor")]
+    [Name("textbox-for")]
+    public class TextBoxForlTag : HtmlHelperTag
     {
-        public ValidationSummaryTag()
+        public TextBoxForlTag()
             : base(false, 1)
         { }
 
         public override MvcHtmlString ProcessTag(HtmlHelper htmlHelper, IContext context, string content, object[] parms)
         {
-            return htmlHelper.ValidationSummary(false, parms[0].ToString());
+            return htmlHelper.TextBox(parms[0].ToString());
         }
 
     }

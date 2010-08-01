@@ -211,7 +211,6 @@ namespace NDjango.Designer.Parsing
         internal void Dispose()
         {
             nodes.ForEach(node => node.Dispose());
-            type_resolver.Dispose();
             Project.Unregister(Filename);
         }
 
