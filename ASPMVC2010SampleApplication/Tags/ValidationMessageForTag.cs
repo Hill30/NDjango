@@ -12,7 +12,7 @@ namespace ASPMVC2010SampleApplication
     public class ValidationMessageForlTag : NDjango.Compatibility.SimpleTag
     {
         public ValidationMessageForlTag()
-            : base(false, "validation-message-for", 1)
+            : base(false, 1)
         { }
 
         public override string ProcessTag(NDjango.Interfaces.IContext context, string content, object[] parms)

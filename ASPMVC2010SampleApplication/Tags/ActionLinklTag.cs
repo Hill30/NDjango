@@ -12,7 +12,7 @@ namespace ASPMVC2010SampleApplication
     public class ActionLinklTag : NDjango.Compatibility.SimpleTag
     {
         public ActionLinklTag()
-            : base(false, "action-link", 3)
+            : base(false, 3)
         { }
 
         public override string ProcessTag(NDjango.Interfaces.IContext context, string content, object[] parms)

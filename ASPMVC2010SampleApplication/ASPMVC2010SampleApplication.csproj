@@ -74,7 +74,7 @@
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tags\ActionLinklTag.cs" />
-    <Compile Include="Tags\BeginFormTag.cs" />
+    <Compile Include="Tags\FormTag.cs" />
     <Compile Include="Tags\LabelForTag.cs" />
     <Compile Include="Tags\PasswordForTag.cs" />
     <Compile Include="Tags\RenderPartialTag.cs" />

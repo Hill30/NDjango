@@ -182,24 +182,19 @@ type IContext =
     abstract member WithModelType: System.Type -> IContext
     
 type DjangoType =
-    | Type
-    | LoopDescriptor
-
     | DjangoType
-    | Dictionary
-    | List
-    | Value
+    | CLRType
+    | DjangoValue
 
 type IDjangoType =
-    
     abstract member Name : string
-    
     abstract member Type : DjangoType
-    
     abstract member Members : IDjangoType seq
+    abstract member IsList : bool
+    abstract member IsDictionary : bool
     
 type ITypeResolver =
-    abstract member Resolve: type_name: string -> IDjangoType seq
+    abstract member Resolve: type_name: string -> System.Type
         
 /// Single threaded template manager. Caches templates it renders in a non-synchronized dictionary
 /// should be used only to service rendering requests from a single thread
@@ -316,7 +311,15 @@ and ITag =
     abstract member is_header_tag: bool
     
 /// Parsing context is a container for information specific to the tag being parsed
-and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, parent, closures: string list, is_in_header, model_type, vars: IDjangoType list, _base: INode option) =
+and ParsingContext(
+                    provider: ITemplateManagerProvider, 
+                    resolver: ITypeResolver, 
+                    parent, 
+                    closures: string list, 
+                    is_in_header, 
+                    model : IDjangoType option, 
+                    vars: IDjangoType list, 
+                    _base: INode option) =
     
     let combine (vars:IDjangoType list) (extra_vars:IDjangoType list) =
         vars |> 
@@ -327,22 +330,22 @@ and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, 
         |> List.append extra_vars 
 
     new (provider, resolver)
-        = new ParsingContext(provider, resolver, None, [], true, "", [], None)
+        = new ParsingContext(provider, resolver, None, [], true, None, [], None)
         
-    member x.ChildOf = new ParsingContext(provider, resolver, Some x, closures, is_in_header, model_type, vars, _base)
+    member x.ChildOf = new ParsingContext(provider, resolver, Some x, closures, is_in_header, model, vars, _base)
         
-    member x.BodyContext = new ParsingContext(provider, resolver, parent, closures, false, model_type, vars, _base)
+    member x.BodyContext = new ParsingContext(provider, resolver, parent, closures, false, model, vars, _base)
 
-    member x.WithClosures(new_closures) = new ParsingContext(provider, resolver, parent, new_closures, is_in_header, model_type, vars, _base)
+    member x.WithClosures(new_closures) = new ParsingContext(provider, resolver, parent, new_closures, is_in_header, model, vars, _base)
 
-    member x.WithModelType(new_model_type) = new ParsingContext(provider, resolver, parent, closures, is_in_header, new_model_type, vars, _base)
+    member x.WithModel(new_model_type) = new ParsingContext(provider, resolver, parent, closures, is_in_header, new_model_type, vars, _base)
 
     member 
         x.WithExtraVariables(extra_vars) = 
-            new ParsingContext(provider, resolver, parent, closures, is_in_header, model_type, combine vars extra_vars, _base)
+            new ParsingContext(provider, resolver, parent, closures, is_in_header, model, combine vars extra_vars, _base)
     member 
         x.WithBase(new_base) = 
-            new ParsingContext(provider, resolver, parent, closures, is_in_header, model_type, combine vars vars, Some new_base)
+            new ParsingContext(provider, resolver, parent, closures, is_in_header, model, combine vars vars, Some new_base)
 
     /// a sequence of all registered tag names
     member x.Tags = provider.Tags |> Map.toSeq |> Seq.map (fun tag -> tag |> fst) 
@@ -360,7 +363,10 @@ and ParsingContext(provider: ITemplateManagerProvider, resolver: ITypeResolver, 
     member x.IsInHeader = is_in_header
     
     /// a list of all variables available in the context
-    member x.Variables = resolver.Resolve model_type |> Seq.toList |> combine vars
+    member x.Variables = 
+        match model with
+        | Some m -> m.Members |> List.ofSeq |> combine vars
+        | None -> vars
 
     member x.Resolver = resolver
 

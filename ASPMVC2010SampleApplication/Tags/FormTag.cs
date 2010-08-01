@@ -9,11 +9,11 @@ using System.IO;
 
 namespace ASPMVC2010SampleApplication
 {
-    [Name("begin-form")]
-    public class BeginFormTag : NDjango.Compatibility.SimpleTag
+    [Name("form")]
+    public class FormTag : NDjango.Compatibility.SimpleTag
     {
-        public BeginFormTag()
-            : base(false, "begin-form", 0)
+        public FormTag()
+            : base(true, 0)
         { }
 
         public override string ProcessTag(NDjango.Interfaces.IContext context, string content, object[] parms)
@@ -29,15 +29,23 @@ namespace ASPMVC2010SampleApplication
             try
             {
                 htmlHelper.ViewContext.Writer = string_writer;
-                htmlHelper.BeginForm();
+                var form = htmlHelper.BeginForm();
                 string_writer.Flush();
+                var start = string_writer.ToString();
+
+                string_writer = new StringWriter();
+                htmlHelper.ViewContext.Writer = string_writer;
+                form.EndForm();
+                string_writer.Flush();
+                var end = string_writer.ToString();
+
+                return start + content + end;
             }
             finally
             {
                 htmlHelper.ViewContext.Writer = writer;
             }
 
-            return string_writer.ToString();
         }
     }
 }

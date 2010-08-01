@@ -13,7 +13,7 @@ namespace ASPMVC2010SampleApplication
     public class RenderPartialTag : NDjango.Compatibility.SimpleTag
     {
         public RenderPartialTag()
-            : base(false, "render-partial", 1)
+            : base(false, 1)
         { }
 
         public override string ProcessTag(NDjango.Interfaces.IContext context, string content, object[] parms)

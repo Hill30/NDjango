@@ -1,4 +1,4 @@
-﻿{% model ASPMVC2010SampleApplication.Models.RegisterModel %}
+﻿{% model Model:ASPMVC2010SampleApplication.Models.RegisterModel %}
 {% extends 'Views\Shared\Site.django' %}
 {% block title %} {{ block.super }} - Registration {% endblock title %}
 {% block MainContent %}
@@ -10,7 +10,7 @@
         Passwords are required to be a minimum of {{ Model.PasswordLength }} characters in length.
     </p>
 
-    {% begin-form %}
+    {% form %}
         {% validation-summary "Account creation was unsuccessful. Please correct the errors and try again." %}
         <div>
             <fieldset>
@@ -53,5 +53,5 @@
                 </p>
             </fieldset>
         </div>
-	</form>
+	{% endform %}
 {% endblock MainContent %}

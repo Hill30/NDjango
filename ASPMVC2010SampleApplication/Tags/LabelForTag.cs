@@ -12,7 +12,7 @@ namespace ASPMVC2010SampleApplication
     public class LabelForlTag : NDjango.Compatibility.SimpleTag
     {
         public LabelForlTag()
-            : base(false, "label-for", 1)
+            : base(false, 1)
         { }
 
         public override string ProcessTag(NDjango.Interfaces.IContext context, string content, object[] parms)

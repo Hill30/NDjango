@@ -38,7 +38,8 @@ open NDjango.ParserNodes
 /// the name the tag is registered under, but is only applicable when 'nested' is true.
 ///</remarks>
 [<AbstractClass>]
-type public SimpleTag(nested:bool, name:string, num_params:int) =
+type public SimpleTag(nested, name, num_params) =
+
     /// Resolves all expressions in the list against the context
     let resolve_all list (context: IContext) =
         list |>
@@ -54,7 +55,10 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
         let reader = 
             new NDjango.ASTWalker.Reader (manager, {walker with parent=None; nodes=nodelist; context=walker.context})
         reader.ReadToEnd()
-        
+
+    new(nested, num_params) =
+        SimpleTag(nested, null, num_params) 
+
     /// Tag implementation. This method will receive the fully-evaluated nested contents for nested tag
     /// along with fully resolved values of the parameters supplied to the tag. Parameters in the template
     /// source may follow standard parameter conventions, e.g. they can be variables or literals, with 
@@ -77,7 +81,14 @@ type public SimpleTag(nested:bool, name:string, num_params:int) =
                 raise (SyntaxError(sprintf "%s expects %d parameters, but was given %d." name num_params (parms.Length)))
             else
                 let nodelist, tokens =
-                    if nested then (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["end" + name]))
+                    if nested then
+                        if name = null then
+                            let attrs = x.GetType().GetCustomAttributes(typeof<NameAttribute>, false) 
+                            if attrs.Length = 0 then raise (SyntaxError("No name provided for the tag - are you missing the Name attribute?" ))
+                            let name = (attrs.[0] :?> NameAttribute).Name
+                            (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["end" + name]))
+                        else
+                            (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["end" + name]))
                     else [], tokens
                     
                 ({new TagNode(context, token, x)

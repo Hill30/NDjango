@@ -101,41 +101,6 @@ module internal Misc =
                             {walker with buffer = walker.context.ToString()}
                     } :> INodeImpl), context, tokens
             
-    /// Provides the name of the model class.
-    ///
-    /// this name is used by the designer to provide the code completion support;
-    ///
-    [<Description("Provides the name of the model class to be used with the template")>]
-    type ModelTag() =
-        interface ITag with
-            member x.is_header_tag = true
-            member this.Perform token context tokens =
-                match token.Args with 
-                | name::[] -> 
-                    (
-                        let model_type = 
-                            System.AppDomain.CurrentDomain.GetAssemblies() 
-                            |> Seq.tryPick 
-                                (fun assembly -> 
-                                    match assembly.GetType(name.RawText) with
-                                    | null -> None
-                                    | _ as t -> Some t
-                                    )
-                        {new TagNode(context, token, this) with
-                            override x.elements = (new TypeNameNode(context, Text name) :> INode) :: base.elements
-
-                            override x.walk manager walker = 
-                                match model_type with
-                                | Some model -> 
-                                    {walker with context = walker.context.WithModelType(model)}
-                                | _ -> walker
-                        }
-                        :> INodeImpl), context.WithModelType(name.RawText), tokens
-                | [] ->
-                    raise (SyntaxError("missing type name in the model tag", [new TypeNameNode(context, Text (token.CreateToken(token.Location.Length - 2, 0))) :> INode]))
-                | _ ->
-                    raise (SyntaxError("excessive arguments in the model tag"))
-
     /// Outputs the first variable passed that is not False.
     /// 
     /// Outputs nothing if all the passed variables are False.
@@ -471,7 +436,7 @@ module internal Misc =
                     | _ -> None, ""
                 let extra_vars =
                     match expression with
-                    | Some expression -> [CLRTypeMember(expression, name):>IDjangoType]
+                    | Some expression -> [ExpressionType(expression, name):>IDjangoType]
                     | None -> []
                 let nodes, remaining = 
                     (context.Provider :?> IParser).Parse 

@@ -12,7 +12,7 @@ namespace ASPMVC2010SampleApplication.Tags
     public class ValidationSummaryTag : NDjango.Compatibility.SimpleTag
     {
         public ValidationSummaryTag()
-            : base(false, "validation-summary", 1)
+            : base(false, 1)
         { }
 
         public override string ProcessTag(NDjango.Interfaces.IContext context, string content, object[] parms)

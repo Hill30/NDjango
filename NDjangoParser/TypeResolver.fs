@@ -26,25 +26,32 @@ open NDjango.Expressions
 open System.Reflection
 
 module TypeResolver =
-    
+   
+    /// Django type enacpsulating a value i.e. values in the loop descriptor in For tag 
     type ValueDjangoType(name) =
         interface IDjangoType with
             member x.Name = name
-            member x.Type = DjangoType.Value
+            member x.Type = DjangoType.DjangoValue
             member x.Members = Seq.empty
+            member x.IsList = false
+            member x.IsDictionary = false
 
-    type CLRTypeMember(expression: FilterExpression, member_name:string) =
+    /// Django type encapsulating a filter expression (i.e. in with tag)
+    type ExpressionType(expression: FilterExpression, member_name:string) =
         interface IDjangoType with
             member x.Name = member_name
-            member x.Type = DjangoType.Value
+            member x.Type = DjangoType.DjangoValue
             member x.Members = Seq.empty
+            member x.IsList = false
+            member x.IsDictionary = false
 
-    type TypedValueDjangoType(name, _type) =
+    /// Django type encapsulating a member of a certain runtime type
+    type CLRTypeDjangoType(name, _type) =
         
         let resolve (_type:System.Type) =
 
             let build_descriptor name _type mbrs =
-                let result = TypedValueDjangoType(name, _type) :> IDjangoType
+                let result = CLRTypeDjangoType(name, _type) :> IDjangoType
                 [result] |> List.toSeq |> Seq.append mbrs
 
 
@@ -75,19 +82,26 @@ module TypeResolver =
 
         interface IDjangoType with
             member x.Name = name
-            member x.Type = DjangoType.Value
+            member x.Type = DjangoType.CLRType
             member x.Members = resolve _type
+            member x.IsList = 
+                if _type = null then false
+                else typeof<System.Collections.IEnumerable>.IsAssignableFrom(_type)
+            member x.IsDictionary = 
+                if _type = null then false
+                else typeof<System.Collections.IDictionary>.IsAssignableFrom(_type)
 
-    type AbstractTypeResolver() =
-        
-        abstract member GetType: string -> System.Type
-        default x.GetType type_name : System.Type = null
-        
-        interface ITypeResolver with
-            member x.Resolve name = 
-               (TypedValueDjangoType("", x.GetType(name)) :> IDjangoType).Members
 
+//    type AbstractTypeResolver() =
+//        
+//        abstract member GetType: string -> System.Type
+//        default x.GetType type_name : System.Type = null
+//        
+//        interface ITypeResolver with
+//            member x.Resolve name = 
+//               (CLRTypeDjangoType("", x.GetType(name)) :> IDjangoType).Members
+//
     type DefaultTypeResolver() =
         interface ITypeResolver with
-            member x.Resolve type_name = [] |> List.toSeq
+            member x.Resolve type_name = null
             

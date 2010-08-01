@@ -84,7 +84,7 @@ module Defaults =
             ++ ("ifequal", (new IfEqual.Tag(true) :> ITag))
             ++ ("ifnotequal", (new IfEqual.Tag(false) :> ITag))
             ++ ("include", (new LoaderTags.IncludeTag() :> ITag))
-            ++ ("model", (new ModelTag() :> ITag))
+            ++ ("model", (new Model.Tag() :> ITag))
             ++ ("now", (new Now.Tag() :> ITag))
             ++ ("regroup", (new RegroupTag() :> ITag))
             ++ ("spaceless", (new SpacelessTag() :> ITag))

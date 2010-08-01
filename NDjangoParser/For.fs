@@ -104,17 +104,21 @@ module internal For =
     type private ParentContextDescriptor(orig: IDjangoType) =
         interface IDjangoType with
             member x.Name = "parent"
-            member x.Type = DjangoType.LoopDescriptor
+            member x.Type = DjangoType.DjangoType
             member x.Members = orig.Members
+            member x.IsList = false
+            member x.IsDictionary = false
 
     and private ForContextDescriptor(context) =
         interface IDjangoType with
             member x.Name = "forloop"
-            member x.Type = DjangoType.LoopDescriptor
+            member x.Type = DjangoType.DjangoType
+            member x.IsList = false
+            member x.IsDictionary = false
             member x.Members =
                 
                 let rec parent_lookup (context:ParsingContext) =
-                    match context.Variables |> List.tryFind (fun var -> var.Type = DjangoType.LoopDescriptor) with
+                    match context.Variables |> List.tryFind (fun var -> var.Type = DjangoType.DjangoType && var.Name = "forloop") with
                     | Some forloop -> Some forloop
                     | None -> 
                         match context.Parent with
