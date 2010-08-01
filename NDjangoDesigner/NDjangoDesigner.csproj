@@ -77,13 +77,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AddView\AddViewCommand.cs" />
-    <Compile Include="AddView\AddViewDlg.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AddView\AddViewDlg.Designer.cs">
-      <DependentUpon>AddViewDlg.cs</DependentUpon>
-    </Compile>
     <Compile Include="Classifiers\Classifier.cs" />
     <Compile Include="Classifiers\ClassifierProvider.cs" />
     <Compile Include="Classifiers\Highlighter.cs" />
@@ -103,10 +96,16 @@
     <Compile Include="CodeCompletion\ControllerProvider.cs" />
     <Compile Include="CodeCompletion\Source.cs" />
     <Compile Include="CodeCompletion\SourceProvider.cs" />
+    <Compile Include="Commands\AddViewCommand.cs" />
+    <Compile Include="Commands\AddViewDlg.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Commands\AddViewDlg.Designer.cs">
+      <DependentUpon>AddViewDlg.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Commands\ViewWizard.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="GlobalServices.cs" />
-    <Compile Include="Guids.cs" />
-    <Compile Include="AddView\ViewWizard.cs" />
     <Compile Include="Parsing\DesignerNode.cs" />
     <Compile Include="Parsing\NodeProvider.cs" />
     <Compile Include="Parsing\NodeProviderBroker.cs" />
@@ -130,7 +129,7 @@
     <Compile Include="Tags\TaggerProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="AddView\AddViewDlg.resx">
+    <EmbeddedResource Include="Commands\AddViewDlg.resx">
       <DependentUpon>AddViewDlg.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">

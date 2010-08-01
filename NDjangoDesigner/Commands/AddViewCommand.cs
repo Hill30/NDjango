@@ -11,14 +11,14 @@ using System.Runtime.InteropServices;
 using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 using NewViewGenerator;
 
-namespace NewViewGenerator.AddView
+namespace NDjango.Designer.Commands
 {
     class AddViewCommand : OleMenuCommand
     {
         private static AddViewDlg viewDialog;
 
         public AddViewCommand()
-            : base(Execute, new CommandID(GuidList.guidNewViewGeneratorCmdSet, (int)GuidList.cmdidNewViewGenerator))
+            : base(Execute, new CommandID(Constants.guidNewViewGeneratorCmdSet, (int)Constants.cmdidNewViewGenerator))
         {
             BeforeQueryStatus += new EventHandler(QueryStatus);
             viewDialog = new AddViewDlg();

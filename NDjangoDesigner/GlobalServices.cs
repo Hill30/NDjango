@@ -15,16 +15,16 @@ namespace NDjango.Designer
     {
 
         private static GlobalServices handler = new GlobalServices();
-        
-        public static IVsRunningDocumentTable RDT {get; private set;}
+
+        public static readonly IVsRunningDocumentTable RDT = (IVsRunningDocumentTable)Package.GetGlobalService(typeof(SVsRunningDocumentTable)); 
 
         public static TaskProvider TaskList {get; private set;}
 
-        public static DynamicTypeService TypeService { get; private set; }
+        public static readonly DynamicTypeService TypeService = (DynamicTypeService)Package.GetGlobalService(typeof(DynamicTypeService)); 
 
-        public static IVsMonitorSelection SelectionTracker { get { return (IVsMonitorSelection)Package.GetGlobalService(typeof(SVsShellMonitorSelection)); } }
+        public static readonly IVsMonitorSelection SelectionTracker = (IVsMonitorSelection)Package.GetGlobalService(typeof(SVsShellMonitorSelection));
 
-        public static IVsSolution Solution { get; private set; }
+        public static readonly IVsSolution Solution = (IVsSolution)Package.GetGlobalService(typeof(SVsSolution));
 
         private static SVsServiceProvider serviceProvider;
 
@@ -36,9 +36,6 @@ namespace NDjango.Designer
             {
                 serviceProvider = value;
                 TaskList = new TaskProvider(serviceProvider);
-                RDT = GetService<IVsRunningDocumentTable>(typeof(SVsRunningDocumentTable));
-                TypeService = GetService<DynamicTypeService>();
-                Solution = GetService<IVsSolution>();
             }
         }
 

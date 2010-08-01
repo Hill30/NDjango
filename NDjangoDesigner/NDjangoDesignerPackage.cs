@@ -8,6 +8,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
+using NDjango.Designer.Commands;
 
 namespace NewViewGenerator
 {
@@ -31,7 +32,7 @@ namespace NewViewGenerator
     [ProvideMenuResource("Menus.ctmenu", 1)]
     //auto load package if UICONTEXT_SolutionExists
     [ProvideAutoLoad("f1536ef8-92ec-443c-9ed7-fdadf150da82")]
-    [Guid(GuidList.guidNewViewGeneratorPkgString)]
+    [Guid(NDjango.Designer.Constants.guidNewViewGeneratorPkgString)]
     public sealed class NewViewGeneratorPackage : Package
     {
         private AddViewDlg viewDialog;
@@ -76,7 +77,7 @@ namespace NewViewGenerator
             {
                 //CommandID addViewCommandID = new CommandID(GuidList.guidNewViewGeneratorCmdSet, (int)GuidList.cmdidNewViewGenerator);
                 //OleMenuCommand cmd = new OleMenuCommand(ShowAddView, addViewCommandID);
-                mcs.AddCommand(new AddView.AddViewCommand());
+                mcs.AddCommand(new AddViewCommand());
             }
             viewDialog = new AddViewDlg();
         }

@@ -16,7 +16,7 @@ using NDjango.Designer;
 using NDjango.Designer.Parsing;
 using EnvDTE;
 
-namespace NewViewGenerator
+namespace NDjango.Designer.Commands
 {
     public class ViewWizard: IVsSelectionEvents
     {
@@ -29,6 +29,7 @@ namespace NewViewGenerator
             SelectionService.AdviseSelectionEvents(this, out selectionCookie);
             contextCookie = RegisterContext();
         }
+        
         public void Update()
         {
             uint pitemid;
@@ -266,7 +267,7 @@ namespace NewViewGenerator
         private uint RegisterContext()
         {
             uint retVal;
-            Guid uiContext = GuidList.UICONTEXT_ViewsSelected;
+            Guid uiContext = Constants.UICONTEXT_ViewsSelected;
             SelectionService.GetCmdUIContextCookie(ref uiContext, out retVal);
             return retVal;
 

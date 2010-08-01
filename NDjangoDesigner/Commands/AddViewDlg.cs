@@ -9,7 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Runtime.InteropServices;
-namespace NewViewGenerator
+namespace NDjango.Designer.Commands
 {
     public partial class AddViewDlg : Form
     {
@@ -17,9 +17,9 @@ namespace NewViewGenerator
         StringBuilder templateMem = new StringBuilder();
         public AddViewDlg()
         {
-            
             InitializeComponent();
         }
+
         public void FillDialogControls()
         {
             wizard.Update();
@@ -29,16 +29,17 @@ namespace NewViewGenerator
             comboModel.SelectedIndex = 0;//none value
 
         }
+        
         private void FillModelList()
         {
             comboModel.Items.Clear();
-            comboModel.Items.Add("none");
+            comboModel.Items.Add("None");
             try
             {
                 List<Assembly> assmlist = wizard.GetReferences();
                 foreach (Assembly assm in assmlist)
                 {
-                    var types= assm.GetTypes();
+                    var types= assm.GetExportedTypes();
                     foreach (Type t in types)
                         comboModel.Items.Add(t.FullName);
                 }
@@ -49,6 +50,7 @@ namespace NewViewGenerator
             }
 
         }
+        
         private void PopRecentTemplates()
         {
             int i = 0;
@@ -57,15 +59,17 @@ namespace NewViewGenerator
                 comboBaseTemplate.Items.Insert(i++, item);
             }
         }
+        
         private void FillAllTemplates()
         {
             comboBaseTemplate.Items.Clear();
-            comboBaseTemplate.Items.Add("none");
+            comboBaseTemplate.Items.Add("None");
             IEnumerable<string> allTemplates = wizard.GetTemplates("");
             foreach (string item in allTemplates)
                 //if (!comboBaseTemplate.Items.Contains(item))
                     comboBaseTemplate.Items.Add(item);
         }
+        
         private void ModifyTemplate()
         {
             templateMem.Clear();
@@ -74,6 +78,7 @@ namespace NewViewGenerator
             templateMem.AppendLine("{% endblock %}");
 
         }
+        
         private void btnAdd_Click(object sender, EventArgs e)
         {
             string itemName = tbViewName.Text + ".django";
@@ -81,7 +86,7 @@ namespace NewViewGenerator
             string templateFile = Path.GetTempFileName();
             StreamWriter sw = new StreamWriter(templateFile);
             if (IsViewModel)
-                sw.WriteLine("{% model " + comboModel.SelectedItem + " %}");
+                sw.WriteLine("{% model Model:" + comboModel.SelectedItem + " %}");
             if (IsInheritance)
             {
                 sw.WriteLine("{% extends \"" + comboBaseTemplate.SelectedItem + "\" %}");
@@ -97,10 +102,8 @@ namespace NewViewGenerator
             sw.Close();
             try
             {
-
                 wizard.AddFromFile(templateFile, itemName);
                 this.Close();
-
             }
             catch (COMException ex)
             {
@@ -116,8 +119,9 @@ namespace NewViewGenerator
         {
             this.Close();
         }
-        private bool IsInheritance { get { return (comboBaseTemplate.SelectedItem != null && comboBaseTemplate.SelectedItem.ToString() != "none"); } }
-        private bool IsViewModel { get { return comboModel.SelectedItem != null && comboModel.SelectedItem.ToString() != "none"; } }
+
+        private bool IsInheritance { get { return (comboBaseTemplate.SelectedItem != null && comboBaseTemplate.SelectedItem.ToString() != "None"); } }
+        private bool IsViewModel { get { return comboModel.SelectedItem != null && comboModel.SelectedItem.ToString() != "None"; } }
         private void comboBaseTemplate_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (IsInheritance)
