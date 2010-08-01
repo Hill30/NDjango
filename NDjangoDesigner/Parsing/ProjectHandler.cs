@@ -27,6 +27,7 @@ namespace NDjango.Designer.Parsing
             this.filters = filters;
             this.project_directory = project_directory;
             template_loader = new TemplateLoader(project_directory);
+
             parser = InitializeParser();
         }
 
@@ -36,6 +37,7 @@ namespace NDjango.Designer.Parsing
         private List<Tag> tags;
         private List<Filter> filters;
         private string project_directory;
+        TypeResolver type_resolver;
 
         private ITemplateManager InitializeParser()
         {
