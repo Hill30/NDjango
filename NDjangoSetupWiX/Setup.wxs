@@ -69,9 +69,9 @@
           <Directory Id="INSTALLDIR" Name="NDjango">
             <Directory Id="NET35" Name=".NET35">
               <Component Id="NDjangoAssemblies2008" Guid="94965855-72E6-4B54-AA9F-E1DB5263F89D">
-                <File Id="ASPMVCIntegration2008.dll" Name="ASPMVCIntegration.dll" Source="lib\2008\ASPMVCIntegration.dll" />
-                <File Id="NDjango.Core2008.dll" Name="NDjango.Core.dll" Source="lib\2008\NDjango.Core.dll" />
-                <File Id="NDjango.Filters2008.dll" Name="NDjangoFilters.NDjangoExtension.dll" Source="lib\2008\NDjangoFilters.NDjangoExtension.dll" />
+                <File Id="NDjango.ASPMVCIntegration35.dll" Name="NDjango.ASPMVCIntegration35.dll" Source="lib\2008\NDjango.ASPMVCIntegration35.dll" />
+                <File Id="NDjango.Core35.dll" Name="NDjango.Core35.dll" Source="lib\2008\NDjango.Core35.dll" />
+                <File Id="NDjango.Filters35.dll" Name="NDjangoFilters.NDjangoExtension35.dll" Source="lib\2008\NDjangoFilters.NDjangoExtension35.dll" />
                 <RegistryValue Root="HKLM" Key="Software\Hill30\NDjango" Name="InstallDir2008" Type="string" Value="[NET35]" KeyPath="yes" />
               </Component>
               <Component Id="ThirdPartyComponents2008" Guid="B5E34D54-3914-4851-8602-19311D415912">
@@ -80,13 +80,12 @@
             </Directory>
             <Directory Id="NET40" Name=".NET40">
               <Component Id="NDjangoAssemblies2010" Guid="322925F0-84C3-41EC-ACE8-D238D3CBF2ED">
-                <File Id="ADDVIEW" Name="NewViewGenerator.vsix" Source="lib\NewViewGenerator.vsix" />
                 <File Id="NDJANGODESIGNER" Name="NDjango.Designer.vsix" Source="lib\NDjango.Designer.vsix" />
-                <File Id="NDjango.ASPMVCIntegration.dll" Name="NDjango.ASPMVCIntegration.dll" Source="lib\2010\NDjango.ASPMVCIntegration.dll" />
+                <File Id="NDjango.ASPMVCIntegration40.dll" Name="NDjango.ASPMVCIntegration40.dll" Source="lib\2010\NDjango.ASPMVCIntegration40.dll" />
                 <!--File Id="NDjango.BistroIntegration.dll" Name="$(var.BistroIntegration.TargetFileName)" Source="$(var.BistroIntegration.TargetPath)" /-->
                 <!--File Id="Castle.Monorail.Views.NDjangoView.dll" Name="$(var.Castle.Monorail.Views.NDjangoView.TargetFileName)" Source="$(var.Castle.Monorail.Views.NDjangoView.TargetPath)" /-->
-                <File Id="NDjango.Core2010.dll" Name="NDjango.Core.dll" Source="lib\2010\NDjango.Core.dll" />
-                <File Id="NDjango.Filters2010.dll" Name="NDjangoFilters.NDjangoExtension.dll" Source="lib\2010\NDjangoFilters.NDjangoExtension.dll" />
+                <File Id="NDjango.Core40.dll" Name="NDjango.Core40.dll" Source="lib\2010\NDjango.Core40.dll" />
+                <File Id="NDjango.Filters40.dll" Name="NDjangoFilters.NDjangoExtension40.dll" Source="lib\2010\NDjangoFilters.NDjangoExtension40.dll" />
                 <RegistryValue Root="HKLM" Key="Software\Hill30\NDjango" Name="InstallDir2010" Type="string" Value="[NET40]" KeyPath="yes" />
               </Component>
               <Component Id="ThirdPartyComponents2010" Guid="1231329B-3AA0-4D86-9BCA-3608320C65E5">
@@ -193,11 +192,7 @@
 
     <Property Id="VSIX_PATH"/>
     <CustomAction  Id="SetVSIXPath"  Property="VSIX_PATH" Value="[ENVDIR_2010]\vsixinstaller.exe"/>
-
-    <CustomAction Id="InstallAddView"   Property = "VSIX_PATH"  ExeCommand="&quot;[NET40]\NewViewGenerator.vsix&quot; /q" Return="ignore" Execute="deferred"/>
     <CustomAction Id="InstallDesigner" Property="VSIX_PATH" ExeCommand="&quot;[NET40]\NDjango.Designer.vsix&quot; /q" Return="ignore" Execute="deferred" />
-    
-    <CustomAction Id="UninstallAddView" Directory = "EXTENSIONSHILL30" ExeCommand="&quot;cmd.exe&quot; /c rmdir /s /q &quot;NewViewGenerator&quot;" Return="ignore"/>
     <CustomAction Id="UninstallDesignerFiles" Directory="EXTENSIONSHILL30" ExeCommand="&quot;cmd.exe&quot; /c rmdir /s /q &quot;NDjangoDesigner&quot;" Return="ignore" />
 
     <Binary Id="EditTemplates" SourceFile="versionWriterFull.exe" />
@@ -208,14 +203,12 @@
     <InstallExecuteSequence>
       <Custom Action="SetVSIXPath" Before="InstallFinalize"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND DESIGNERNEEDED]]></Custom>
       <Custom Action="InstallDesigner" After="SetVSIXPath"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND DESIGNERNEEDED]]></Custom>
-      <Custom Action="InstallAddView" After="SetVSIXPath"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
       <Custom Action="EditNDjangoMVCTemplate2008" After="WriteRegistryValues"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2008FOUND]]></Custom>
       <Custom Action="EditNDjangoMVCTemplate2010" After="EditNDjangoMVCTemplate2008"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
       <!--<Custom Action="EditBistro2010CustomAction" After="EditNDjangoMVCTemplate2010"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
       <Custom Action="EditBistroProject2008CustomAction" After="EditNDjangoMVCTemplate2010"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
       <Custom Action="EditFSharp2008CustomAction" After="EditBistroProject2008CustomAction"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>-->
       <Custom Action="UninstallDesignerFiles" After="InstallInitialize"><![CDATA[REMOVE]]></Custom>
-      <Custom Action="UninstallAddView" After="InstallInitialize"><![CDATA[REMOVE]]></Custom>
       <RemoveExistingProducts After="InstallInitialize" />
     </InstallExecuteSequence>
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />

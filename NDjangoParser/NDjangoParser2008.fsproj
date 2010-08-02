@@ -8,7 +8,7 @@
     <ProjectGuid>{b75384c4-c545-4511-a7fe-93d438b8afa4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>DjangoParser</RootNamespace>
-    <AssemblyName>NDjango.Core</AssemblyName>
+    <AssemblyName>NDjango.Core35</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Name>NDjangoParser</Name>
@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;FRAMEWORK35</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
@@ -77,6 +77,7 @@
     <Compile Include="Now.fs" />
     <Compile Include="LoaderTags.fs" />
     <Compile Include="Template.fs" />
+    <Compile Include="Model.fs" />
     <Compile Include="ManagerProvider.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Compatibility.fs" />
