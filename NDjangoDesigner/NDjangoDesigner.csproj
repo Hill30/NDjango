@@ -161,6 +161,7 @@
     <None Include="Resources\Images_24bit.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\django-icon-24.bmp" />
     <Content Include="Resources\Package.ico" />
     <Resource Include="VSIXProject_large.png" />
     <Resource Include="VSIXProject_small.png" />

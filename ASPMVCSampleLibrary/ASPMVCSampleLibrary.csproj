@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ASPMVCSampleLibrary</RootNamespace>
-    <AssemblyName>ASPMVCSampleLibrary.NDjangoExtension</AssemblyName>
+    <AssemblyName>ASPMVCSampleLibrary.NDjangoExtension40</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

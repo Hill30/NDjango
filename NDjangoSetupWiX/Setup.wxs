@@ -85,6 +85,7 @@
                 <!--File Id="NDjango.BistroIntegration.dll" Name="$(var.BistroIntegration.TargetFileName)" Source="$(var.BistroIntegration.TargetPath)" /-->
                 <!--File Id="Castle.Monorail.Views.NDjangoView.dll" Name="$(var.Castle.Monorail.Views.NDjangoView.TargetFileName)" Source="$(var.Castle.Monorail.Views.NDjangoView.TargetPath)" /-->
                 <File Id="NDjango.Core40.dll" Name="NDjango.Core40.dll" Source="lib\2010\NDjango.Core40.dll" />
+                <File Id="ASPMVCSampleLibrary.NDjangoExtension40.dll" Name="ASPMVCSampleLibrary.NDjangoExtension40.dll" Source="lib\2010\ASPMVCSampleLibrary.NDjangoExtension40.dll" />
                 <File Id="NDjango.Filters40.dll" Name="NDjangoFilters.NDjangoExtension40.dll" Source="lib\2010\NDjangoFilters.NDjangoExtension40.dll" />
                 <RegistryValue Root="HKLM" Key="Software\Hill30\NDjango" Name="InstallDir2010" Type="string" Value="[NET40]" KeyPath="yes" />
               </Component>
@@ -130,7 +131,7 @@
             <Component Id="ProjectTemplates2010" Guid="5C719ECB-EFBF-474A-9BD5-A4AE67794048">
               <RemoveFolder Id="vs2010Web1Project" Directory="vs2010Web1Project" On="uninstall" />
               <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
-              <File Id="NDjangoMVC2010" Name="NDjangoMVC2010.zip" Source="Templates\2010\NDjangoMVC.zip" />
+              <File Id="NDjangoASPMVC40" Name="NDjangoASPMVC40.zip" Source="Templates\2010\NDjangoASPMVC40.zip" />
             </Component>
           </Directory>
         </Directory>
@@ -147,15 +148,22 @@
         </Directory>
       </Directory>
 
-      <Component Id="RegisterDjangoExtensionForHTMLEditor" Guid="02D1F592-DC45-4019-9551-9CDFC6F43F4F">
-        <!--<RegistryKey Key="SOFTWARE\Microsoft\VisualStudio\9.0\Editors\{C76D83F8-A489-11D0-8195-00A0C91BBEE3}\Extensions" Root="HKLM">
-          <RegistryValue Name="django" Value="40" Type="integer" />
-        </RegistryKey>-->
+      <Component Id="RegisterDjangoExtensionForHTMLEditor2008" Guid="02D1F592-DC45-4019-9551-9CDFC6F43F4F">
         <RegistryKey Key="Software\Microsoft\VisualStudio\9.0\Default Editors\django" Root="HKCU">
           <RegistryValue Name="Custom" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
           <RegistryValue Name="Type" Value="1" Type="integer" />
         </RegistryKey>
         <RegistryKey Key="Software\Microsoft\VisualStudio\9.0\FileExtensionMapping\django" Root="HKCU">
+          <RegistryValue Name="(Default)" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
+          <RegistryValue Name="LogViewID" Value="{00000000-0000-0000-0000-000000000000}" Type="string" />
+        </RegistryKey>
+      </Component>
+      <Component Id="RegisterDjangoExtensionForHTMLEditor2010" Guid="67F38316-7034-4be6-8D74-79BC476A91F4">
+        <RegistryKey Key="Software\Microsoft\VisualStudio\10.0\Default Editors\django" Root="HKCU">
+          <RegistryValue Name="Custom" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
+          <RegistryValue Name="Type" Value="1" Type="integer" />
+        </RegistryKey>
+        <RegistryKey Key="Software\Microsoft\VisualStudio\10.0\FileExtensionMapping\django" Root="HKCU">
           <RegistryValue Name="(Default)" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
           <RegistryValue Name="LogViewID" Value="{00000000-0000-0000-0000-000000000000}" Type="string" />
         </RegistryKey>
@@ -171,7 +179,7 @@
     <Feature Id="ProductFeature2008" Level="1">
       <Condition Level="0"><![CDATA[VS2008FOUND = NULL]]></Condition>
       <ComponentRef Id="NDjangoAssemblies2008" />
-      <ComponentRef Id="RegisterDjangoExtensionForHTMLEditor" />
+      <ComponentRef Id="RegisterDjangoExtensionForHTMLEditor2008" />
       <ComponentRef Id="ThirdPartyComponents2008" />
     </Feature>
     <Feature Id="InstallTemplates2010" Level="1">
@@ -181,6 +189,7 @@
     </Feature>
     <Feature Id="ProductFeature2010" Level="1">
       <Condition Level="0"><![CDATA[VS2010FOUND = NULL]]></Condition>
+      <ComponentRef Id="RegisterDjangoExtensionForHTMLEditor2010" />
       <ComponentRef Id="NDjangoAssemblies2010" />
       <ComponentRef Id="ThirdPartyComponents2010" />
     </Feature>
@@ -196,8 +205,8 @@
     <CustomAction Id="UninstallDesignerFiles" Directory="EXTENSIONSHILL30" ExeCommand="&quot;cmd.exe&quot; /c rmdir /s /q &quot;NDjangoDesigner&quot;" Return="ignore" />
 
     <Binary Id="EditTemplates" SourceFile="versionWriterFull.exe" />
-    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2008PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoMVC2008.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2008" Return="ignore" Execute="commit"/>
-    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoMVC2010.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2010" Return="ignore" Execute="commit"/>
+    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2008PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoASPMVC35.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2008" Return="ignore" Execute="commit"/>
+    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoASPMVC40.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2010" Return="ignore" Execute="commit"/>
 
     <CustomAction Id="CA_DevenvSetup2008" Property="DEVENV_EXE_PATH2008" ExeCommand="/setup" Impersonate="no" Execute="commit" />
     <InstallExecuteSequence>

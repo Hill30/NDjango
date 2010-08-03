@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ASPMVCIntegration")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("American Imaging Management")]
+[assembly: AssemblyCompany("Hill30")]
 [assembly: AssemblyProduct("ASPMVCIntegration")]
-[assembly: AssemblyCopyright("Copyright © American Imaging Management 2009")]
+[assembly: AssemblyCopyright("Copyright © Hill30, Inc. 2008, 2009, 2010")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

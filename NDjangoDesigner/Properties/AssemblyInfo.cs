@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("NDjangoDesigner")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCopyright("Copyright © Hill30, Inc. 2008, 2009, 2010")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

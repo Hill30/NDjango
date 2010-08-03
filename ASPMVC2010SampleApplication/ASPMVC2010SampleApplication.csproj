@@ -11,7 +11,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ASPMVC2010SampleApplication</RootNamespace>
-    <AssemblyName>ASPMVC2010SampleApplication</AssemblyName>
+    <AssemblyName>ASPMVC2010SampleApplication40</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
   </PropertyGroup>
@@ -33,8 +33,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ASPMVCSampleLibrary.NDjangoExtension, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ASPMVCSampleLibrary\bin\Debug\ASPMVCSampleLibrary.NDjangoExtension.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="NDjangoFilters.NDjangoExtension40">
+      <HintPath>..\NDjangoParserFilters\bin\NDjangoFilters.NDjangoExtension40.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -117,10 +124,6 @@
     <ProjectReference Include="..\ASPMVCIntegration\ASPMVC2010Integration.csproj">
       <Project>{F8D5E545-691B-4743-9177-3FF50CC67E74}</Project>
       <Name>ASPMVC2010Integration</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ASPMVCSampleLibrary\ASPMVCSampleLibrary.csproj">
-      <Project>{31DA6E9F-1CDC-48B7-B559-E60591DE8159}</Project>
-      <Name>ASPMVCSampleLibrary</Name>
     </ProjectReference>
     <ProjectReference Include="..\NDjangoParser\NDjangoParser2010.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
