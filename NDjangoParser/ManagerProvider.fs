@@ -352,7 +352,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             |> Seq.fold 
                 (fun (tags, filters) _type -> 
                     let attrs = _type.GetCustomAttributes(typeof<NameAttribute>, false)
-                    if attrs.Length = 0 then (tags, filters)
+                    if _type.IsAbstract || _type.IsInterface || attrs.Length = 0 then (tags, filters)
                     else 
                         try
                             if (typeof<ITag>.IsAssignableFrom(_type))

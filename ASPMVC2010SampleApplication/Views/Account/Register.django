@@ -7,7 +7,7 @@
         Use the form below to create a new account. 
     </p>
     <p>
-        Passwords are required to be a minimum of {{ Model.PasswordLength }} characters in length.
+        Passwords are required to be a minimum of {{ PasswordLength }} characters in length.
     </p>
 
     {% form %}
@@ -17,7 +17,7 @@
                 <legend>Account Information</legend>
                 
                 <div class="editor-label">
-                    {% label-for 'UserName' %}
+                    {% label-for 'UserName' %} ({{ Model.UserName }})
                 </div>
                 <div class="editor-field">
                     {% textbox-for "UserName" %}

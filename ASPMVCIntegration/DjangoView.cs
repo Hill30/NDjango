@@ -26,10 +26,11 @@ namespace NDjango.ASPMVC
         {
             data_dictionary = viewContext.ViewData;
 
-            var requestContext = new Dictionary<string, object>();
-            requestContext.Add("Html", new HtmlHelper(viewContext, this));
-            requestContext.Add("Model", viewContext.ViewData);
-            requestContext.Add("Session", viewContext.HttpContext.Session);
+            var requestContext = new Dictionary<string, object>(viewContext.ViewData);
+
+            requestContext["Html"] = new HtmlHelper(viewContext, this);
+            requestContext["Model"] = viewContext.ViewData.Model;
+            requestContext["Session"] = viewContext.HttpContext.Session;
 
             var reader = iTemplateManager.RenderTemplate(viewPath, requestContext);
             var buffer = new char[4096];

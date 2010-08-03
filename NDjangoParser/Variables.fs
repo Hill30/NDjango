@@ -141,7 +141,7 @@ module Variables =
             | _ -> None 
 
     /// <summary>
-    /// Tries to resolve current bit by calling avary resolver in turn
+    /// Tries to resolve current bit by calling every resolver in turn
     /// and returning after the first one returning some value        
     /// </summary>
     let private resolve_member bit current =

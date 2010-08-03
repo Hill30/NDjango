@@ -311,15 +311,15 @@ and ITag =
     abstract member is_header_tag: bool
     
 /// Parsing context is a container for information specific to the tag being parsed
-and ParsingContext(
-                    provider: ITemplateManagerProvider, 
-                    resolver: ITypeResolver, 
-                    parent, 
-                    closures: string list, 
-                    is_in_header, 
-                    model : IDjangoType option, 
-                    vars: IDjangoType list, 
-                    _base: INode option) =
+and ParsingContext private(
+                            provider: ITemplateManagerProvider, 
+                            resolver: ITypeResolver, 
+                            parent, 
+                            closures: string list, 
+                            is_in_header, 
+                            model : IDjangoType option, 
+                            vars: IDjangoType list, 
+                            _base: INode option) =
     
     let combine (vars:IDjangoType list) (extra_vars:IDjangoType list) =
         vars |> 
