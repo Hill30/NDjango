@@ -10,8 +10,8 @@
     <ProjectTypeGuids>{F85E285D-A4E0-4152-9332-AB1D724D3325};{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ASPMVC2010SampleApplication</RootNamespace>
-    <AssemblyName>ASPMVC2010SampleApplication40</AssemblyName>
+    <RootNamespace>ASPMVCSampleApplication40</RootNamespace>
+    <AssemblyName>ASPMVCSampleApplication40</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
   </PropertyGroup>
@@ -33,10 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ASPMVCSampleLibrary.NDjangoExtension, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ASPMVCSampleLibrary\bin\Debug\ASPMVCSampleLibrary.NDjangoExtension.dll</HintPath>
-    </Reference>
     <Reference Include="FSharp.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="NDjangoFilters.NDjangoExtension40">
@@ -121,11 +117,15 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ASPMVCIntegration\ASPMVC2010Integration.csproj">
+    <ProjectReference Include="..\ASPMVCIntegration\ASPMVCIntegration40.csproj">
       <Project>{F8D5E545-691B-4743-9177-3FF50CC67E74}</Project>
       <Name>ASPMVC2010Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NDjangoParser\NDjangoParser2010.fsproj">
+    <ProjectReference Include="..\ASPMVCSampleLibrary\ASPMVCSampleLibrary40.csproj">
+      <Project>{31DA6E9F-1CDC-48B7-B559-E60591DE8159}</Project>
+      <Name>ASPMVCSampleLibrary2010</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NDjangoParser\NDjangoParser40.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
       <Name>NDjangoParser2010</Name>
     </ProjectReference>
@@ -145,7 +145,7 @@
         <WebProjectProperties>
           <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>8606</DevelopmentServerPort>
+          <DevelopmentServerPort>6503</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>
           </IISUrl>

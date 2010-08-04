@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
-namespace ASPMVC2010SampleApplication
+namespace ASPMVCSampleApplication40
 {
     // Note: For instructions on enabling IIS6 or IIS7 classic mode, 
     // visit http://go.microsoft.com/?LinkId=9394801
@@ -34,7 +34,7 @@ namespace ASPMVC2010SampleApplication
 
             ViewEngines.Engines.Insert(0, 
                 new NDjango.ASPMVC.DjangoViewEngine(
-                    pr => pr.WithLibrary("ASPMVCSampleLibrary.NDjangoExtension")
+                    pr => pr.WithLibrary("ASPMVCSampleLibrary.NDjangoExtension40")
                     ));
         }
     }

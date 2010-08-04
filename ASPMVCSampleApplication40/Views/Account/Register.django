@@ -1,4 +1,4 @@
-﻿{% model Model:ASPMVC2010SampleApplication.Models.RegisterModel %}
+﻿{% model Model:ASPMVCSampleApplication40.Models.RegisterModel %}
 {% extends 'Views\Shared\Site.django' %}
 {% block title %} {{ block.super }} - Registration {% endblock title %}
 {% block MainContent %}

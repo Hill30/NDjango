@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" MasterPageFile="~/Views/Shared/Site.Master" Inherits="System.Web.Mvc.ViewPage<ASPMVC2010SampleApplication.Models.RegisterModel>" %>
+﻿<%@ Page Language="C#" MasterPageFile="~/Views/Shared/Site.Master" Inherits="System.Web.Mvc.ViewPage<ASPMVCSampleApplication40.Models.RegisterModel>" %>
 
 <asp:Content ID="registerTitle" ContentPlaceHolderID="TitleContent" runat="server">
     Register

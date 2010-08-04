@@ -8,7 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
 
-namespace ASPMVC2010SampleApplication.Models
+namespace ASPMVCSampleApplication40.Models
 {
 
     #region Models

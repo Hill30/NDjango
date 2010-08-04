@@ -7,9 +7,9 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.Security;
-using ASPMVC2010SampleApplication.Models;
+using ASPMVCSampleApplication40.Models;
 
-namespace ASPMVC2010SampleApplication.Controllers
+namespace ASPMVCSampleApplication40.Controllers
 {
 
     [HandleError]
