@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{F8D5E545-691B-4743-9177-3FF50CC67E74}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -82,7 +82,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NDjangoParser\NDjangoParser2008.fsproj">
+    <ProjectReference Include="..\NDjangoParser\NDjangoParser35.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
       <Name>NDjangoParser2008</Name>
     </ProjectReference>

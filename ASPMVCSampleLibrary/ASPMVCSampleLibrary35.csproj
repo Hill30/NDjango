@@ -56,11 +56,11 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ASPMVCIntegration\ASPMVC2008Integration.csproj">
+    <ProjectReference Include="..\ASPMVCIntegration\ASPMVCIntegration35.csproj">
       <Project>{F8D5E545-691B-4743-9177-3FF50CC67E74}</Project>
       <Name>ASPMVC2008Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NDjangoParser\NDjangoParser2008.fsproj">
+    <ProjectReference Include="..\NDjangoParser\NDjangoParser35.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
       <Name>NDjangoParser2008</Name>
     </ProjectReference>

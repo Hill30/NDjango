@@ -82,7 +82,7 @@
     <Compile Include="StringFilters\WordCountFilter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NDjangoParser\NDjangoParser2008.fsproj">
+    <ProjectReference Include="..\NDjangoParser\NDjangoParser35.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
       <Name>NDjangoParser</Name>
     </ProjectReference>
