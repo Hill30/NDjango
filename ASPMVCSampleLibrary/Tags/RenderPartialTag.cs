@@ -7,7 +7,7 @@ using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using System.IO;
 
-namespace ASPMVC2010SampleApplication
+namespace ASPMVCSampleLibrary
 {
     [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.RenderPartial")]
     [Name("render-partial")]

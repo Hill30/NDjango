@@ -193,6 +193,9 @@
       <ComponentRef Id="NDjangoAssemblies2010" />
       <ComponentRef Id="ThirdPartyComponents2010" />
     </Feature>
+    <Feature Id="SampleLibrarySRC" Level="1" ConfigurableDirectory="INSTALLDIR" Title="Source Code">
+      <ComponentGroupRef Id="group_SampleLibrary"/>
+    </Feature>
 
     <Feature Id="Documentation" Level="1">
       <ComponentRef Id="Readme" />
@@ -202,7 +205,7 @@
     <Property Id="VSIX_PATH"/>
     <CustomAction  Id="SetVSIXPath"  Property="VSIX_PATH" Value="[ENVDIR_2010]\vsixinstaller.exe"/>
     <CustomAction Id="InstallDesigner" Property="VSIX_PATH" ExeCommand="&quot;[NET40]\NDjango.Designer.vsix&quot; /q" Return="ignore" Execute="deferred" />
-    <CustomAction Id="UninstallDesignerFiles" Directory="EXTENSIONSHILL30" ExeCommand="&quot;cmd.exe&quot; /c rmdir /s /q &quot;NDjangoDesigner&quot;" Return="ignore" />
+    <CustomAction Id="UninstallDesignerFiles" Directory="EXTENSIONSHILL30" ExeCommand="&quot;cmd.exe&quot; /c rmdir /s /q &quot;NDjango Template Editor&quot;" Return="ignore" />
 
     <Binary Id="EditTemplates" SourceFile="versionWriterFull.exe" />
     <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2008PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoASPMVC35.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2008" Return="ignore" Execute="commit"/>

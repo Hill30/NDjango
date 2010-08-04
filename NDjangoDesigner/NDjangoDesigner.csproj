@@ -167,19 +167,19 @@
     <Resource Include="VSIXProject_small.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ASPMVCIntegration\ASPMVC2010Integration.csproj">
+    <ProjectReference Include="..\ASPMVCIntegration\ASPMVCIntegration40.csproj">
       <Project>{F8D5E545-691B-4743-9177-3FF50CC67E74}</Project>
       <Name>ASPMVC2010Integration</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ASPMVCSampleLibrary\ASPMVCSampleLibrary.csproj">
+    <ProjectReference Include="..\ASPMVCSampleLibrary\ASPMVCSampleLibrary40.csproj">
       <Project>{31DA6E9F-1CDC-48B7-B559-E60591DE8159}</Project>
       <Name>ASPMVCSampleLibrary</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters2010.csproj">
+    <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters40.csproj">
       <Project>{89DC9575-C706-4D0D-944A-79E5865FFE88}</Project>
       <Name>NDjangoParserFilters2010</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NDjangoParser\NDjangoParser2010.fsproj">
+    <ProjectReference Include="..\NDjangoParser\NDjangoParser40.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
       <Name>NDjangoParser2010</Name>
     </ProjectReference>

@@ -6,7 +6,7 @@ using NDjango.Interfaces;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
 
-namespace ASPMVC2010SampleApplication
+namespace ASPMVCSampleLibrary
 {
     [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.LabelFor")]
     [Name("label-for")]

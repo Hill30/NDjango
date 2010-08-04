@@ -3,21 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoDesigner", "NDjangoDesigner\NDjangoDesigner.csproj", "{3AC5B05C-E4FF-4C90-89CA-A1158F0815E5}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NDjangoParser2010", "NDjangoParser\NDjangoParser2010.fsproj", "{B75384C4-C545-4511-A7FE-93D438B8AFA4}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NDjangoParser40", "NDjangoParser\NDjangoParser40.fsproj", "{B75384C4-C545-4511-A7FE-93D438B8AFA4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateViewer", "TemplateViewer\TemplateViewer.csproj", "{A86880CF-C073-40B0-9FDC-B8641F99260F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoParserFilters2010", "NDjangoParserFilters\NDjangoParserFilters2010.csproj", "{89DC9575-C706-4D0D-944A-79E5865FFE88}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoParserFilters40", "NDjangoParserFilters\NDjangoParserFilters40.csproj", "{89DC9575-C706-4D0D-944A-79E5865FFE88}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesignerTests", "DesignerTests\DesignerTests.csproj", "{240FDEC0-66D0-41E3-916A-61845A332747}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoUnitTests2010", "NDjangoUnitTests\NDjangoUnitTests2010.csproj", "{025EDC49-0088-4F5A-9270-E0A7461B4AFD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjangoUnitTests40", "NDjangoUnitTests\NDjangoUnitTests40.csproj", "{025EDC49-0088-4F5A-9270-E0A7461B4AFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVC2010Integration", "ASPMVCIntegration\ASPMVC2010Integration.csproj", "{F8D5E545-691B-4743-9177-3FF50CC67E74}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVCIntegration40", "ASPMVCIntegration\ASPMVCIntegration40.csproj", "{F8D5E545-691B-4743-9177-3FF50CC67E74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVC2010SampleApplication", "ASPMVC2010SampleApplication\ASPMVC2010SampleApplication.csproj", "{B6A2346D-802D-47AE-AFE0-AE80294D0AF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVCSampleApplication40", "ASPMVCSampleApplication40\ASPMVCSampleApplication40.csproj", "{B6A2346D-802D-47AE-AFE0-AE80294D0AF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVCSampleLibrary", "ASPMVCSampleLibrary\ASPMVCSampleLibrary.csproj", "{31DA6E9F-1CDC-48B7-B559-E60591DE8159}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVCSampleLibrary40", "ASPMVCSampleLibrary\ASPMVCSampleLibrary40.csproj", "{31DA6E9F-1CDC-48B7-B559-E60591DE8159}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

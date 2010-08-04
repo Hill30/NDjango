@@ -7,7 +7,7 @@ using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using NDjango.ASPMVC;
 
-namespace ASPMVC2010SampleApplication
+namespace ASPMVCSampleLibrary
 {
     [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.ValidationMessageFor")]
     [Name("validation-message-for")]

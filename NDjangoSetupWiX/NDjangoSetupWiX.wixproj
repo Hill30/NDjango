@@ -34,6 +34,7 @@
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SampleLibrarySource.wxs" />
     <Compile Include="Setup.wxs" />
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />

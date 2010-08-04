@@ -161,10 +161,9 @@ namespace NDjango.Designer.Commands
                         else
                             list.Add(Assembly.Load(reference.Path));
                     }
-                    catch (System.IO.FileLoadException ex)
+                    catch (Exception e)
                     {
                     }
-
                 }
             }
             else if (project.Object is VsWebSite.VSWebSite)

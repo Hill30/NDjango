@@ -7,7 +7,7 @@ using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using NDjango.ASPMVC;
 
-namespace ASPMVC2010SampleApplication.Tags
+namespace ASPMVCSampleLibrary.Tags
 {
     [NDjango.ParserNodes.Description("Django wrapper around HtmlHelper.ValidationSummary")]
     [Name("validation-summary")]
