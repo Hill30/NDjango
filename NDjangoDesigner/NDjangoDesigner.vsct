@@ -28,7 +28,7 @@
 
   <!--The Commands section is where we the commands, menus and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
-  <Commands package="guidNewViewGeneratorPkg">
+  <Commands package="guidNDjangoDesignerPkg">
     <!-- Inside this section we have different sub-sections: one for the menus, another  
     for the menu groups, one for the buttons (the actual commands), one for the combos 
     and the last one for the bitmaps used. Each element is identified by a command id that  
@@ -43,7 +43,7 @@
          group as the part of a menu contained between two lines. The parent of a group 
          must be a menu. -->
     <Groups>
-      <Group guid="guidNewViewGeneratorCmdSet" id="cmdidNewViewGeneratorGroup" priority="0x0600">
+      <Group guid="guidNDjangoDesignerCmdSet" id="cmdidNDjangoDesignerGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE"/>
       </Group>
 
@@ -62,8 +62,8 @@
           If you do not want an image next to your command, remove the Icon node or set it to <Icon guid="guidOfficeIcon" id="msotcidNoIcon" /> -->
 
 
-      <Button guid="guidNewViewGeneratorCmdSet" id="cmdidAddView" priority="0x0600" type="Button">
-        <Parent guid="guidNewViewGeneratorCmdSet" id="cmdidNewViewGeneratorGroup"/>
+      <Button guid="guidNDjangoDesignerCmdSet" id="cmdidAddView" priority="0x0600" type="Button">
+        <Parent guid="guidNDjangoDesignerCmdSet" id="cmdidNDjangoDesignerGroup"/>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <CommandName>cmdidAddView</CommandName>
@@ -92,20 +92,20 @@
   </Commands>
 
   <VisibilityConstraints>
-    <VisibilityItem guid="guidNewViewGeneratorCmdSet" id="cmdidAddView" context="UICONTEXT_ViewsSelected"></VisibilityItem>
-    <!--<VisibilityItem guid="guidNewViewGeneratorCmdSet" id="cmdidAddView" context="guidMVC_Project"></VisibilityItem>-->
+    <VisibilityItem guid="guidNDjangoDesignerCmdSet" id="cmdidAddView" context="UICONTEXT_ViewsSelected"></VisibilityItem>
+    <!--<VisibilityItem guid="guidNDjangoDesignerCmdSet" id="cmdidAddView" context="guidMVC_Project"></VisibilityItem>-->
   </VisibilityConstraints>
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidNewViewGeneratorPkg" value="{2780818b-02fb-4990-a051-7cee3fd09157}" />
+    <GuidSymbol name="guidNDjangoDesignerPkg" value="{2780818b-02fb-4990-a051-7cee3fd09157}" />
     <!-- The MVC Project Type -->
     <GuidSymbol name="guidMVC_Project" value="{f85e285d-a4e0-4152-9332-ab1d724d3325}" />
     <!--The Views folder and its subfolders-->
     <GuidSymbol name="UICONTEXT_ViewsSelected" value="{5ebe12b1-2c8a-4e83-85d5-1f26eb36561c}" />
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidNewViewGeneratorCmdSet" value="{7686279e-0421-4c87-8ed3-a484a22b58f3}">
-      <IDSymbol name="cmdidNewViewGeneratorGroup" value="0x1020" />
+    <GuidSymbol name="guidNDjangoDesignerCmdSet" value="{7686279e-0421-4c87-8ed3-a484a22b58f3}">
+      <IDSymbol name="cmdidNDjangoDesignerGroup" value="0x1020" />
       <IDSymbol name="cmdidAddView" value="0x0101" />
     </GuidSymbol>
     <GuidSymbol name="guidImages" value="{b5f6765e-ad3b-47b8-ad52-e0f112ea3887}" >

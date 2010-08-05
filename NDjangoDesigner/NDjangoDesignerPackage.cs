@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using NDjango.Designer.Commands;
 
-namespace NewViewGenerator
+namespace NDjangoDesigner
 {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
@@ -32,8 +32,8 @@ namespace NewViewGenerator
     [ProvideMenuResource("Menus.ctmenu", 1)]
     //auto load package if UICONTEXT_SolutionExists
     [ProvideAutoLoad("f1536ef8-92ec-443c-9ed7-fdadf150da82")]
-    [Guid(NDjango.Designer.Constants.guidNewViewGeneratorPkgString)]
-    public sealed class NewViewGeneratorPackage : Package
+    [Guid(NDjango.Designer.Constants.guidNDjangoDesignerPkgString)]
+    public sealed class NDjangoDesignerPackage : Package
     {
         private AddViewDlg viewDialog;
         /// <summary>
@@ -43,7 +43,7 @@ namespace NewViewGenerator
         /// not sited yet inside Visual Studio environment. The place to do all the other 
         /// initialization is the Initialize method.
         /// </summary>
-        public NewViewGeneratorPackage()
+        public NDjangoDesignerPackage()
         {
             Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
         }
@@ -75,7 +75,7 @@ namespace NewViewGenerator
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null != mcs)
             {
-                //CommandID addViewCommandID = new CommandID(GuidList.guidNewViewGeneratorCmdSet, (int)GuidList.cmdidNewViewGenerator);
+                //CommandID addViewCommandID = new CommandID(GuidList.guidNDjangoDesignerCmdSet, (int)GuidList.cmdidNDjangoDesigner);
                 //OleMenuCommand cmd = new OleMenuCommand(ShowAddView, addViewCommandID);
                 mcs.AddCommand(new AddViewCommand());
             }

@@ -9,7 +9,7 @@ using System.ComponentModel.Design;
 using System.Xml;
 using System.Runtime.InteropServices;
 using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
-using NewViewGenerator;
+using NDjangoDesigner;
 
 namespace NDjango.Designer.Commands
 {
@@ -18,7 +18,7 @@ namespace NDjango.Designer.Commands
         private static AddViewDlg viewDialog;
 
         public AddViewCommand()
-            : base(Execute, new CommandID(Constants.guidNewViewGeneratorCmdSet, (int)Constants.cmdidNewViewGenerator))
+            : base(Execute, new CommandID(Constants.guidNDjangoDesignerCmdSet, (int)Constants.cmdidNDjangoDesigner))
         {
             BeforeQueryStatus += new EventHandler(QueryStatus);
             viewDialog = new AddViewDlg();
