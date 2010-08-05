@@ -72,6 +72,7 @@
                 <File Id="NDjango.ASPMVCIntegration35.dll" Name="NDjango.ASPMVCIntegration35.dll" Source="lib\2008\NDjango.ASPMVCIntegration35.dll" />
                 <File Id="NDjango.Core35.dll" Name="NDjango.Core35.dll" Source="lib\2008\NDjango.Core35.dll" />
                 <File Id="NDjango.Filters35.dll" Name="NDjangoFilters.NDjangoExtension35.dll" Source="lib\2008\NDjangoFilters.NDjangoExtension35.dll" />
+                <File Id="ASPMVCSampleLibrary.NDjangoExtension35.dll" Name="ASPMVCSampleLibrary.NDjangoExtension35.dll" Source="lib\2008\ASPMVCSampleLibrary.NDjangoExtension35.dll" />
                 <RegistryValue Root="HKLM" Key="Software\Hill30\NDjango" Name="InstallDir2008" Type="string" Value="[NET35]" KeyPath="yes" />
               </Component>
               <Component Id="ThirdPartyComponents2008" Guid="B5E34D54-3914-4851-8602-19311D415912">
@@ -120,7 +121,7 @@
             <Component Id="ProjectTemplates2008" Guid="F12101E4-615A-418F-9665-1D5C7B4ED5B8">
               <RemoveFolder Id="vs2008Web1" Directory="vs2008Web1" On="uninstall" />
               <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
-              <File Id="NDjangoMVC" Name="NDjangoMVC2008.zip" Source="Templates\2008\NDjangoMVC.zip" />
+              <File Id="NDjangoMVC" Name="ASPMVCSampleApplication35.zip" Source="Templates\2008\ASPMVCSampleApplication35.zip" />
             </Component>
           </Directory>
         </Directory>
@@ -131,7 +132,7 @@
             <Component Id="ProjectTemplates2010" Guid="5C719ECB-EFBF-474A-9BD5-A4AE67794048">
               <RemoveFolder Id="vs2010Web1Project" Directory="vs2010Web1Project" On="uninstall" />
               <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
-              <File Id="NDjangoASPMVC40" Name="NDjangoASPMVC40.zip" Source="Templates\2010\NDjangoASPMVC40.zip" />
+              <File Id="NDjangoASPMVC40" Name="ASPMVCSampleApplication40.zip" Source="Templates\2010\ASPMVCSampleApplication40.zip" />
             </Component>
           </Directory>
         </Directory>
@@ -208,8 +209,8 @@
     <CustomAction Id="UninstallDesignerFiles" Directory="EXTENSIONSHILL30" ExeCommand="&quot;cmd.exe&quot; /c rmdir /s /q &quot;NDjango Template Editor&quot;" Return="ignore" />
 
     <Binary Id="EditTemplates" SourceFile="versionWriterFull.exe" />
-    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2008PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoASPMVC35.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2008" Return="ignore" Execute="commit"/>
-    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual C#\Web\NDjangoASPMVC40.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2010" Return="ignore" Execute="commit"/>
+    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2008PROJECTTEMPLATESLOCATION]\Visual C#\Web\ASPMVCSampleApplication35.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2008" Return="ignore" Execute="commit"/>
+    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual C#\Web\ASPMVCSampleApplication40.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2010" Return="ignore" Execute="commit"/>
 
     <CustomAction Id="CA_DevenvSetup2008" Property="DEVENV_EXE_PATH2008" ExeCommand="/setup" Impersonate="no" Execute="commit" />
     <InstallExecuteSequence>

@@ -35,10 +35,10 @@
       <Directory Id="SourceCode" Name="Source Code">
         <Directory Id="dir_ASPMVCSampleLibrary_0" Name="ASPMVCSampleLibrary">
         <Component Id="comp_SampleLibrary_0" DiskId="1" KeyPath="yes" Guid="C2739FED-4675-4FCB-9BBA-EA7355530E0C">
-          <File Id="file_SampleLibrary_0" Source="c:\Hill30\NDjango\Trunk_new\ASPMVCSampleLibraryClean\ASPMVCSampleLibrary2008.csproj" />
+          <File Id="file_SampleLibrary_0" Source="c:\Hill30\NDjango\Trunk_new\ASPMVCSampleLibraryClean\ASPMVCSampleLibrary35.csproj" />
         </Component>
         <Component Id="comp_SampleLibrary_1" DiskId="1" KeyPath="yes" Guid="929E5249-03C3-4569-9774-62DCCD50208C">
-          <File Id="file_SampleLibrary_1" Source="c:\Hill30\NDjango\Trunk_new\ASPMVCSampleLibraryClean\ASPMVCSampleLibrary2010.csproj" />
+          <File Id="file_SampleLibrary_1" Source="c:\Hill30\NDjango\Trunk_new\ASPMVCSampleLibraryClean\ASPMVCSampleLibrary40.csproj" />
         </Component>
         <Directory Id="dir_ASPMVCSampleLibrary_Properties_1" Name="Properties">
           <Component Id="comp_SampleLibrary_2" DiskId="1" KeyPath="yes" Guid="2EA3DC18-F98A-4658-AD3F-FB79C771248C">
