@@ -152,7 +152,7 @@ module public ParserNodes =
                 context,
                 NodeType.TagName, 
                 token,
-                context.Tags
+                context.Provider.Tags |> Map.toSeq |> Seq.map (fun tag -> fst tag)
             )
             
     /// a node representing a keyword - i.e. on/off values for the autoescape tag
@@ -199,7 +199,7 @@ module public ParserNodes =
     /// necessary for the designer to show information specific to the parsing 
     /// context as well as boundaries of the context. 
     /// Ignore during rendering
-    type ParsingContextNode (context: ParsingContext, position, length) =
+    type ParsingContextNode (context: IParsingContext, position, length) =
         interface INode with
             member x.NodeType = NodeType.ParsingContext
             /// Position - the position of the first character of the context 
@@ -212,7 +212,8 @@ module public ParserNodes =
             member x.Context = context
 
         interface ICompletionValuesProvider with
-            member x.Values = context.Tags
+            member x.Values = context.Provider.Tags |> Map.toSeq |> Seq.map (fun tag -> fst tag)
+
             
         interface INodeImpl with
             member x.Token = failwith ("Token on the ParsingContextNode should not be accessed")
@@ -226,7 +227,7 @@ module public ParserNodes =
         member x.Description = description
 
     /// Base class for all syntax nodes representing django tags
-    type TagNode(context: ParsingContext, token: BlockToken, tag: ITag) =
+    type TagNode(context, token, tag: ITag) =
         inherit Node(context, Block token)
 
         member x.Tag = tag
@@ -243,7 +244,7 @@ module public ParserNodes =
                 let attrs = tag.GetType().GetCustomAttributes(typeof<DescriptionAttribute>, false)
                 attrs |> Array.fold (fun text attr -> text + (attr :?> DescriptionAttribute).Description ) ""
             
-    type CloseTagNode(context: ParsingContext, token: BlockToken) =
+    type CloseTagNode(context, token) =
         inherit Node(context, Block token)
 
         override x.node_type = NodeType.CloseTag   

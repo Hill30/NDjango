@@ -55,9 +55,6 @@ module internal Template =
             member x.RenderTemplate (name, context) =
                 ((x :>ITemplateManager).GetTemplate name).Walk x context
 
-            member x.RenderTemplate (name, resolver, context) =
-                ((x :>ITemplateManager).GetTemplate (name, resolver)).Walk x context
-
             member x.GetTemplate(name, resolver) =
                 match Map.tryFind name !templates with
                 | Some (template, timestamp) -> 
@@ -81,7 +78,7 @@ module internal Template =
         
             
     /// Implements the template (ITemplate interface)
-    and internal Impl(provider : ITemplateManagerProvider, template: TextReader, resolver) =
+    and internal Impl(provider : ITemplateManagerProvider, template, resolver) =
         
         let node_list = (provider :?> IParser).ParseTemplate(template, resolver)
         interface ITemplate with

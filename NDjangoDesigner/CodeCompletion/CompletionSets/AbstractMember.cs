@@ -12,7 +12,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {
             return BuildCompletions(
-                buildMemberList(facets.ToList(), Node.Context.Variables).OrderBy(var => var.Name).Select(var => var.Name),
+                buildMemberList(facets.ToList(), Node.Context.Model.Members).OrderBy(var => var.Name).Select(var => var.Name),
                 Prefix, Suffix);
         }
 

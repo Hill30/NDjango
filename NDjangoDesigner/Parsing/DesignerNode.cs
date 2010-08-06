@@ -182,7 +182,7 @@ namespace NDjango.Designer.Parsing
             }
         }
 
-        public ParsingContext Context { get { return node.Context; } }
+        public IParsingContext Context { get { return node.Context; } }
         
         #endregion
 

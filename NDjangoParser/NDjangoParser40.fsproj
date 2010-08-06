@@ -71,6 +71,7 @@
     <Compile Include="If.fs" />
     <Compile Include="IfChanged.fs" />
     <Compile Include="IfEqual.fs" />
+    <Compile Include="ParsingContext.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Now.fs" />
     <Compile Include="LoaderTags.fs" />

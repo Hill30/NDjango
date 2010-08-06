@@ -35,24 +35,12 @@ open NDjango.TypeResolver
 
 module Model =
 
-    type private ModelDescriptor(resolver: ITypeResolver, members: (string*TextToken) list) =
-        interface IDjangoType with
-            member x.Name = null
-            member x.Type = DjangoType.DjangoType
-            member x.Members = 
-                members |> Seq.map 
-                    (fun item ->
-                        CLRTypeDjangoType(fst item, resolver.Resolve((snd item).RawText)) :> IDjangoType
-                    )
-            member x.IsList = true
-            member x.IsDictionary = true
-
     /// Provides the name of the model class.
     ///
     /// this name is used by the designer to provide the code completion support;
     ///
     [<Description("Provides the name of the model class to be used with the template")>]
-    type Tag() =
+    type internal Tag() =
         interface ITag with
             member x.is_header_tag = true
             member this.Perform token context tokens =
@@ -84,12 +72,12 @@ module Model =
                             raise (SyntaxError("malformed arguments in the model tag"))
                     | [] -> ([], [])
 
-                let models, _ = parse_args token.Args
-                let model_type = get_model_type (snd models.Head).RawText
+                let model, _ = parse_args token.Args
+                let model_type = get_model_type (snd model.Head).RawText
                 (
                     {new TagNode(context, token, this) with
                         override x.elements =
-                            models 
+                            model 
                             |> List.map (fun item -> TypeNameNode(context, Text (snd item)) :> INode) 
                             |> List.append base.elements 
 
@@ -99,7 +87,7 @@ module Model =
                                 {walker with context = walker.context.WithModelType(model)}
                             | _ -> walker
                     }
-                    :> INodeImpl), context.WithModel(Some (ModelDescriptor(context.Resolver, models) :> IDjangoType)), tokens
+                    :> INodeImpl), context.WithNewModel(model), tokens
 
 
 

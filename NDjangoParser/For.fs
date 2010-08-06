@@ -117,8 +117,8 @@ module internal For =
             member x.IsDictionary = false
             member x.Members =
                 
-                let rec parent_lookup (context:ParsingContext) =
-                    match context.Variables |> List.tryFind (fun var -> var.Type = DjangoType.DjangoType && var.Name = "forloop") with
+                let rec parent_lookup (context:IParsingContext) =
+                    match context.Model.Members |> Seq.tryFind (fun var -> var.Type = DjangoType.DjangoType && var.Name = "forloop") with
                     | Some forloop -> Some forloop
                     | None -> 
                         match context.Parent with

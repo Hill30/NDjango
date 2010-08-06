@@ -23,6 +23,7 @@ namespace NDjango
 
 open NDjango.Interfaces
 open NDjango.Expressions
+open NDjango.Lexer
 open System.Reflection
 
 module TypeResolver =
@@ -91,16 +92,26 @@ module TypeResolver =
                 if _type = null then false
                 else typeof<System.Collections.IDictionary>.IsAssignableFrom(_type)
 
+    type internal ModelDescriptor( members: seq<IDjangoType>) =
 
-//    type AbstractTypeResolver() =
-//        
-//        abstract member GetType: string -> System.Type
-//        default x.GetType type_name : System.Type = null
-//        
-//        interface ITypeResolver with
-//            member x.Resolve name = 
-//               (CLRTypeDjangoType("", x.GetType(name)) :> IDjangoType).Members
-//
+        member x.NewModel(resolver: ITypeResolver, model_members: (string*TextToken) list) =
+            new ModelDescriptor(
+                model_members
+                |> Seq.map 
+                    (fun item ->
+                        (CLRTypeDjangoType(fst item, resolver.Resolve((snd item).RawText)) :> IDjangoType)
+                    )
+                |> Seq.append
+                    (members |> Seq.filter (fun mbr -> model_members |> List.exists (fun model_mbr -> mbr.Name <> fst model_mbr)))
+            )
+
+        interface IDjangoType with
+            member x.Name = null
+            member x.Type = DjangoType.DjangoType
+            member x.Members = members
+            member x.IsList = true
+            member x.IsDictionary = true
+
     type DefaultTypeResolver() =
         interface ITypeResolver with
             member x.Resolve type_name = null

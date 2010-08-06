@@ -202,10 +202,6 @@ type ITemplateManager =
     
     /// given the path to the template and context returns the <see cref="System.IO.TextReader"/> 
     /// that will stream out the results of the render.
-    abstract member RenderTemplate: path:string * resolver:ITypeResolver * context:IDictionary<string, obj> -> TextReader
-
-    /// given the path to the template and context returns the <see cref="System.IO.TextReader"/> 
-    /// that will stream out the results of the render.
     abstract member RenderTemplate: path:string * context:IDictionary<string, obj> -> TextReader
     
     /// given the path to the template and context returns the template implementation
@@ -253,7 +249,7 @@ and INodeImpl =
 type internal IParser =
     /// Produces a commited node list and uncommited token list as a result of parsing until
     /// a block from the string list is encotuntered
-    abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> context:ParsingContext -> (INodeImpl list * LazyList<Lexer.Token>)
+    abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> context:IParsingContext -> (INodeImpl list * LazyList<Lexer.Token>)
    
     /// Parses the template From the source in the reader into the node list
     abstract member ParseTemplate: template:TextReader * resolver:ITypeResolver -> INodeImpl list
@@ -305,74 +301,42 @@ and ITag =
     /// a tuple consisting of the INodeImpl object representing the result of node parsing as the first element
     /// followed by the the remainder of the token list with all the token related to the node removed
     ///</returns>
-    abstract member Perform: Lexer.BlockToken -> ParsingContext -> LazyList<Lexer.Token> -> (INodeImpl * ParsingContext * LazyList<Lexer.Token>)
+    abstract member Perform: Lexer.BlockToken -> IParsingContext -> LazyList<Lexer.Token> -> (INodeImpl * IParsingContext * LazyList<Lexer.Token>)
 
     /// Indicates whether this node must be the first non-text node in the template
     abstract member is_header_tag: bool
     
 /// Parsing context is a container for information specific to the tag being parsed
-and ParsingContext private(
-                            provider: ITemplateManagerProvider, 
-                            resolver: ITypeResolver, 
-                            parent, 
-                            closures: string list, 
-                            is_in_header, 
-                            model : IDjangoType option, 
-                            vars: IDjangoType list, 
-                            _base: INode option) =
-    
-    let combine (vars:IDjangoType list) (extra_vars:IDjangoType list) =
-        vars |> 
-            List.filter 
-                (fun old_var -> 
-                    not (extra_vars |> List.exists (fun new_var -> old_var.Name = new_var.Name))
-                    ) 
-        |> List.append extra_vars 
+and IParsingContext =
 
-    new (provider, resolver)
-        = new ParsingContext(provider, resolver, None, [], true, None, [], None)
+    abstract member ChildOf: IParsingContext
         
-    member x.ChildOf = new ParsingContext(provider, resolver, Some x, closures, is_in_header, model, vars, _base)
-        
-    member x.BodyContext = new ParsingContext(provider, resolver, parent, closures, false, model, vars, _base)
+    abstract member BodyContext: IParsingContext
+     
+    abstract member WithClosures: string list -> IParsingContext
+     
+    abstract member WithNewModel: (string * Lexer.TextToken) list -> IParsingContext
 
-    member x.WithClosures(new_closures) = new ParsingContext(provider, resolver, parent, new_closures, is_in_header, model, vars, _base)
+    abstract member WithExtraVariables: IDjangoType list -> IParsingContext
 
-    member x.WithModel(new_model_type) = new ParsingContext(provider, resolver, parent, closures, is_in_header, new_model_type, vars, _base)
-
-    member 
-        x.WithExtraVariables(extra_vars) = 
-            new ParsingContext(provider, resolver, parent, closures, is_in_header, model, combine vars extra_vars, _base)
-    member 
-        x.WithBase(new_base) = 
-            new ParsingContext(provider, resolver, parent, closures, is_in_header, model, combine vars vars, Some new_base)
-
-    /// a sequence of all registered tag names
-    member x.Tags = provider.Tags |> Map.toSeq |> Seq.map (fun tag -> tag |> fst) 
+    abstract member WithBase: INode -> IParsingContext 
 
     /// a list of all closing tags for the context
-    member x.TagClosures = closures                    
+    abstract member TagClosures: string list                    
    
    /// parent provider owning the context
-    member x.Provider = provider
-   
-    /// a sequence of all registered filter names
-    member x.Filters = provider.Filters |> Map.toSeq |> Seq.map (fun filter -> filter |> fst)
+    abstract member Provider: ITemplateManagerProvider
 
     /// a flag indicating if any of the non-header tags have been encountered yet
-    member x.IsInHeader = is_in_header
+    abstract member IsInHeader: bool
     
-    /// a list of all variables available in the context
-    member x.Variables = 
-        match model with
-        | Some m -> m.Members |> List.ofSeq |> combine vars
-        | None -> vars
+    abstract member Model: IDjangoType
 
-    member x.Resolver = resolver
+    abstract member Resolver: ITypeResolver
 
-    member x.Parent = parent
+    abstract member Parent: IParsingContext option
 
-    member x.Base = _base
+    abstract member Base: INode option
     
 /// A representation of a node of the template abstract syntax tree    
 and INode =
@@ -395,7 +359,7 @@ and INode =
     /// node lists
     abstract member Nodes: IDictionary<string, IEnumerable<INode>>
 
-    abstract member Context : ParsingContext
+    abstract member Context : IParsingContext
 
 type ICompletionProvider = interface end
 

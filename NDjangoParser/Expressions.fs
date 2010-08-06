@@ -108,7 +108,7 @@ module Expressions =
     /// zero or more filters, followed by a filter placeholder. Filter
     /// placeholder is always added as the last element so that the designer
     /// can properly maintain the intellisense session when a new filter is added. 
-    type FilterExpression (context:ParsingContext, expression: TextToken) =
+    type FilterExpression (context:IParsingContext, expression: TextToken) =
         
         let expression_text = expression.Value
 

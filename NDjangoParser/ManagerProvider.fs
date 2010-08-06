@@ -206,7 +206,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
     /// This function may advance the token stream if an element consuming multiple tokens is encountered. 
     /// In this scenario, the TagNode list returned will contain nodes for all of the advanced tokens.
     ///</remarks>
-    let parse_token (context:ParsingContext) tokens token = 
+    let parse_token (context:IParsingContext) tokens token = 
 
         match token with
         | Lexer.Text textToken -> 
@@ -298,7 +298,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
     /// recursively parses the token stream until the token(s) listed in parsing context TagClosures are encountered.
     /// this function returns the node list and the unparsed remainder of the token stream.
     /// The list is returned in the reversed order
-    let rec parse_internal (context:ParsingContext) nodes tokens =
+    let rec parse_internal (context:IParsingContext) nodes tokens =
        match tokens with
        | LazyList.Cons(token, tokens) -> 
             match token with 
@@ -485,7 +485,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
         member x.ParseTemplate (template, resolver) =
             // this will cause the TextReader to be closed when the template goes out of scope
             use template = template
-            (x :> IParser).Parse None (NDjango.Lexer.tokenize template) (ParsingContext(x, resolver)) |> fst
+            (x :> IParser).Parse None (NDjango.Lexer.tokenize template) (ParsingContext.Implementation(x, resolver, NDjango.TypeResolver.ModelDescriptor(Seq.empty))) |> fst
 
         /// Repositions the token stream after the first token found from the parse_until list
         member x.Seek tokens parse_until = 

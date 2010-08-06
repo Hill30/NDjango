@@ -173,7 +173,7 @@ module Variables =
     type private LiteralValue(value, translator:IContext->obj->obj) =
         member x.Resolve(context) = (value |> translator context, false)
             
-    type private VariableReference (context:ParsingContext, reference:string, translator:IContext->obj->obj) =
+    type private VariableReference (context:IParsingContext, reference:string, translator:IContext->obj->obj) =
 
         let var_list = List.ofArray (reference.Split(Constants.VARIABLE_ATTRIBUTE_SEPARATOR.ToCharArray()))
         let a = 
@@ -237,7 +237,7 @@ module Variables =
     ///     u'News'
     /// (The example assumes VARIABLE_ATTRIBUTE_SEPARATOR is '.')
     /// </remarks>
-    type Variable(context: ParsingContext, token:Lexer.TextToken) =
+    type Variable(context: IParsingContext, token:Lexer.TextToken) =
 
         /// <summary>
         /// builds a VariableContent object out of the string. The object may or may not require translation

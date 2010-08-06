@@ -42,7 +42,7 @@ module internal ASTNodes =
             | _ -> raise (RenderingError (sprintf "Invalid template name in 'extends' tag. Can't construct template from %A" o))
         | _ -> raise (RenderingError (sprintf "Invalid template name in 'extends' tag. Variable %A is undefined" templateRef))
 
-    type TemplateNameExpression(context:ParsingContext, expression: TextToken) =
+    type TemplateNameExpression(context:IParsingContext, expression: TextToken) =
         inherit FilterExpression (context, expression)
 
         member x.GetParentNodes = 
@@ -58,7 +58,7 @@ module internal ASTNodes =
 
     type private BlockReference =
     | Block of string
-    | Context of ParsingContext
+    | Context of IParsingContext
 
     type SuperBlockPointer = {super:TagNode}
 
@@ -141,7 +141,7 @@ module internal ASTNodes =
         override x.nodelist = nodelist
 
     /// a node representing a block name. carries a list of valid block names 
-    and BlockNameNode (context:ParsingContext, token) =
+    and BlockNameNode (context, token) =
         inherit ValueListNode
             (
                 context,
@@ -165,7 +165,7 @@ module internal ASTNodes =
 
         interface ICompletionValuesProvider with
             override x.Values =
-                let rec blocks_of_context (context:ParsingContext) =
+                let rec blocks_of_context (context:IParsingContext) =
                     match context.Base with 
                     | Some _base ->
                         let block_refs = 
