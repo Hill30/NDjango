@@ -43,7 +43,7 @@
          group as the part of a menu contained between two lines. The parent of a group 
          must be a menu. -->
     <Groups>
-      <Group guid="guidNDjangoDesignerCmdSet" id="cmdidNDjangoDesignerGroup" priority="0x0600">
+      <Group guid="guidNDjangoDesignerCmdSet" id="cmdidNDjangoDesignerGroup" priority="0x0100">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE"/>
       </Group>
 
@@ -62,7 +62,7 @@
           If you do not want an image next to your command, remove the Icon node or set it to <Icon guid="guidOfficeIcon" id="msotcidNoIcon" /> -->
 
 
-      <Button guid="guidNDjangoDesignerCmdSet" id="cmdidAddView" priority="0x0600" type="Button">
+      <Button guid="guidNDjangoDesignerCmdSet" id="cmdidAddView" priority="0x0100" type="Button">
         <Parent guid="guidNDjangoDesignerCmdSet" id="cmdidNDjangoDesignerGroup"/>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
