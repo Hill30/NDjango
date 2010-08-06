@@ -94,7 +94,7 @@ module TypeResolver =
 
     type ModelDescriptor( members: seq<IDjangoType>) =
 
-        member x.NewModel(resolver: ITypeResolver, model_members: (string*TextToken) list) =
+        member internal x.NewModel(resolver: ITypeResolver, model_members: (string*TextToken) list) =
             new ModelDescriptor(
                 model_members
                 |> Seq.map 

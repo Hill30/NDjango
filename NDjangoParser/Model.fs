@@ -73,7 +73,10 @@ module Model =
                     | [] -> ([], [])
 
                 let model, _ = parse_args token.Args
-                let model_type = get_model_type (snd model.Head).RawText
+                let model_type = 
+                    match model |> List.tryPick (fun mi -> if mi |> fst = "Model" then Some (snd mi) else None) with
+                    | Some token -> get_model_type token.RawText
+                    | None -> None
                 (
                     {new TagNode(context, token, this) with
                         override x.elements =

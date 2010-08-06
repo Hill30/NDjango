@@ -30,7 +30,7 @@ namespace NDjango.Designer.Parsing
                 foreach (string file in
                     Directory.EnumerateFiles(
                         Path.GetDirectoryName(path.Substring(8)),
-                        "*.NDjangoExtension.dll",
+                        "*.NDjangoExtension40.dll",
                         SearchOption.AllDirectories))
                 {
                     AssemblyName name = new AssemblyName();

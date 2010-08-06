@@ -205,7 +205,7 @@ namespace NDjango.Designer.Parsing
                 {
                     if (!projects.TryGetValue(project_directory, out project))
                     {
-                        project = new ProjectHandler(this, hier, project_directory);
+                        project = CreateProjectHandler(this, hier, project_directory);
                         projects.Add(project_directory, project);
                     }
                 }
@@ -214,6 +214,11 @@ namespace NDjango.Designer.Parsing
 
             }
             return provider;
+        }
+
+        private ProjectHandler CreateProjectHandler(NodeProviderBroker nodeProviderBroker, IVsHierarchy hier, string project_directory)
+        {
+            return new ASPNETMVCProjectHandler(nodeProviderBroker, hier, project_directory);
         }
 
         [Import]

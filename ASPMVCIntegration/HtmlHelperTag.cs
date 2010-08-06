@@ -25,6 +25,8 @@ namespace NDjango.ASPMVC
 
             var metadata_provider = new DataAnnotationsModelMetadataProvider();
 
+            // we should relay here on what was set with the {% model Model:... %} tag in the template 
+            // rather than what was set runtime in the "Model" context variable - they can differ
             if (context.ModelType == null)
                 htmlHelper.ViewData.ModelMetadata = null;
             else

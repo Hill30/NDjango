@@ -60,6 +60,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -106,6 +107,7 @@
     <Compile Include="Commands\ViewWizard.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="GlobalServices.cs" />
+    <Compile Include="Parsing\ASPNETMVCProjectHandler.cs" />
     <Compile Include="Parsing\DesignerNode.cs" />
     <Compile Include="Parsing\NodeProvider.cs" />
     <Compile Include="Parsing\NodeProviderBroker.cs" />
