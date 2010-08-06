@@ -77,6 +77,7 @@
     <Compile Include="Now.fs" />
     <Compile Include="LoaderTags.fs" />
     <Compile Include="Template.fs" />
+    <Compile Include="ParsingContext.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="ManagerProvider.fs" />
     <Compile Include="AssemblyInfo.fs" />

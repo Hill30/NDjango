@@ -8,13 +8,9 @@ open System.Runtime.CompilerServices;
 open System.Runtime.InteropServices;
 
 module AssemblyInfo =
-#if FRAMEWORK4
   [<Literal>] 
-  let public Version = "0.9.7.4"
-#else
-  [<Literal>] 
-  let public Version = "0.9.7.2"
-#endif
+  let public Version = "0.9.8.0"
+
 
 // General Information about an assembly is controlled through the following
 
