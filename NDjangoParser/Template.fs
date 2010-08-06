@@ -40,7 +40,7 @@ module internal Template =
         let templates = ref(templates)
         
         let load_template template validated =
-            let name, _ = template
+            let name, _, _ = template
             let tr = 
                 if validated then provider.LoadTemplate template
                 else provider.GetTemplate template
@@ -55,18 +55,18 @@ module internal Template =
             member x.RenderTemplate (name, context) =
                 ((x :>ITemplateManager).GetTemplate name).Walk x context
 
-            member x.GetTemplate(name, resolver) =
+            member x.GetTemplate(name, resolver, model) =
                 match Map.tryFind name !templates with
                 | Some (template, timestamp) -> 
                     if validate_template (name, timestamp) then
-                       load_template (name, resolver) true
+                       load_template (name, resolver, model) true
                     else
                        template
                 | None ->
-                       load_template (name, resolver) false
+                       load_template (name, resolver, model) false
         
             member x.GetTemplate name =
-                let template = (name, (new DefaultTypeResolver() :> ITypeResolver))
+                let template = (name, (new DefaultTypeResolver() :> ITypeResolver), ModelDescriptor(Seq.empty))
                 match Map.tryFind name !templates with
                 | Some (t, timestamp) -> 
                     if validate_template (name, timestamp) then
@@ -78,9 +78,9 @@ module internal Template =
         
             
     /// Implements the template (ITemplate interface)
-    and internal Impl(provider : ITemplateManagerProvider, template, resolver) =
+    and internal Impl(provider : ITemplateManagerProvider, template, resolver, model) =
         
-        let node_list = (provider :?> IParser).ParseTemplate(template, resolver)
+        let node_list = (provider :?> IParser).ParseTemplate(template, resolver, model)
         interface ITemplate with
             member this.Walk manager context=
                 new NDjango.ASTWalker.Reader (

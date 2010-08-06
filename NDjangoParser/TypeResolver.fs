@@ -92,7 +92,7 @@ module TypeResolver =
                 if _type = null then false
                 else typeof<System.Collections.IDictionary>.IsAssignableFrom(_type)
 
-    type internal ModelDescriptor( members: seq<IDjangoType>) =
+    type ModelDescriptor( members: seq<IDjangoType>) =
 
         member x.NewModel(resolver: ITypeResolver, model_members: (string*TextToken) list) =
             new ModelDescriptor(
@@ -112,7 +112,8 @@ module TypeResolver =
             member x.IsList = true
             member x.IsDictionary = true
 
-    type DefaultTypeResolver() =
+    type internal DefaultTypeResolver() =
         interface ITypeResolver with
             member x.Resolve type_name = null
             
+

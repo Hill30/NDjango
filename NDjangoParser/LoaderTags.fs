@@ -203,7 +203,7 @@ module internal LoaderTags =
                         new TagNode(context, token, this) 
                         with
                             override this.walk manager walker = 
-                                {walker with parent=Some walker; nodes=(get_template manager context.Resolver template_name walker.context).Nodes}
+                                {walker with parent=Some walker; nodes=(get_template manager context.Resolver context.Model template_name walker.context).Nodes}
                             override this.elements 
                                 with get()=
                                     (template_name :> INode) :: base.elements
@@ -257,7 +257,7 @@ module internal LoaderTags =
                         new TagNode(context, token, this) 
                         with
                             override this.walk manager walker = 
-                                {walker with parent=Some walker; nodes=(get_template manager context.Resolver templateRef walker.context).Nodes}
+                                {walker with parent=Some walker; nodes=(get_template manager context.Resolver context.Model templateRef walker.context).Nodes}
                     } :> INodeImpl), context, tokens
                 | _ ->
                     raise (SyntaxError ("malformed 'ssi' tag"))

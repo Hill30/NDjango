@@ -196,7 +196,7 @@ namespace NDjango.Designer.Commands
         /// <returns></returns>
         public List<string> GetTemplateBlocks(string template)
         {
-            var nodes = parser.GetTemplate(template, new NDjango.TypeResolver.DefaultTypeResolver()).Nodes;
+            var nodes = parser.GetTemplate(template).Nodes;
             List<string> blocks = new List<string>();
             foreach (INode node in nodes)
             {

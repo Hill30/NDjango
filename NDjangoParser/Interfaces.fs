@@ -205,7 +205,7 @@ type ITemplateManager =
     abstract member RenderTemplate: path:string * context:IDictionary<string, obj> -> TextReader
     
     /// given the path to the template and context returns the template implementation
-    abstract member GetTemplate: template:string * resolver:ITypeResolver -> ITemplate
+    abstract member GetTemplate: template:string * resolver:ITypeResolver * model:IDjangoType -> ITemplate
 
     /// given the path to the template and context returns the template implementation
     abstract member GetTemplate: template:string -> ITemplate
@@ -252,7 +252,7 @@ type internal IParser =
     abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> context:IParsingContext -> (INodeImpl list * LazyList<Lexer.Token>)
    
     /// Parses the template From the source in the reader into the node list
-    abstract member ParseTemplate: template:TextReader * resolver:ITypeResolver -> INodeImpl list
+    abstract member ParseTemplate: template:TextReader * resolver:ITypeResolver * model:IDjangoType -> INodeImpl list
    
     /// Parses the template From the source in the reader into the node list
     abstract member ParseTemplate: template:TextReader -> INodeImpl list
@@ -281,13 +281,13 @@ and ITemplateManagerProvider =
 
     /// Retrieves the requested template checking first the global
     /// dictionary and validating the timestamp
-    abstract member GetTemplate: (string * ITypeResolver) -> (ITemplate * System.DateTime)
+    abstract member GetTemplate: (string * ITypeResolver * IDjangoType) -> (ITemplate * System.DateTime)
 
     /// Retrieves the requested template without checking the 
     /// local dictionary and/or timestamp
     /// the retrieved template is placed in the dictionary replacing 
     /// the existing template with the same name (if any)
-    abstract member LoadTemplate: (string * ITypeResolver) -> (ITemplate * System.DateTime)
+    abstract member LoadTemplate: (string * ITypeResolver * IDjangoType) -> (ITemplate * System.DateTime)
 
 /// A tag implementation
 and ITag = 

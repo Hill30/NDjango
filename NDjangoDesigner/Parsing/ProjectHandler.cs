@@ -61,7 +61,7 @@ namespace NDjango.Designer.Parsing
         /// <returns>A list of the syntax nodes</returns>
         public FSharpList<INodeImpl> ParseTemplate(string filename, ITypeResolver resolver)
         {
-            return parser.GetTemplate(filename, resolver).Nodes;
+            return parser.GetTemplate(filename, resolver, new NDjango.TypeResolver.ModelDescriptor(new List<IDjangoType>())).Nodes;
         }
 
         public ITextSnapshot GetSnapshot(string filename)
