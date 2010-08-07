@@ -63,6 +63,8 @@ module TypeResolver =
                 else if _method.IsConstructor then false
                 else if _method.GetParameters().Length > 0 then false
                 else if _method.ReturnType = null then false
+                else if _type.GetProperties() |> Seq.exists (fun prop -> prop.GetGetMethod() = _method)
+                    then false
                 else true
                     
 
