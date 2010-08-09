@@ -275,6 +275,13 @@ namespace NDjango.UnitTests
                     StandardNode(3, 10),
                     KeywordNode(14, 0, "on", "off")
                 ));
+            NewTest("model-tag-designer", "{% model Model:NDjango.UnitTests.TestModel %}{{ Model. }}",
+                Nodes
+                (
+                    StandardNode(0, 57), 
+                    StandardNode(3, 5),
+                    ErrorNode(6, 48, EmptyList, 2, "Variables and attributes may not be empty, begin with underscores or minus (-) signs: ''")
+                ));
 
             //NewTest("add-filter-designer", "{{ value| add:\"2\" }}"
             //    , Nodes 
@@ -370,5 +377,13 @@ namespace NDjango.UnitTests
             result.InsertRange(0, tags);
             return result.ToArray();
         }
+    }
+
+    public class TestModel
+    {
+        public string Field1 { get; set; }
+        public string Field2 { get; set; }
+        public string MethodString() { return null; }
+        public int MethodInt() { return 0; }
     }
 }

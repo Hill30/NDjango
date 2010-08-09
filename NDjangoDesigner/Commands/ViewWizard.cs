@@ -141,18 +141,36 @@ namespace NDjango.Designer.Commands
         {
             Project project = dte.Solution.Projects.Item(1);
             List<Assembly> list = new List<Assembly>();
+
+            string fullProjectPath = project.Properties.Item("FullPath").Value.ToString();
+            string outputDir = Path.Combine(fullProjectPath, project.ConfigurationManager.ActiveConfiguration.Properties.Item("OutputPath").Value.ToString());
+            string outputFileName = Path.Combine(outputDir, project.Properties.Item("OutputFileName").Value.ToString());
+            AssemblyName assemblyName = new AssemblyName(project.Properties.Item("AssemblyName").Value.ToString());
+            assemblyName.CodeBase = outputFileName;
+            try
+            {
+                Assembly projectAssembly = Assembly.Load(assemblyName);
+                list.Add(projectAssembly);
+            }
+            catch (Exception ex)
+            {
+                //TODO: some diag info (especially when the project is not built yet) could be very useful.
+            }
+
             if (project.Object is VSLangProj.VSProject)
             {
                 VSLangProj.VSProject vsproject = (VSLangProj.VSProject)project.Object;
                 foreach (VSLangProj.Reference reference in vsproject.References)
                 {
+                    if (reference.Identity.StartsWith("System") || reference.Identity.StartsWith("Microsoft") || reference.Identity.StartsWith("mscorlib"))
+                        continue;
+
                     try
                     {
                         if (reference.StrongName)
                             //System.Configuration, Version=2.0.0.0,
                             //Culture=neutral, PublicKeyToken=B03F5F7F11D50A3A
                             list.Add(Assembly.Load(
-
                                 reference.Identity +
                                 ", Version=" + reference.Version +
                                 ", Culture=" + (string.IsNullOrEmpty(reference.Culture) ?
