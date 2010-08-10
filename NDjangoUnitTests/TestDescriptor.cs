@@ -131,6 +131,19 @@ namespace NDjango.UnitTests
                     .ToString();
             }
         }
+        public void AnalyzeBlockNameNode(NDjango.Interfaces.ITemplateManager manager)
+        {
+            ITemplate template = manager.GetTemplate(Template);
+            INode bn_node = GetNodes(template.Nodes.ToList<INodeImpl>().ConvertAll
+                    (node => (INode)node)).Find(node => node.NodeType == NodeType.BlockName);
+            var value_provider = bn_node as ICompletionValuesProvider;
+            var values = (value_provider == null) ? new List<string>() : value_provider.Values;
+            List<string> blockNames = new List<string>(values);
+            Assert.Greater(0, blockNames.Count(), "The dropdown with block names is empty");
+            foreach(string name in Result) 
+                Assert.Contains(name, blockNames, "Invalid block names list: there is no " + name);
+
+        }
 
         public void Run(NDjango.Interfaces.ITemplateManager manager)
         {

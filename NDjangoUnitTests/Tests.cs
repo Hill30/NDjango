@@ -23,6 +23,11 @@ namespace NDjango.UnitTests
 
             public Loader()
             {
+               
+                templates.Add("base","<html xmlns=\"http://www.w3.org/1999/xhtml\">" +
+"<head runat=\"server\"><title>{% block Title %}{% endblock %}</title></head>" +
+"<body><div id=\"main\">{% block MainContent %}{% block Sub1 %}{% block SubSub %}{% endblock SubSub %}{% endblock Sub1 %}{% endblock %}</div></body></html>");
+
                 templates.Add("t1", "insert1--{% block b1 %}to be replaced{% endblock %}--insert2");
                 templates.Add("t22", "insert1--{% block b1 %}to be replaced22{% endblock %}{% block b2 %}to be replaced22{% endblock %}--insert2");
                 templates.Add("t21", "{% extends \"t22\" %}skip - b21{% block b1 %}to be replaced21{% endblock %}skip-b21");

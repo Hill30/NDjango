@@ -48,6 +48,28 @@ namespace NDjango.UnitTests
             }
         }
 
+
+        [Test, TestCaseSource("GetBlockNamesTests")]
+        public void BlockNames(TestDescriptor test)
+        {
+            test.AnalyzeBlockNameNode(managerForDesigner);
+        }
+        
+        public IList<TestDescriptor> GetBlockNamesTests()
+        {
+            IList<TestDescriptor> lst = new List<TestDescriptor>();
+            //1. simple inheritance
+            lst.Add(new TestDescriptor("BlockNamesTest 01", "{% extends \"t1\" %} skip1--{% block b1 %}the replacement{% endblock %}--skip2",null,new string[]{"b1"},""));
+            //2. two-level hierarchy
+            lst.Add(new TestDescriptor("BlockNamesTest 02", "{% extends \"t21\" %} skip1--{% block b1 %}the replacement1++{{ block.super }}++{% endblock %}--skip2", null, new string[]{"b1","b2"}));
+            //3. base template with html tags
+            lst.Add(new TestDescriptor("BlockNameTest_Std",
+                "{% extends \"base\" %}{% block ValidateVars %}{% endblock %}",null,
+                new string[]{"SubSub","Sub1","MainContent","Title"})); 
+
+
+            return lst;
+        }
         public IList<TestDescriptor> GetDesignerTests()
         {
             SetupStandartdValues();
@@ -386,14 +408,6 @@ namespace NDjango.UnitTests
             result.InsertRange(0, tags);
             return result.ToArray();
         }
-    }
-
-    public class TestModel
-    {
-        public string Field1 { get; set; }
-        public string Field2 { get; set; }
-        public string MethodString() { return null; }
-        public int MethodInt() { return 0; }
     }
 
     public class TestTyperesolver : ITypeResolver
