@@ -166,7 +166,11 @@ namespace NDjango.UnitTests
 
         private void ValidateSyntaxTree(NDjango.Interfaces.ITemplateManager manager)
         {
-            ITemplate template = manager.GetTemplate(Template);
+            ITemplate template = manager.GetTemplate(Template, new TestTyperesolver(),
+                new NDjango.TypeResolver.ModelDescriptor(new IDjangoType[] 
+                    {
+                        new NDjango.TypeResolver.CLRTypeDjangoType("Standard", typeof(EmptyClass))
+                    }));
             
             //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
             List<INode> nodes = GetNodes(template.Nodes.ToList<INodeImpl>().ConvertAll
@@ -188,6 +192,10 @@ namespace NDjango.UnitTests
                         contextValues.InsertRange(0 ,(node.Context.TagClosures));
                         return new DesignerData(node.Position, node.Length, contextValues.ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
                     }
+                    else if (node.NodeType == NodeType.Reference)
+                    {
+                        return new DesignerData(node.Position, node.Length, GetModelValues(node.Context.Model, 2).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
+                    }
                     else
                         return new DesignerData(node.Position, node.Length, new List<string>(values).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
                 });
@@ -197,12 +205,31 @@ namespace NDjango.UnitTests
                 if (actualResult[i].Values.Length == 0)
                     continue;
 
-                Assert.AreEqual(actualResult[i].Length, ResultForDesigner[i].Length, "Invalid Length");
-                Assert.AreEqual(actualResult[i].Position, ResultForDesigner[i].Position, "Invalid Position");
-                Assert.AreEqual(actualResult[i].Severity, ResultForDesigner[i].Severity, "Invalid Severity");
-                Assert.AreEqual(actualResult[i].ErrorMessage, ResultForDesigner[i].ErrorMessage, "Invalid ErrorMessage");
-                Assert.AreEqual(actualResult[i].Values, ResultForDesigner[i].Values, "Invalid Values Array");
+                Assert.AreEqual(ResultForDesigner[i].Length, actualResult[i].Length, "Invalid Length");
+                Assert.AreEqual(ResultForDesigner[i].Position, actualResult[i].Position, "Invalid Position");
+                Assert.AreEqual(ResultForDesigner[i].Severity, actualResult[i].Severity, "Invalid Severity");
+                Assert.AreEqual(ResultForDesigner[i].ErrorMessage, actualResult[i].ErrorMessage, "Invalid ErrorMessage");
+                Assert.AreEqual(ResultForDesigner[i].Values, actualResult[i].Values, "Invalid Values Array");
             }            
+        }
+
+        private static List<string> GetModelValues(IDjangoType model, int recursionDepth)
+        {
+            List<string> result = new List<string>();
+            int remainingSteps = recursionDepth - 1;
+            foreach (IDjangoType member in model.Members)
+            {
+                if (remainingSteps > 0)
+                {
+                    result.Add(member.Name);
+                    result.AddRange(GetModelValues(member, remainingSteps));
+                }
+                else
+                {
+                    result.Add(member.Name);
+                }
+            }
+            return result;
         }
 
         //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).

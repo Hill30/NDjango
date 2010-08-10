@@ -275,12 +275,16 @@ namespace NDjango.UnitTests
                     StandardNode(3, 10),
                     KeywordNode(14, 0, "on", "off")
                 ));
-            NewTest("model-tag-designer", "{% model Model:NDjango.UnitTests.TestModel %}{{ Model. }}",
+
+            NewTest("model-tag-designer", "{% model Model:NDjango.UnitTests.TestModel %}{{ }}",
                 Nodes
                 (
-                    StandardNode(0, 57), 
+                    StandardNode(0, 50),
                     StandardNode(3, 5),
-                    ErrorNode(6, 48, EmptyList, 2, "Variables and attributes may not be empty, begin with underscores or minus (-) signs: ''")
+                    ErrorNode(47, 1, EmptyList, 2, "Could not parse some characters | "),
+                    VariableNode(47, 1, 2, "Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '",
+                        "Standard", "ToString", "GetHashCode", "GetType", "Model", "MethodString", "MethodInt", "ToString", 
+                        "GetHashCode", "GetType", "Field1", "Field2")
                 ));
 
             //NewTest("add-filter-designer", "{{ value| add:\"2\" }}"
@@ -361,6 +365,11 @@ namespace NDjango.UnitTests
                 return new DesignerData(position, length, AddToStandardList(values), errorSeverity, errorMessage);
         }
 
+        private DesignerData VariableNode(int position, int length, int severity, string errorMessage, params string[] values)
+        {
+            return new DesignerData(position, length, values, severity, errorMessage);
+        }
+
         private DesignerData Node(int position, int length, params string[] values)
         {
             return ErrorNode(position, length, values, -1, String.Empty);
@@ -386,4 +395,18 @@ namespace NDjango.UnitTests
         public string MethodString() { return null; }
         public int MethodInt() { return 0; }
     }
+
+    public class TestTyperesolver : ITypeResolver
+    {
+        #region ITypeResolver Members
+
+        public Type Resolve(string type_name)
+        {
+            return Type.GetType(type_name);
+        }
+
+        #endregion
+    }
+
+    public class EmptyClass { }
 }
