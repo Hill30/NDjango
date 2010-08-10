@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?define ProductVersion="0.9.7" ?>
-  <?define ProductVersionTitle="0.9.7" ?>
+  <?define ProductVersion="0.9.8" ?>
+  <?define ProductVersionTitle="0.9.8" ?>
   <?define VisualStudioRegistryRoot2008 = "Software\Microsoft\VisualStudio\9.0" ?>
   <?define UpgradeCode="{8EAD0F41-F6BB-4FDD-B2C3-2C8D3AFD5F47}"?>
   <Product Id="621E9A01-BB72-4c41-9024-E24CDD15F49E" Name="NDjango $(var.ProductVersionTitle) for Visual Studio 2008/2010" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
     <Package InstallerVersion="200" Compressed="yes" />
     <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
     <Upgrade Id="$(var.UpgradeCode)">
-      <!--<UpgradeVersion Minimum="$(var.ProductVersion)" IncludeMinimum="no" OnlyDetect="yes" Language="1033" Property="NEWPRODUCTFOUND" />-->
-      <UpgradeVersion Minimum="0.8.0" IncludeMinimum="yes" Maximum="$(var.ProductVersion)" IncludeMaximum="yes" Language="1033" Property="UPGRADEFOUND" />
+      <!--<UpgradeVersion Minimum="$(var.ProductVersion)" IncludeMinimum="no"  OnlyDetect="yes" Language="1033" Property="NEWPRODUCTFOUND" />-->
+      <UpgradeVersion Minimum="0.9.7" IncludeMinimum="yes" Maximum="0.9.8" IncludeMaximum="yes" Language="1033" Property="UPGRADEFOUND" />
     </Upgrade>
     <Property Id="EXTENSIONSHILL30FILES">
       <DirectorySearch Id="hill30filessearch" Path="[LocalAppDataFolder]\Microsoft\VisualStudio\10.0\Extensions\Hill30\" />
@@ -22,6 +22,12 @@
     </Property>
     <Property Id="VS2010FOUND">
       <RegistrySearch Id="VS2010found" Type="raw" Root="HKLM" Key="Software\Microsoft\VisualStudio\10.0" Name="InstallDir" />
+    </Property>
+    <Property Id="NDJANGO08FOUND">
+      <RegistrySearch Id="NDjango08found" Type="raw" Root="HKLM" Key="SOFTWARE\Hill30\NDjango" Name="InstallDir2008" />
+    </Property>
+    <Property Id="NDJANGO10FOUND">
+      <RegistrySearch Id="NDjango10found" Type="raw" Root="HKLM" Key="SOFTWARE\Hill30\NDjango" Name="InstallDir2010" />
     </Property>
     <Property Id="MVCFOUND">
       <RegistrySearch Id="MVCfound" Type="raw" Root="HKLM" Key="SOFTWARE\Microsoft\ASP.NET MVC 2\Runtime" Name="InstallPath" />
@@ -51,6 +57,7 @@
       <RegistrySearch Id="RegSearch_DevenvExe_Path2008" Root="HKLM" Key="$(var.VisualStudioRegistryRoot2008)\Setup\VS" Name="EnvironmentPath" Type="raw" />
     </Property>
     <PropertyRef Id="NETFRAMEWORK35_SP_LEVEL" />
+    <!--<Condition Message="You have previous version of NDjango (2008,2010) installed. Please uninstall all previous versions of NDjango and  run this installer again.">Installed OR (NOT NDJANGO08FOUND AND NOT NDJANGO10FOUND)</Condition>-->
     <Condition Message="This application requires Visual Studio 2008/2010. Please install the Visual Studio 2008/2010 then run this installer again.">Installed OR VS2008FOUND OR VS2010FOUND</Condition>
     <Condition Message="This application requires .NET Framework 3.5SP1. Please install the .NET Framework 3.5SP1 then run this installer again."><![CDATA[Installed OR (NETFRAMEWORK35_SP_LEVEL and NOT NETFRAMEWORK35_SP_LEVEL = "#0")]]></Condition>
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" Overridable="yes" />
@@ -122,6 +129,7 @@
               <RemoveFolder Id="vs2008Web1" Directory="vs2008Web1" On="uninstall" />
               <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
               <File Id="NDjangoMVC" Name="ASPMVCSampleApplication35.zip" Source="Templates\2008\ASPMVCSampleApplication35.zip" />
+              <File Id="NDjangoMVCEmpty" Name="ASPMVCEmptyApplication35.zip" Source="Templates\2008\ASPMVCEmptyApplication35.zip" />
             </Component>
           </Directory>
         </Directory>
@@ -133,6 +141,7 @@
               <RemoveFolder Id="vs2010Web1Project" Directory="vs2010Web1Project" On="uninstall" />
               <RegistryValue Root="HKCU" Key="Software\Hill30\NDjango\[ProductVersion]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
               <File Id="NDjangoASPMVC40" Name="ASPMVCSampleApplication40.zip" Source="Templates\2010\ASPMVCSampleApplication40.zip" />
+              <File Id="NDjangoASPMVC40Empty" Name="ASPMVCEmptyApplication40.zip" Source="Templates\2010\ASPMVCEmptyApplication40.zip" />
             </Component>
           </Directory>
         </Directory>
@@ -211,18 +220,19 @@
     <Binary Id="EditTemplates" SourceFile="versionWriterFull.exe" />
     <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2008PROJECTTEMPLATESLOCATION]\Visual C#\Web\ASPMVCSampleApplication35.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2008" Return="ignore" Execute="commit"/>
     <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual C#\Web\ASPMVCSampleApplication40.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCTemplate2010" Return="ignore" Execute="commit"/>
+    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2008PROJECTTEMPLATESLOCATION]\Visual C#\Web\ASPMVCEmptyApplication35.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCEmptyTemplate2008" Return="ignore" Execute="commit"/>
+    <CustomAction BinaryKey="EditTemplates" ExeCommand="&quot;[VS2010PROJECTTEMPLATESLOCATION]\Visual C#\Web\ASPMVCEmptyApplication40.zip&quot; &quot;[Hill30]Bistro&quot; &quot;[NET35]\&quot; &quot;[NET40]\&quot; &quot;[Hill30]ProjectExtender&quot;" Id="EditNDjangoMVCEmptyTemplate2010" Return="ignore" Execute="commit"/>
 
     <CustomAction Id="CA_DevenvSetup2008" Property="DEVENV_EXE_PATH2008" ExeCommand="/setup" Impersonate="no" Execute="commit" />
     <InstallExecuteSequence>
+      <RemoveExistingProducts After="InstallInitialize" />
       <Custom Action="SetVSIXPath" Before="InstallFinalize"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND DESIGNERNEEDED]]></Custom>
       <Custom Action="InstallDesigner" After="SetVSIXPath"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND DESIGNERNEEDED]]></Custom>
       <Custom Action="EditNDjangoMVCTemplate2008" After="WriteRegistryValues"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2008FOUND]]></Custom>
-      <Custom Action="EditNDjangoMVCTemplate2010" After="EditNDjangoMVCTemplate2008"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
-      <!--<Custom Action="EditBistro2010CustomAction" After="EditNDjangoMVCTemplate2010"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
-      <Custom Action="EditBistroProject2008CustomAction" After="EditNDjangoMVCTemplate2010"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>
-      <Custom Action="EditFSharp2008CustomAction" After="EditBistroProject2008CustomAction"><![CDATA[Not Installed OR (Installer AND REMOVE <> "ALL")]]></Custom>-->
+      <Custom Action="EditNDjangoMVCEmptyTemplate2008" After="EditNDjangoMVCTemplate2008"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2008FOUND]]></Custom>
+      <Custom Action="EditNDjangoMVCTemplate2010" After="EditNDjangoMVCEmptyTemplate2008"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
+      <Custom Action="EditNDjangoMVCEmptyTemplate2010" After="EditNDjangoMVCTemplate2010"><![CDATA[(Not Installed OR (Installer AND REMOVE <> "ALL")) AND VS2010FOUND]]></Custom>
       <Custom Action="UninstallDesignerFiles" After="InstallInitialize"><![CDATA[REMOVE]]></Custom>
-      <RemoveExistingProducts After="InstallInitialize" />
     </InstallExecuteSequence>
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
     <UI>

@@ -84,7 +84,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NDjangoParser\NDjangoParser35.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
-      <Name>NDjangoParser</Name>
+      <Name>NDjangoParser35</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
