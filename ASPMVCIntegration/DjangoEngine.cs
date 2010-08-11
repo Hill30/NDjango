@@ -79,23 +79,5 @@ namespace NDjango.ASPMVC
         #endregion
     }
 
-    public class AspMvcUrlTag : NDjango.Tags.Abstract.UrlTag
-    {
-        public override string GenerateUrl(string pathTemplate, string[] parameters, NDjango.Interfaces.IContext context)
-        {
-            var contextOption = context.tryfind(DjangoView.aspmvcContextKey);
-
-            if (contextOption == null || contextOption.Value == null)
-                throw new ApplicationException("Unable to locate asp mvc request context. Did someone modify djangocontext." + DjangoView.aspmvcContextKey + "?");
-
-            RequestContext requestContext = contextOption.Value as RequestContext;
-
-            if (parameters.Length > 1)
-                throw new ApplicationException("Only 0 or 1 parameters are supported by the asp.mvc version of the URL tag");
-            else if (parameters.Length == 1)
-                return new UrlHelper(requestContext).Action(pathTemplate, parameters[0]);
-            else
-                return new UrlHelper(requestContext).Action(pathTemplate);
-        }
-    }
+    
 }

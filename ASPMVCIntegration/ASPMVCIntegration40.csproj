@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NDjango.ASPMVC</RootNamespace>
-    <AssemblyName>NDjango.ASPMVCIntegration40</AssemblyName>
+    <AssemblyName>ASPMVCIntegration.NDjangoExtension40</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -80,6 +80,7 @@
     <Compile Include="DjangoView.cs" />
     <Compile Include="HtmlHelperTag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UrlTag.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NDjangoParser\NDjangoParser40.fsproj">
