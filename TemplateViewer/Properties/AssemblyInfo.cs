@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("AIM")]
 [assembly: AssemblyProduct("TemplateViewer")]
-[assembly: AssemblyCopyright("Copyright © AIM 2009")]
+[assembly: AssemblyCopyright("Copyright © Hill30 2009")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
