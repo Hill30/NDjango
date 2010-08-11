@@ -34,7 +34,7 @@ namespace ASPMVCSampleApplication40
 
             ViewEngines.Engines.Insert(0, 
                 new NDjango.ASPMVC.DjangoViewEngine(
-                    pr => pr.WithLibrary("ASPMVCSampleLibrary.NDjangoExtension40")
+                    provider => provider.WithLibrary("ASPMVCSampleLibrary.NDjangoExtension40")
                     ));
         }
     }

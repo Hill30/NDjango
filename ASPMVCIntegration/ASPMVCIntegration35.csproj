@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NDjango.ASPMVC</RootNamespace>
-    <AssemblyName>NDjango.ASPMVCIntegration35</AssemblyName>
+    <AssemblyName>ASPMVCIntegration.NDjangoExtension35</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
