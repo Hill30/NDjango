@@ -80,6 +80,7 @@
     <Compile Include="DjangoView.cs" />
     <Compile Include="HtmlHelperTag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UrlTag.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
