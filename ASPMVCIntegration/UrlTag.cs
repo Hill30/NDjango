@@ -10,7 +10,7 @@ using System.Web.Mvc.Html;
 namespace NDjango.ASPMVC
 {
     [NDjango.ParserNodes.Description("Returns an URL matching given view with its parameters")]
-    [Name("action-link")]
+    [Name("url")]
     public class AspMvcUrlTag : NDjango.Tags.Abstract.UrlTag
     {
         public override string GenerateUrl(string pathTemplate, string[] parameters, NDjango.Interfaces.IContext context)
