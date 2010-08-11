@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>3.0</ProductVersion>
+    <ProductVersion>3.5</ProductVersion>
     <ProjectGuid>{7edcf53c-2150-4a6f-a60d-4b0870922ee2}</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>NDjango</OutputName>
