@@ -308,7 +308,14 @@ namespace NDjango.UnitTests
                         "Standard", "ToString", "GetHashCode", "GetType", "Model", "MethodString", "MethodInt", "ToString", 
                         "GetHashCode", "GetType", "Field1", "Field2")
                 ));
-
+            NewTest("variables-standard-designer", "{{ }}",
+                Nodes
+                (
+                    StandardNode(0, 5),
+                    StandardNode(2, 1),
+                    VariableNode(2, 1, 2, "Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '",
+                        "Standard", "ToString", "GetHashCode", "GetType")
+                ));
             //NewTest("add-filter-designer", "{{ value| add:\"2\" }}"
             //    , Nodes 
             //    (

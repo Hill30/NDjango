@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using NDjango.Interfaces;
 using System.Web;
 using System.IO;
+using System.Web.Routing;
 
 namespace NDjango.ASPMVC
 {
@@ -18,7 +19,7 @@ namespace NDjango.ASPMVC
             base.PartialViewLocationFormats = base.ViewLocationFormats;
             base.AreaPartialViewLocationFormats = base.AreaViewLocationFormats;
             server = HttpContext.Current.Server;
-            manager_provider = new NDjango.TemplateManagerProvider().WithLoader(this);
+            manager_provider = new NDjango.TemplateManagerProvider().WithLoader(this).WithTag("url", new AspMvcUrlTag());
         }
 
         public DjangoViewEngine(Func<TemplateManagerProvider, TemplateManagerProvider> setup)
@@ -76,5 +77,25 @@ namespace NDjango.ASPMVC
         }
 
         #endregion
+    }
+
+    public class AspMvcUrlTag : NDjango.Tags.Abstract.UrlTag
+    {
+        public override string GenerateUrl(string pathTemplate, string[] parameters, NDjango.Interfaces.IContext context)
+        {
+            var contextOption = context.tryfind(DjangoView.aspmvcContextKey);
+
+            if (contextOption == null || contextOption.Value == null)
+                throw new ApplicationException("Unable to locate asp mvc request context. Did someone modify djangocontext." + DjangoView.aspmvcContextKey + "?");
+
+            RequestContext requestContext = contextOption.Value as RequestContext;
+
+            if (parameters.Length > 1)
+                throw new ApplicationException("Only 0 or 1 parameters are supported by the asp.mvc version of the URL tag");
+            else if (parameters.Length == 1)
+                return new UrlHelper(requestContext).Action(pathTemplate, parameters[0]);
+            else
+                return new UrlHelper(requestContext).Action(pathTemplate);
+        }
     }
 }

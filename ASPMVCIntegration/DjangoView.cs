@@ -11,6 +11,7 @@ namespace NDjango.ASPMVC
     {
         private ITemplateManager iTemplateManager;
         private string viewPath;
+        public const string aspmvcContextKey = "__asp.mvc.context.key__";
 
         public DjangoView(NDjango.Interfaces.ITemplateManager iTemplateManager, string viewPath)
         {
@@ -31,6 +32,7 @@ namespace NDjango.ASPMVC
             requestContext["Html"] = new HtmlHelper(viewContext, this);
             requestContext["Model"] = viewContext.ViewData.Model;
             requestContext["Session"] = viewContext.HttpContext.Session;
+            requestContext.Add(aspmvcContextKey, viewContext.RequestContext);
 
             var reader = iTemplateManager.RenderTemplate(viewPath, requestContext);
             var buffer = new char[4096];
