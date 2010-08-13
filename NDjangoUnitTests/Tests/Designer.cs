@@ -317,6 +317,32 @@ namespace NDjango.UnitTests
                     VariableNode(2, 1, 2, "Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '",
                         "Standard", "ToString", "GetHashCode", "GetType")
                 ));
+            NewTest("model-tag-designer-multiple", "{% model Model1:NDjango.UnitTests.TestModel %}{% model Model2:NDjango.UnitTests.TestModel2 %}{{ }}",
+                Nodes
+                (
+                    StandardNode(0, 98),
+                    StandardNode(3, 5),
+                    StandardNode(49, 5),
+                    ErrorNode(95, 1, EmptyList, 2, "Could not parse some characters | "),
+                    VariableNode(95, 1, 2, "Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '",
+                        "Standard", "ToString", "GetHashCode", "GetType", "Model1", "MethodString", "MethodInt", "ToString",
+                        "GetHashCode", "GetType", "Field1", "Field2", "Model2", "_MethodString", "_MethodInt", "ToString",
+                        "GetHashCode", "GetType", "_Field1", "_Field2")
+                ));
+            NewTest("variables-standard-designer", "{% for var in collection %} {{ }} {% endfor %}",
+                Nodes
+                (
+                    StandardNode(0, 46),
+                    Node(27, 19, "empty", "endfor"),
+                    ErrorNode(30, 1, EmptyList, 2, "Could not parse some characters | "),
+                    VariableNode(30, 1, 2, "Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '",
+                        "Standard", "ToString", "GetHashCode", "GetType", "forloop", "counter", "counter0", "revcounter",
+                        "revcounter0", "first", "last", "var"),
+                    StandardNode(37, 6),
+                    StandardNode(3, 3)
+                ));
+
+
             //NewTest("add-filter-designer", "{{ value| add:\"2\" }}"
             //    , Nodes 
             //    (
@@ -439,5 +465,13 @@ namespace NDjango.UnitTests
         public string Field2 { get; set; }
         public string MethodString() { return null; }
         public int MethodInt() { return 0; }
+    }
+
+    public class TestModel2
+    {
+        public string _Field1 { get; set; }
+        public string _Field2 { get; set; }
+        public string _MethodString() { return null; }
+        public int _MethodInt() { return 0; }
     }
 }
