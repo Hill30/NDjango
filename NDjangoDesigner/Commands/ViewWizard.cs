@@ -165,7 +165,7 @@ namespace NDjango.Designer.Commands
         }
         public List<Assembly> GetReferences()
         {
-            Project project = dte.Solution.Projects.Item(1);
+            Project project = GetCurrentProject();
             List<Assembly> list = new List<Assembly>();
 
             string fullProjectPath = project.Properties.Item("FullPath").Value.ToString();
@@ -218,6 +218,14 @@ namespace NDjango.Designer.Commands
             }
             return list;
 
+        }
+
+        private Project GetCurrentProject()
+        {
+            foreach (Project project in dte.Solution.Projects)
+                if (project.Name == projectName)
+                    return project;
+            return null;
         }
 
         public IEnumerable<string> GetTemplates(string root)
