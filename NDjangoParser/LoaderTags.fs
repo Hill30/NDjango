@@ -58,7 +58,7 @@ module internal LoaderTags =
                 | name::[] -> 
                     let node_list, remaining = 
                         (context.Provider :?> IParser).Parse (Some token) tokens 
-                            (context.WithClosures(["endblock"; "endblock " + name.RawText]).WithExtraVariables([BlockVarDescriptor()]))
+                            (context.WithClosures(["endblock"; "endblock " + name.RawText]).WithNewModel([BlockVarDescriptor()] |> List.map(fun x -> (x :> IDjangoType)) ))
                     (new BlockNode(context, token, this, name, node_list) :> INodeImpl), context, remaining
                 | _ ->
                     let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"]))

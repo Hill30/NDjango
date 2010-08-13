@@ -317,7 +317,7 @@ and IParsingContext =
      
     abstract member WithNewModel: (string * Lexer.TextToken) list -> IParsingContext
 
-    abstract member WithExtraVariables: IDjangoType list -> IParsingContext
+    abstract member WithNewModel: IDjangoType list -> IParsingContext
 
     abstract member WithBase: INode -> IParsingContext 
 

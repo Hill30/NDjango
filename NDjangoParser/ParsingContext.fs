@@ -33,39 +33,32 @@ module ParsingContext =
                                             closures: string list, 
                                             is_in_header, 
                                             model : IDjangoType, 
-                                            vars: IDjangoType list, 
                                             _base: INode option) =
     
-        let combine (vars:IDjangoType list) (extra_vars:IDjangoType list) =
-            vars |> 
-                List.filter 
-                    (fun old_var -> 
-                        not (extra_vars |> List.exists (fun new_var -> old_var.Name = new_var.Name))
-                        ) 
-            |> List.append extra_vars 
-
         new (provider, resolver, model)
-            = new Implementation(provider, resolver, None, [], true, model, [], None)
+            = new Implementation(provider, resolver, None, [], true, model, None)
 
         interface IParsingContext with
         
-            member x.ChildOf = new Implementation(provider, resolver, Some (x :> IParsingContext), closures, is_in_header, model, vars, _base) :> IParsingContext
+            member x.ChildOf = new Implementation(provider, resolver, Some (x :> IParsingContext), closures, is_in_header, model, _base) :> IParsingContext
         
-            member x.BodyContext = new Implementation(provider, resolver, parent, closures, false, model, vars, _base) :> IParsingContext
+            member x.BodyContext = new Implementation(provider, resolver, parent, closures, false, model, _base) :> IParsingContext
 
-            member x.WithClosures(new_closures) = new Implementation(provider, resolver, parent, new_closures, is_in_header, model, vars, _base) :> IParsingContext
+            member x.WithClosures(new_closures) = new Implementation(provider, resolver, parent, new_closures, is_in_header, model, _base) :> IParsingContext
 
             member x.WithNewModel(new_model) = 
                 new Implementation(provider, resolver, parent, closures, is_in_header, 
-                    (model :?> NDjango.TypeResolver.ModelDescriptor).NewModel(resolver, new_model), 
-                    vars, _base) :> IParsingContext
+                    (model :?> NDjango.TypeResolver.ModelDescriptor).Add(resolver, new_model), 
+                    _base) :> IParsingContext
+
+            member x.WithNewModel(new_model_types) =
+                 new Implementation(provider, resolver, parent, closures, is_in_header, 
+                    (model :?> NDjango.TypeResolver.ModelDescriptor).Add(new_model_types), 
+                    _base) :> IParsingContext
 
             member 
-                x.WithExtraVariables(extra_vars) = 
-                    new Implementation(provider, resolver, parent, closures, is_in_header, model, combine vars extra_vars, _base) :> IParsingContext
-            member 
                 x.WithBase(new_base) = 
-                    new Implementation(provider, resolver, parent, closures, is_in_header, model, combine vars vars, Some new_base) :> IParsingContext
+                    new Implementation(provider, resolver, parent, closures, is_in_header, model, Some new_base) :> IParsingContext
 
             /// a list of all closing tags for the context
             member x.TagClosures = closures                    
