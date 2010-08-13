@@ -23,6 +23,7 @@ namespace NDjango.Designer.Commands
         public void FillDialogControls()
         {
             wizard.Update();
+            tbViewName.Text = wizard.GenerateName();
             FillModelList();
             FillAllTemplates();
             comboBaseTemplate.SelectedIndex = 0;//none value
@@ -134,7 +135,7 @@ namespace NDjango.Designer.Commands
 
             }
 
-            lblBlocks.Visible = checkedListBlocks.Visible = IsInheritance && checkedListBlocks.Items.Count > 0;
+            lblBlocks.Enabled = checkedListBlocks.Enabled = IsInheritance && checkedListBlocks.Items.Count > 0;
         }
 
 

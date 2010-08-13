@@ -117,11 +117,30 @@ namespace NDjango.Designer.Commands
             string filename = sol.GetProjectItemTemplate(templateName, language);
             parent.AddFromTemplate(filename, name);
         }
-        
+
+        public string GenerateName()
+        {
+            int viewCounter = 1;
+            var templates = GetTemplates("");
+            while (true)
+            {
+                bool fileExist = false;
+                var name = "ViewPage" + viewCounter.ToString();
+                foreach (var template in templates)
+                    if (template.ToLower() == (GetFolderName() + name + ".django").ToLower())
+                    {
+                        viewCounter++;
+                        fileExist = true;
+                        break;
+                    }
+                if (!fileExist)
+                    return name;
+            }
+        }
+
         public void AddFromFile(string fileName,string itemName)
         {
-            int rootLen = projectDir.Length;
-            string folderName = viewsFolderName.Substring(rootLen + 1, viewsFolderName.Length - rootLen - 1);
+            string folderName = GetFolderName();
             int index = GetActiveProject();
             if (index > 0)
             {
@@ -136,6 +155,13 @@ namespace NDjango.Designer.Commands
                 viewsFolder.Item(i).Open("{7651A701-06E5-11D1-8EBD-00A0C90F26EA}").Visible = true;
                 
             }
+        }
+
+        private string GetFolderName()
+        {
+            int rootLen = projectDir.Length;
+            string folderName = viewsFolderName.Substring(rootLen + 1, viewsFolderName.Length - rootLen - 1);
+            return folderName;
         }
         public List<Assembly> GetReferences()
         {

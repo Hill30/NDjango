@@ -116,7 +116,7 @@
             this.checkedListBlocks.Name = "checkedListBlocks";
             this.checkedListBlocks.Size = new System.Drawing.Size(267, 156);
             this.checkedListBlocks.TabIndex = 8;
-            this.checkedListBlocks.Visible = false;
+            this.checkedListBlocks.Enabled = false;
             // 
             // lblBlocks
             // 
@@ -126,7 +126,7 @@
             this.lblBlocks.Size = new System.Drawing.Size(128, 13);
             this.lblBlocks.TabIndex = 9;
             this.lblBlocks.Text = "Select Blocks to override:";
-            this.lblBlocks.Visible = false;
+            this.lblBlocks.Enabled = false;
             // 
             // btnCancel
             // 
