@@ -21,26 +21,30 @@
 
 namespace NDjango
 
-open NDjango.Interfaces
-open NDjango.Expressions
 open NDjango.Lexer
 open System.Reflection
 
 module TypeResolver =
    
+    type DjangoType =
+        | DjangoType
+        | CLRType
+        | DjangoValue
+
+    type IDjangoType =
+        abstract member Name : string
+        abstract member Type : DjangoType
+        abstract member Members : IDjangoType seq
+        abstract member IsList : bool
+        abstract member IsDictionary : bool
+    
+    type ITypeResolver =
+        abstract member Resolve: type_name: string -> System.Type
+        
     /// Django type enacpsulating a value i.e. values in the loop descriptor in For tag 
     type ValueDjangoType(name) =
         interface IDjangoType with
             member x.Name = name
-            member x.Type = DjangoType.DjangoValue
-            member x.Members = Seq.empty
-            member x.IsList = false
-            member x.IsDictionary = false
-
-    /// Django type encapsulating a filter expression (i.e. in with tag)
-    type ExpressionType(expression: FilterExpression, member_name:string) =
-        interface IDjangoType with
-            member x.Name = member_name
             member x.Type = DjangoType.DjangoValue
             member x.Members = Seq.empty
             member x.IsList = false
@@ -97,21 +101,20 @@ module TypeResolver =
     type ModelDescriptor( members: seq<IDjangoType>) =
 
         member internal x.Add(resolver: ITypeResolver, model_members: (string*TextToken) list) =
-            new ModelDescriptor(
-                model_members
-                |> Seq.map 
-                    (fun item ->
-                        (CLRTypeDjangoType(fst item, resolver.Resolve((snd item).RawText)) :> IDjangoType)
-                    )
-                |> Seq.append
-                    (members |> Seq.filter (fun mbr -> model_members |> List.exists (fun model_mbr -> mbr.Name <> fst model_mbr)))
+            x.Add(model_members
+                    |> Seq.map 
+                        (fun item ->
+                            (CLRTypeDjangoType(fst item, resolver.Resolve((snd item).RawText)) :> IDjangoType)
+                        )
             )
 
-        member internal x.Add(model_members: IDjangoType list) =
+        member internal x.Add(model_members: seq<IDjangoType>) =
             new ModelDescriptor(
-                model_members |> Seq.append members
+                model_members |> Seq.append 
+                    (members |> Seq.filter (fun mbr -> model_members |> Seq.exists (fun model_mbr -> mbr.Name <> model_mbr.Name)))
             )
-            
+
+        member x.Members = members
 
         interface IDjangoType with
             member x.Name = null

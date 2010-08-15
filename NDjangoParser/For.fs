@@ -343,13 +343,13 @@ module internal For =
 
                 let node_list_body, remaining = 
                     (context.Provider :?> IParser).Parse (Some token) tokens 
-                        (context.WithClosures(["empty"; "endfor"]).WithNewModel(variable_descriptors))
+                        (context.WithClosures(["empty"; "endfor"]).WithNewModel(context.Model.Add(variable_descriptors)))
                 let node_list_empty, remaining2 =
                     match node_list_body.[node_list_body.Length-1].Token with
                     | NDjango.Lexer.Block b -> 
                         if b.Verb.RawText = "empty" then
                             (context.Provider :?> IParser).Parse (Some token) remaining 
-                                (context.WithClosures(["endfor"]).WithNewModel(variable_descriptors))
+                                (context.WithClosures(["endfor"]).WithNewModel(context.Model.Add(variable_descriptors)))
                         else
                             [], remaining
                     | _ -> [], remaining

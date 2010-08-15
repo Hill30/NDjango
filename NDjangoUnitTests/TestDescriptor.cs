@@ -180,7 +180,7 @@ namespace NDjango.UnitTests
         private void ValidateSyntaxTree(NDjango.Interfaces.ITemplateManager manager)
         {
             ITemplate template = manager.GetTemplate(Template, new TestTyperesolver(),
-                new NDjango.TypeResolver.ModelDescriptor(new IDjangoType[] 
+                new NDjango.TypeResolver.ModelDescriptor(new NDjango.TypeResolver.IDjangoType[] 
                     {
                         new NDjango.TypeResolver.CLRTypeDjangoType("Standard", typeof(EmptyClass))
                     }));
@@ -226,11 +226,11 @@ namespace NDjango.UnitTests
             }            
         }
 
-        private static List<string> GetModelValues(IDjangoType model, int recursionDepth)
+        private static List<string> GetModelValues(NDjango.TypeResolver.IDjangoType model, int recursionDepth)
         {
             List<string> result = new List<string>();
             int remainingSteps = recursionDepth - 1;
-            foreach (IDjangoType member in model.Members)
+            foreach (var member in model.Members)
             {
                 if (remainingSteps > 0)
                 {

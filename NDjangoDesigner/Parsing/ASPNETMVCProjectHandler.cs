@@ -14,9 +14,9 @@ namespace NDjango.Designer.Parsing
             : base(broker, hier, project_directory)
         { }
 
-        protected override IEnumerable<IDjangoType> GetDefaultModel(string filename)
+        protected override IEnumerable<NDjango.TypeResolver.IDjangoType> GetDefaultModel(string filename)
         {
-            return new IDjangoType[] 
+            return new NDjango.TypeResolver.IDjangoType[] 
             {
                 new NDjango.TypeResolver.CLRTypeDjangoType("Session", typeof(HttpSessionState))
             };

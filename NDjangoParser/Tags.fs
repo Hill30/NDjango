@@ -444,7 +444,7 @@ module internal Misc =
                         tokens 
                         (context
                             .WithClosures(["endwith"])
-                            .WithNewModel(extra_vars)
+                            .WithNewModel((context.Model :?> ModelDescriptor).Add(extra_vars))
                         )
                 match expression with
                 | Some expression ->

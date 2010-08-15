@@ -27,6 +27,7 @@ open System.Collections.Generic
 open System.Reflection
 
 open NDjango.Interfaces
+open TypeResolver
 open Lexer
 open ParserNodes
 open Variables
@@ -246,6 +247,15 @@ module Expressions =
                         :> IDictionary<string, IEnumerable<INode>>
             member x.Context = context
 
+
+    /// Django type encapsulating a filter expression (i.e. in with tag)
+    type ExpressionType(expression: FilterExpression, member_name:string) =
+        interface IDjangoType with
+            member x.Name = member_name
+            member x.Type = DjangoType.DjangoValue
+            member x.Members = Seq.empty
+            member x.IsList = false
+            member x.IsDictionary = false
 
     // TODO: we still need to figure out the translation piece
     // python code

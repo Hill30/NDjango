@@ -22,18 +22,19 @@
 namespace NDjango.Interfaces
 
 open NDjango.Interfaces
+open NDjango.TypeResolver
 
 module ParsingContext =
 
     /// Parsing context is a container for information specific to the tag being parsed
     type internal Implementation private(
-                                            provider: ITemplateManagerProvider, 
-                                            resolver: ITypeResolver, 
+                                            provider, 
+                                            resolver, 
                                             parent, 
-                                            closures: string list, 
+                                            closures, 
                                             is_in_header, 
-                                            model : IDjangoType, 
-                                            _base: INode option) =
+                                            model, 
+                                            _base) =
     
         new (provider, resolver, model)
             = new Implementation(provider, resolver, None, [], true, model, None)
@@ -47,14 +48,7 @@ module ParsingContext =
             member x.WithClosures(new_closures) = new Implementation(provider, resolver, parent, new_closures, is_in_header, model, _base) :> IParsingContext
 
             member x.WithNewModel(new_model) = 
-                new Implementation(provider, resolver, parent, closures, is_in_header, 
-                    (model :?> NDjango.TypeResolver.ModelDescriptor).Add(resolver, new_model), 
-                    _base) :> IParsingContext
-
-            member x.WithNewModel(new_model_types) =
-                 new Implementation(provider, resolver, parent, closures, is_in_header, 
-                    (model :?> NDjango.TypeResolver.ModelDescriptor).Add(new_model_types), 
-                    _base) :> IParsingContext
+                new Implementation(provider, resolver, parent, closures, is_in_header, new_model, _base) :> IParsingContext
 
             member 
                 x.WithBase(new_base) = 

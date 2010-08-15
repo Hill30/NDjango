@@ -444,7 +444,7 @@ namespace NDjango.UnitTests
         }
     }
 
-    public class TestTyperesolver : ITypeResolver
+    public class TestTyperesolver : NDjango.TypeResolver.ITypeResolver
     {
         #region ITypeResolver Members
 

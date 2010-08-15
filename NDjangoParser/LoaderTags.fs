@@ -29,6 +29,7 @@ open NDjango.Interfaces
 open NDjango.ParserNodes
 open NDjango.ASTNodes
 open NDjango.Expressions
+open NDjango.TypeResolver
 
 module internal LoaderTags =
 
@@ -58,7 +59,7 @@ module internal LoaderTags =
                 | name::[] -> 
                     let node_list, remaining = 
                         (context.Provider :?> IParser).Parse (Some token) tokens 
-                            (context.WithClosures(["endblock"; "endblock " + name.RawText]).WithNewModel([BlockVarDescriptor()] |> List.map(fun x -> (x :> IDjangoType)) ))
+                            (context.WithClosures(["endblock"; "endblock " + name.RawText]).WithNewModel(context.Model.Add([BlockVarDescriptor()])))
                     (new BlockNode(context, token, this, name, node_list) :> INodeImpl), context, remaining
                 | _ ->
                     let node_list, remaining = (context.Provider :?> IParser).Parse (Some token) tokens (context.WithClosures(["endblock"]))

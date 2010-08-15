@@ -36,9 +36,6 @@ namespace NDjango.Designer.Parsing
         ITemplateManager parser;
 
         TemplateLoader template_loader;
-        private List<Tag> tags;
-        private List<Filter> filters;
-        private string project_directory;
         TypeResolver type_resolver;
 
         /// <summary>
@@ -59,14 +56,14 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="template">a reader with the template</param>
         /// <returns>A list of the syntax nodes</returns>
-        public FSharpList<INodeImpl> ParseTemplate(string filename, ITypeResolver resolver)
+        public FSharpList<INodeImpl> ParseTemplate(string filename, NDjango.TypeResolver.ITypeResolver resolver)
         {
             return parser.GetTemplate(filename, resolver, new NDjango.TypeResolver.ModelDescriptor(GetDefaultModel(filename))).Nodes;
         }
 
-        protected virtual IEnumerable<IDjangoType> GetDefaultModel(string filename)
+        protected virtual IEnumerable<NDjango.TypeResolver.IDjangoType> GetDefaultModel(string filename)
         {
-            return new List<IDjangoType>();
+            return new List<NDjango.TypeResolver.IDjangoType>();
         }
 
         public ITextSnapshot GetSnapshot(string filename)

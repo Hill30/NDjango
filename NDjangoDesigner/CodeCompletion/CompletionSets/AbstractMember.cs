@@ -36,13 +36,13 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
             return GetCompletionOffset(existing);
         }
 
-        private IEnumerable<Interfaces.IDjangoType> buildMemberList(List<string> facets, IEnumerable<Interfaces.IDjangoType> members)
+        private IEnumerable<NDjango.TypeResolver.IDjangoType> buildMemberList(List<string> facets, IEnumerable<NDjango.TypeResolver.IDjangoType> members)
         {
             if (facets.Count == 1)
                 return members;
             var instance = members.FirstOrDefault(member => member.Name == facets[0]);
             if (instance == null)
-                return new List<Interfaces.IDjangoType>();
+                return new List<NDjango.TypeResolver.IDjangoType>();
             facets.RemoveAt(0);
             return buildMemberList(facets, instance.Members);
         }

@@ -90,7 +90,7 @@ module Model =
                                 {walker with context = walker.context.WithModelType(model)}
                             | _ -> walker
                     }
-                    :> INodeImpl), context.WithNewModel(model), tokens
+                    :> INodeImpl), context.WithNewModel(context.Model.Add(context.Resolver, model)), tokens
 
 
 

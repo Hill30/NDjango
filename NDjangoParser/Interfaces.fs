@@ -25,6 +25,7 @@ namespace NDjango.Interfaces
 open System.Collections.Generic
 open System.IO
 open NDjango
+open NDjango.TypeResolver
 
 type NodeType =
             
@@ -181,21 +182,6 @@ type IContext =
 
     abstract member WithModelType: System.Type -> IContext
     
-type DjangoType =
-    | DjangoType
-    | CLRType
-    | DjangoValue
-
-type IDjangoType =
-    abstract member Name : string
-    abstract member Type : DjangoType
-    abstract member Members : IDjangoType seq
-    abstract member IsList : bool
-    abstract member IsDictionary : bool
-    
-type ITypeResolver =
-    abstract member Resolve: type_name: string -> System.Type
-        
 /// Single threaded template manager. Caches templates it renders in a non-synchronized dictionary
 /// should be used only to service rendering requests from a single thread
 type ITemplateManager = 
@@ -205,7 +191,7 @@ type ITemplateManager =
     abstract member RenderTemplate: path:string * context:IDictionary<string, obj> -> TextReader
     
     /// given the path to the template and context returns the template implementation
-    abstract member GetTemplate: template:string * resolver:ITypeResolver * model:IDjangoType -> ITemplate
+    abstract member GetTemplate: template:string * resolver:ITypeResolver * model:ModelDescriptor -> ITemplate
 
     /// given the path to the template and context returns the template implementation
     abstract member GetTemplate: template:string -> ITemplate
@@ -245,24 +231,8 @@ and INodeImpl =
     /// Processes this node and advances the walker to reflect the progress made
     abstract member walk: manager:ITemplateManager -> walker:Walker -> Walker
     
-/// Parsing interface definition
-type internal IParser =
-    /// Produces a commited node list and uncommited token list as a result of parsing until
-    /// a block from the string list is encotuntered
-    abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> context:IParsingContext -> (INodeImpl list * LazyList<Lexer.Token>)
-   
-    /// Parses the template From the source in the reader into the node list
-    abstract member ParseTemplate: template:TextReader * resolver:ITypeResolver * model:IDjangoType -> INodeImpl list
-   
-    /// Parses the template From the source in the reader into the node list
-    abstract member ParseTemplate: template:TextReader -> INodeImpl list
-   
-    /// Produces an uncommited token list as a result of parsing until
-    /// a block from the string list is encotuntered
-    abstract member Seek: tokens:LazyList<Lexer.Token> -> parse_until:string list -> LazyList<Lexer.Token>
-    
 /// Top level object managing multi threaded access to configuration settings and template cache.
-and ITemplateManagerProvider =
+type ITemplateManagerProvider =
 
     /// tag definitions available to the provider    
     abstract member Tags: Map<string, ITag>
@@ -281,13 +251,13 @@ and ITemplateManagerProvider =
 
     /// Retrieves the requested template checking first the global
     /// dictionary and validating the timestamp
-    abstract member GetTemplate: (string * ITypeResolver * IDjangoType) -> (ITemplate * System.DateTime)
+    abstract member GetTemplate: (string * ITypeResolver * ModelDescriptor) -> (ITemplate * System.DateTime)
 
     /// Retrieves the requested template without checking the 
     /// local dictionary and/or timestamp
     /// the retrieved template is placed in the dictionary replacing 
     /// the existing template with the same name (if any)
-    abstract member LoadTemplate: (string * ITypeResolver * IDjangoType) -> (ITemplate * System.DateTime)
+    abstract member LoadTemplate: (string * ITypeResolver * ModelDescriptor) -> (ITemplate * System.DateTime)
 
 /// A tag implementation
 and ITag = 
@@ -308,35 +278,42 @@ and ITag =
     
 /// Parsing context is a container for information specific to the tag being parsed
 and IParsingContext =
-
-    abstract member ChildOf: IParsingContext
-        
-    abstract member BodyContext: IParsingContext
-     
-    abstract member WithClosures: string list -> IParsingContext
-     
-    abstract member WithNewModel: (string * Lexer.TextToken) list -> IParsingContext
-
-    abstract member WithNewModel: IDjangoType list -> IParsingContext
-
-    abstract member WithBase: INode -> IParsingContext 
-
-    /// a list of all closing tags for the context
-    abstract member TagClosures: string list                    
    
-   /// parent provider owning the context
+    /// template manager provider owning the context
     abstract member Provider: ITemplateManagerProvider
 
+    /// creates a new parsing context as a child to the current one
+    abstract member ChildOf: IParsingContext
+
+    /// for a nested oarsing context - parent parsing context
+    abstract member Parent: IParsingContext option
+        
+    /// creates a new parsing context with the flag set indicating that no more header tags are allowed
+    abstract member BodyContext: IParsingContext
+     
     /// a flag indicating if any of the non-header tags have been encountered yet
     abstract member IsInHeader: bool
     
-    abstract member Model: IDjangoType
+    /// creates a new parsing context with a list of additional "end" tags
+    abstract member WithClosures: string list -> IParsingContext
+     
+    /// a list of all closing tags for the context
+    abstract member TagClosures: string list                    
+   
+    /// creates a new parsing context with the new model
+    abstract member WithNewModel: ModelDescriptor -> IParsingContext
 
-    abstract member Resolver: ITypeResolver
+    /// current model descriptor
+    abstract member Model: ModelDescriptor
 
-    abstract member Parent: IParsingContext option
+    /// creates a new parsing context with the specified reference to the template being extended 
+    abstract member WithBase: INode -> IParsingContext 
 
+    /// for templates extending base templates - a reference to the base template
     abstract member Base: INode option
+
+    /// a reference to the active type resolver (as originally passed to the TemplateManager.GetTemplate method
+    abstract member Resolver: ITypeResolver
     
 /// A representation of a node of the template abstract syntax tree    
 and INode =
@@ -359,8 +336,25 @@ and INode =
     /// node lists
     abstract member Nodes: IDictionary<string, IEnumerable<INode>>
 
+    /// parsing context for the node
     abstract member Context : IParsingContext
 
+/// Parsing interface definition
+type internal IParser =
+    /// Produces a commited node list and uncommited token list as a result of parsing until
+    /// a block from the string list is encotuntered
+    abstract member Parse: parent: Lexer.BlockToken option -> tokens:LazyList<Lexer.Token> -> context:IParsingContext -> (INodeImpl list * LazyList<Lexer.Token>)
+   
+    /// Parses the template From the source in the reader into the node list
+    abstract member ParseTemplate: template:TextReader * resolver:ITypeResolver * model:ModelDescriptor -> INodeImpl list
+   
+    /// Parses the template From the source in the reader into the node list
+    abstract member ParseTemplate: template:TextReader -> INodeImpl list
+   
+    /// Produces an uncommited token list as a result of parsing until
+    /// a block from the string list is encotuntered
+    abstract member Seek: tokens:LazyList<Lexer.Token> -> parse_until:string list -> LazyList<Lexer.Token>
+    
 type ICompletionProvider = interface end
 
 type ICompletionValuesProvider =
@@ -381,7 +375,7 @@ type RenderingException (message: string, token:NDjango.Lexer.Token, ?innerExcep
         inherit System.ApplicationException(message + token.DiagInfo, defaultArg innerException null)
        
 /// Exception raised when template syntax errors are encountered
-/// this exception is defined here because it its dependency on the TextToken class
+/// this exception is defined here because of its dependency on the TextToken class
 type SyntaxException (message: string, token: NDjango.Lexer.Token) =
     inherit System.ApplicationException(message + token.DiagInfo)
     member x.Token = token

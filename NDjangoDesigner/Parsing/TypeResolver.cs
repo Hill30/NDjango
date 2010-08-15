@@ -13,17 +13,15 @@ using System.IO;
 
 namespace NDjango.Designer.Parsing
 {
-    public class TypeResolver : NDjango.Interfaces.ITypeResolver, IDisposable
+    public class TypeResolver : NDjango.TypeResolver.ITypeResolver, IDisposable
     {
         Microsoft.VisualStudio.Shell.Design.ProjectTypeResolutionService type_resolver;
-        ITypeDiscoveryService type_discovery;
         IDisposable container;
 
         public TypeResolver(IVsHierarchy hier)
         {
             container = GlobalServices.TypeService.GetContextTypeResolver(hier);
             type_resolver = (Microsoft.VisualStudio.Shell.Design.ProjectTypeResolutionService)GlobalServices.TypeService.GetTypeResolutionService(hier);
-            type_discovery = GlobalServices.TypeService.GetTypeDiscoveryService(hier);
 
             string path = typeof(TemplateManagerProvider).Assembly.CodeBase;
             if (path.StartsWith("file:///"))
@@ -83,11 +81,6 @@ namespace NDjango.Designer.Parsing
 
         public IEnumerable<Filter> Filters { get { return filters; } }
         
-        public IEnumerable<Type> GetTypes(Type base_type, bool excludeGlobalTypes)
-        {
-            return type_discovery.GetTypes(base_type, excludeGlobalTypes).Cast<Type>();
-        }
-
         #region IDisposable Members
 
         public void Dispose()
