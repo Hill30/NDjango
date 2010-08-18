@@ -350,7 +350,7 @@ namespace NDjango.UnitTests
                     Node(16, 45, "empty", "endfor"),
                     Node(32,17,"empty","endfor"),
                     ErrorNode(34, 1, EmptyList, 2, "Could not parse some characters | "),
-                    VariableNode(34,1,2,"Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '","Standard", "ToString", "GetHashCode", "GetType","forloop", "counter", "counter0", "revcounter","revcounter0", "first", "last", "a"),
+                    VariableNode(34,1,2,"Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '","Standard", "ToString", "GetHashCode", "GetType","forloop","parent", "counter", "counter0", "revcounter","revcounter0", "first", "last", "a"),
                     StandardNode(40, 6),
                     StandardNode(19,3),
                     StandardNode(52,6),

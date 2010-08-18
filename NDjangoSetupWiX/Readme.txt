@@ -15,6 +15,7 @@ NDjango files to be installed:
 4. ASPMVCIntegration.dll(.Net 3.5,.Net 4.0)
 5. StructureMap.dll
 6. NDjango templates
+7.ASP MVC 3 Preview Add View Code Templates
 
 
 This setup is no longer includes BistroIntegration and CastleIntegration assemblies.

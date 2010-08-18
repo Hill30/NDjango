@@ -30,4 +30,4 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion(NDjango.AssemblyInfo.Version)]
-[assembly: AssemblyFileVersion(NDjango.AssemblyInfo.Version)]
+[assembly: AssemblyFileVersion(NDjango.AssemblyInfo.FileVersion)]

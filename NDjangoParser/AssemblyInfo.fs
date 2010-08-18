@@ -10,6 +10,8 @@ open System.Runtime.InteropServices;
 module AssemblyInfo =
   [<Literal>] 
   let public Version = "0.9.8.0"
+  [<Literal>]
+  let public FileVersion = "0.9.8.1"
 
 
 // General Information about an assembly is controlled through the following
@@ -72,6 +74,6 @@ module AssemblyInfo =
 
 [<assembly: AssemblyVersion(AssemblyInfo.Version)>]
 
-[<assembly: AssemblyFileVersion(AssemblyInfo.Version)>]
+[<assembly: AssemblyFileVersion(AssemblyInfo.FileVersion)>]
 
 ()

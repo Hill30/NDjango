@@ -1,0 +1,104 @@
+<#@ template language="C#" HostSpecific="True" #>
+<#@ output extension=".django" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Reflection" #>
+
+<#MvcTextTemplateHost mvcHost = (MvcTextTemplateHost)(Host);#>
+<#if (!String.IsNullOrEmpty(mvcHost.ViewDataTypeName)){
+#>
+{% model Model:<#= mvcHost.ViewDataTypeName #> %}
+<#
+}if (!String.IsNullOrEmpty(mvcHost.MasterPageFile)){
+#>
+{% extends "<#= mvcHost.MasterPageFile #>" %}
+<#
+}
+#>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title><#= mvcHost.ViewName #></title>
+</head>
+<body>
+<#
+Dictionary<string, string> properties = new Dictionary<string, string>();
+FilterProperties(mvcHost.ViewDataType, properties);
+#>
+    	{% form  %}
+        {% validation-summary true %} 
+        <fieldset>
+            <legend>Fields</legend>
+            
+<#
+foreach(KeyValuePair<string, string> property in properties) {
+#>
+            <div class="editor-label">
+                {% label-for Model.<#= property.Key #> %}
+            </div>
+            <div class="editor-field">
+                {% textbox-for Model.<#= property.Key #> %}
+                {% validation-message-for Model.<#= property.Key #> %}
+            </div>
+            
+<#
+}
+#>
+            <p>
+                <input type="submit" value="Create" />
+            </p>
+        </fieldset>
+    {% endform %}
+
+    <div>
+        {% action-link "Back to Home" "Index" "Home" %}
+    </div>
+
+
+
+<#+
+public void FilterProperties(Type type, Dictionary<string, string> properties) {
+    if(type != null) {
+        PropertyInfo[] publicProperties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+
+        foreach (PropertyInfo pi in publicProperties)
+        {
+            if (pi.GetIndexParameters().Length > 0)
+            {
+                continue;
+            }
+            
+            Type currentPropertyType = pi.PropertyType;
+            Type currentUnderlyingType = System.Nullable.GetUnderlyingType(currentPropertyType);
+            
+            if(currentUnderlyingType != null) {
+                currentPropertyType = currentUnderlyingType;
+            }
+            
+            if (IsBindableType(currentPropertyType) && pi.CanWrite)
+            {
+                if(currentPropertyType.Equals(typeof(double)) || currentPropertyType.Equals(typeof(decimal))) {
+                    properties.Add(pi.Name, "String.Format(\"{0:F}\", Model." + pi.Name + ")");
+                } else if(currentPropertyType.Equals(typeof(DateTime))) {
+                    properties.Add(pi.Name, "String.Format(\"{0:g}\", Model." + pi.Name + ")");
+                } else {
+                    properties.Add(pi.Name, "Model." + pi.Name);
+                }
+            }
+        }
+    }
+}
+
+public bool IsBindableType(Type type)
+{
+    bool isBindable = false;
+
+    if (type.IsPrimitive || type.Equals(typeof(string)) || type.Equals(typeof(DateTime)) || type.Equals(typeof(decimal)) || type.Equals(typeof(Guid)) || type.Equals(typeof(DateTimeOffset)) || type.Equals(typeof(TimeSpan)))
+    {
+        isBindable = true;
+    }
+
+    return isBindable;
+}
+#>

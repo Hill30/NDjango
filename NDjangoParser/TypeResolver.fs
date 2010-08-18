@@ -1,6 +1,6 @@
-﻿(****************************************************************************
+(****************************************************************************
  * 
- *  NDjango Parser Copyright © 2009 Hill30 Inc
+ *  NDjango Parser Copyright � 2009 Hill30 Inc
  *
  *  This file is part of the NDjango Parser.
  *
@@ -111,7 +111,7 @@ module TypeResolver =
         member internal x.Add(model_members: seq<IDjangoType>) =
             new ModelDescriptor(
                 model_members |> Seq.append 
-                    (members |> Seq.filter (fun mbr -> model_members |> Seq.exists (fun model_mbr -> mbr.Name <> model_mbr.Name)))
+             (members |> Seq.filter (fun mbr -> model_members |> Seq.exists (fun model_mbr -> mbr.Name = model_mbr.Name) |> not))
             )
 
         member x.Members = members

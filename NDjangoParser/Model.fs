@@ -54,7 +54,7 @@ module Model =
                             )
 
                 let model_regex =
-                    new Regex("(?<pair>^\s*(?<model>\w+)\s*:\s*(?<type>\w+(.\w+)*)\s*$)")
+                    new Regex("(?<pair>^\s*(?<model>\w+):(?<type>\w+(.\w+<*)*>*)\s*$)")
 
                 let rec parse_args (args: TextToken list) =
                     match args with

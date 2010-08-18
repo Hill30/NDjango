@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?define ProductVersion="0.9.8" ?>
-  <?define ProductVersionTitle="0.9.8" ?>
+  <?define ProductVersion="0.9.8.1" ?>
+  <?define ProductVersionTitle="0.9.8.1" ?>
   <?define VisualStudioRegistryRoot2008 = "Software\Microsoft\VisualStudio\9.0" ?>
   <?define UpgradeCode="{9EAD0F41-F6BB-4FDD-B2C3-2C8D3AFD5F47}"?>
-  <Product Id="621E9A01-BB72-4c41-9024-E24CDD15F49E" Name="NDjango $(var.ProductVersionTitle) for Visual Studio 2008/2010" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
+  <Product Id="8BED10DF-FD7C-4C63-95D2-736C4F2D3C38" Name="NDjango $(var.ProductVersionTitle) for Visual Studio 2008/2010" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Hill30" UpgradeCode="$(var.UpgradeCode)">
     <Package InstallerVersion="200" Compressed="yes" />
     <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
     <Upgrade Id="$(var.UpgradeCode)">
-      <UpgradeVersion Minimum="0.9.0" IncludeMinimum="yes" Maximum="$(var.ProductVersion)" IncludeMaximum="no" Language="1033" Property="UPGRADEFOUND" />
+      <UpgradeVersion Minimum="0.9.0.0" IncludeMinimum="yes" Maximum="99.0.0.0" IncludeMaximum="yes" Language="1033" Property="UPGRADEFOUND" />
     </Upgrade>
     <Property Id="EXTENSIONSHILL30FILES">
       <DirectorySearch Id="hill30filessearch" Path="[LocalAppDataFolder]\Microsoft\VisualStudio\10.0\Extensions\Hill30\" />
@@ -33,6 +33,9 @@
     </Property>
     <Property Id="MVCTOOLS2008SFOUND">
       <RegistrySearch Id="MVCTools2008found" Type="raw" Root="HKLM" Key="SOFTWARE\Microsoft\ASP.NET MVC 2\Visual Studio 2008" Name="InstallPath" />
+    </Property>
+    <Property Id="MVC3TOOLS2010FOUND">
+      <RegistrySearch Id="MVC3Tools2010found" Type="raw" Root="HKLM" Key="SOFTWARE\Microsoft\ASP.NET MVC 3\Visual Studio 2010" Name="InstallPath" />
     </Property>
     <Property Id="VS2008PROJECTTEMPLATESLOCATION">
       <RegistrySearch Id="UserProjectTemplatesLocation" Type="raw" Root="HKCU" Key="Software\Microsoft\VisualStudio\9.0" Name="UserProjectTemplatesLocation" />
@@ -156,27 +159,48 @@
           </Directory>
         </Directory>
       </Directory>
+      <Directory Id="ENVDIR_2010" Name="EnvDir2010">
+        <Directory Id="ItemTemplates2010" Name="ItemTemplates">
+          <Directory Id="CSharpItemtemplates" Name="CSharp">
+            <Directory Id="CSharpWeb" Name="Web">
+              <Directory Id="MVC3templ" Name="MVC 3">
+                <Directory Id="MVC3CodeTemplates" Name="CodeTemplates">
+                  <Directory Id="AddViewtempl" Name="AddView">
+                    <Directory Id="DjangoViewEngineDir" Name="DjangoViewEngine">
+                      <Component Id="ASPMVC3Integration_AddView" Guid ="F1921F58-A6EF-4644-8AEA-F865D1E138F8">
+                        <RemoveFolder Id="RemDjangoViewEngineDir" Directory="DjangoViewEngineDir" On="uninstall" />
+                        <File Id="ViewEngineDefinition" Name="ViewEngine.xml" Source="Templates\2010\MVC 3 - Add View\DjangoViewEngine\ViewEngine.xml" />
+                        <File Id="EmptyT4" Name="Empty.tt" Source="Templates\2010\MVC 3 - Add View\DjangoViewEngine\Empty.tt"/>
+                      </Component>
+                    </Directory>
+                  </Directory>
+                </Directory>
+              </Directory>
+            </Directory>
+          </Directory>
+        </Directory>
 
-      <Component Id="RegisterDjangoExtensionForHTMLEditor2008" Guid="02D1F592-DC45-4019-9551-9CDFC6F43F4F">
-        <RegistryKey Key="Software\Microsoft\VisualStudio\9.0\Default Editors\django" Root="HKCU">
-          <RegistryValue Name="Custom" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
-          <RegistryValue Name="Type" Value="1" Type="integer" />
-        </RegistryKey>
-        <RegistryKey Key="Software\Microsoft\VisualStudio\9.0\FileExtensionMapping\django" Root="HKCU">
-          <RegistryValue Name="(Default)" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
-          <RegistryValue Name="LogViewID" Value="{00000000-0000-0000-0000-000000000000}" Type="string" />
-        </RegistryKey>
-      </Component>
-      <Component Id="RegisterDjangoExtensionForHTMLEditor2010" Guid="67F38316-7034-4be6-8D74-79BC476A91F4">
-        <RegistryKey Key="Software\Microsoft\VisualStudio\10.0\Default Editors\django" Root="HKCU">
-          <RegistryValue Name="Custom" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
-          <RegistryValue Name="Type" Value="1" Type="integer" />
-        </RegistryKey>
-        <RegistryKey Key="Software\Microsoft\VisualStudio\10.0\FileExtensionMapping\django" Root="HKCU">
-          <RegistryValue Name="(Default)" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
-          <RegistryValue Name="LogViewID" Value="{00000000-0000-0000-0000-000000000000}" Type="string" />
-        </RegistryKey>
-      </Component>
+        <Component Id="RegisterDjangoExtensionForHTMLEditor2008" Guid="02D1F592-DC45-4019-9551-9CDFC6F43F4F">
+          <RegistryKey Key="Software\Microsoft\VisualStudio\9.0\Default Editors\django" Root="HKCU">
+            <RegistryValue Name="Custom" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
+            <RegistryValue Name="Type" Value="1" Type="integer" />
+          </RegistryKey>
+          <RegistryKey Key="Software\Microsoft\VisualStudio\9.0\FileExtensionMapping\django" Root="HKCU">
+            <RegistryValue Name="(Default)" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
+            <RegistryValue Name="LogViewID" Value="{00000000-0000-0000-0000-000000000000}" Type="string" />
+          </RegistryKey>
+        </Component>
+        <Component Id="RegisterDjangoExtensionForHTMLEditor2010" Guid="67F38316-7034-4be6-8D74-79BC476A91F4">
+          <RegistryKey Key="Software\Microsoft\VisualStudio\10.0\Default Editors\django" Root="HKCU">
+            <RegistryValue Name="Custom" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
+            <RegistryValue Name="Type" Value="1" Type="integer" />
+          </RegistryKey>
+          <RegistryKey Key="Software\Microsoft\VisualStudio\10.0\FileExtensionMapping\django" Root="HKCU">
+            <RegistryValue Name="(Default)" Value="{C76D83F8-A489-11D0-8195-00A0C91BBEE3}" Type="string" />
+            <RegistryValue Name="LogViewID" Value="{00000000-0000-0000-0000-000000000000}" Type="string" />
+          </RegistryKey>
+        </Component>
+      </Directory>
     </Directory>
     <Property Id="TEMPLATESNEEDED" />
     <Property Id="DESIGNERNEEDED" />
@@ -201,6 +225,10 @@
       <ComponentRef Id="RegisterDjangoExtensionForHTMLEditor2010" />
       <ComponentRef Id="NDjangoAssemblies2010" />
       <ComponentRef Id="ThirdPartyComponents2010" />
+    </Feature>
+    <Feature Id="AddViewIntegration" Level="1">
+      <Condition Level="0"><![CDATA[MVC3TOOLS2010FOUND = NULL]]></Condition>
+      <ComponentRef Id="ASPMVC3Integration_AddView"></ComponentRef>
     </Feature>
     <Feature Id="SampleLibrarySRC" Level="1" ConfigurableDirectory="INSTALLDIR" Title="Source Code">
       <ComponentGroupRef Id="group_SampleLibrary"/>
