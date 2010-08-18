@@ -48,24 +48,24 @@ namespace NDjango.UnitTests
             }
         }
 
-
         //[Test, TestCaseSource("GetBlockNamesTests")]
         //public void BlockNames(TestDescriptor test)
         //{
+            
         //    test.AnalyzeBlockNameNode(managerForDesigner);
         //}
-        
+
         //public IList<TestDescriptor> GetBlockNamesTests()
         //{
         //    IList<TestDescriptor> lst = new List<TestDescriptor>();
         //    //1. simple inheritance
-        //    lst.Add(new TestDescriptor("BlockNamesTest 01", "{% extends \"t1\" %} skip1--{% block b1 %}the replacement{% endblock %}--skip2",null,new string[]{"b1"},""));
+        //    lst.Add(new TestDescriptor("BlockNamesTest 01", "{% extends \"t1\" %} skip1--{% block b1 %}the replacement{% endblock %}--skip2", null, new string[] { "b1" }, ""));
         //    //2. two-level hierarchy
-        //    lst.Add(new TestDescriptor("BlockNamesTest 02", "{% extends \"t21\" %} skip1--{% block b1 %}the replacement1++{{ block.super }}++{% endblock %}--skip2", null, new string[]{"b1","b2"}));
+        //    lst.Add(new TestDescriptor("BlockNamesTest 02", "{% extends \"t21\" %} skip1--{% block b1 %}the replacement1++{{ block.super }}++{% endblock %}--skip2", null, new string[] { "b1", "b2" }));
         //    //3. base template with html tags
         //    lst.Add(new TestDescriptor("BlockNameTest_Std",
-        //        "{% extends \"base\" %}{% block ValidateVars %}{% endblock %}",null,
-        //        new string[]{"SubSub","Sub1","MainContent","Title"})); 
+        //        "{% extends \"base\" %}{% block ValidateVars %}{% endblock %}", null,
+        //        new string[] { "SubSub", "Sub1", "MainContent", "Title" }));
 
 
         //    return lst;
@@ -204,6 +204,7 @@ namespace NDjango.UnitTests
                     StandardNode(32, 6),
                     StandardNode(3, 3)
                 ));
+
             /* END OF FOR BLOCK */
 
             /* IFEQUAL */
@@ -342,6 +343,19 @@ namespace NDjango.UnitTests
                     StandardNode(3, 3)
                 ));
 
+            NewTest("variables-standard-designer-nested", "{% for a in b %}{% for a in c %}{{ }}{% endfor %}{% endfor %}",
+                Nodes
+                (
+                    StandardNode(0, 61),
+                    Node(16, 45, "empty", "endfor"),
+                    Node(32,17,"empty","endfor"),
+                    ErrorNode(34, 1, EmptyList, 2, "Could not parse some characters | "),
+                    VariableNode(34,1,2,"Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '","Standard", "ToString", "GetHashCode", "GetType","forloop", "counter", "counter0", "revcounter","revcounter0", "first", "last", "a"),
+                    StandardNode(40, 6),
+                    StandardNode(19,3),
+                    StandardNode(52,6),
+                    StandardNode(3, 3)
+                ));
 
             //NewTest("add-filter-designer", "{{ value| add:\"2\" }}"
             //    , Nodes 
