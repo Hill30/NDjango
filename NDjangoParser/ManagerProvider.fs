@@ -396,7 +396,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                         if (validate_template(name, timestamp)) then
                             (x :> ITemplateManagerProvider).LoadTemplate template
                         else
-                            (t, timestamp)
+                            (!templates, t)
                 )
                 
         member x.LoadTemplate ((name, resolver, model)) =
@@ -404,7 +404,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
                 (fun() ->
                     let t = ((new NDjango.Template.Impl((x :> ITemplateManagerProvider), loader.GetTemplate(name), resolver, model) :> ITemplate), System.DateTime.Now)
                     templates := Map.add name t !templates  
-                    t
+                    (!templates, fst t)
                 )
     
         member x.Tags = tags

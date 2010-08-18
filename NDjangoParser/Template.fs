@@ -39,13 +39,13 @@ module internal Template =
         
         let templates = ref(templates)
         
+        // This function is what makes Manager thread unsafe. It has a side effect of changing the templates dictionary
         let load_template template validated =
-            let name, _, _ = template
-            let tr = 
+            let map, result =
                 if validated then provider.LoadTemplate template
                 else provider.GetTemplate template
-            templates := Map.add name tr !templates
-            fst tr
+            templates := map
+            result
 
         let validate_template = 
             if (provider.Settings.[Constants.RELOAD_IF_UPDATED] :?> bool) then provider.Loader.IsUpdated
@@ -66,15 +66,7 @@ module internal Template =
                        load_template (name, resolver, model) false
         
             member x.GetTemplate name =
-                let template = (name, (new DefaultTypeResolver() :> ITypeResolver), ModelDescriptor(Seq.empty))
-                match Map.tryFind name !templates with
-                | Some (t, timestamp) -> 
-                    if validate_template (name, timestamp) then
-                       load_template template true
-                    else
-                       t
-                | None ->
-                       load_template template false
+                (x :> ITemplateManager).GetTemplate(name, (new DefaultTypeResolver() :> ITypeResolver), ModelDescriptor(Seq.empty))
         
             
     /// Implements the template (ITemplate interface)

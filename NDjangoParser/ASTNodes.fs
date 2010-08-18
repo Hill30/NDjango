@@ -47,7 +47,7 @@ module internal ASTNodes =
 
         member x.GetParentNodes = 
             try
-                (context.Provider.GetTemplate(expression.RawText, context.Resolver, context.Model) |> fst).Nodes
+                (context.Provider.GetTemplate(expression.RawText, context.Resolver, context.Model) |> snd).Nodes
             with
             |_ -> []
 

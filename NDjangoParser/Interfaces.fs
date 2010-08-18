@@ -251,13 +251,13 @@ type ITemplateManagerProvider =
 
     /// Retrieves the requested template checking first the global
     /// dictionary and validating the timestamp
-    abstract member GetTemplate: (string * ITypeResolver * ModelDescriptor) -> (ITemplate * System.DateTime)
+    abstract member GetTemplate: (string * ITypeResolver * ModelDescriptor) -> (Map<string, ITemplate * System.DateTime> * ITemplate)
 
     /// Retrieves the requested template without checking the 
     /// local dictionary and/or timestamp
     /// the retrieved template is placed in the dictionary replacing 
     /// the existing template with the same name (if any)
-    abstract member LoadTemplate: (string * ITypeResolver * ModelDescriptor) -> (ITemplate * System.DateTime)
+    abstract member LoadTemplate: (string * ITypeResolver * ModelDescriptor) -> (Map<string, ITemplate * System.DateTime> * ITemplate)
 
 /// A tag implementation
 and ITag = 
