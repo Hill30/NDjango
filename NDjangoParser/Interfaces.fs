@@ -103,7 +103,7 @@ type NodeType =
         | Comment = 0x000c
 
         /// <summary>
-        /// A special node to carrying the parsing context info for code completion
+        /// A special node to carry the parsing context info for code completion
         /// </summary>
         | ParsingContext = 0x000d
 
@@ -126,6 +126,11 @@ type NodeType =
         /// a special expression node representing the .NET type name - i.e. in the model tag
         /// </summary>
         | TypeName = 0x0011
+
+        /// <summary>
+        /// A special node to carry the parsing context about comment info for code completion
+        /// </summary>
+        | CommentContext = 0x0012
 
 /// Error message
 type Error(severity:int, message:string) =

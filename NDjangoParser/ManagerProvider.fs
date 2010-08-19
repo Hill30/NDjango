@@ -323,7 +323,7 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
         | LazyList.Cons(token, tokens) -> 
             match token with 
             | Lexer.Block block when context.TagClosures |> List.exists block.Verb.Value.Equals ->
-                 length + token.Length, Some (CloseTagNode(context, block) :> INodeImpl), tokens
+                 length, Some (CloseTagNode(context, block) :> INodeImpl), tokens
             | _ ->
                 seek_internal context (length+token.Length) tokens
     

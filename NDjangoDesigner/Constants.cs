@@ -90,6 +90,25 @@ namespace NDjango.Designer
             }
         }
 
+        internal const string COMMENT_CLASSIFIER = "ndjango.comment";
+        [Export]
+        [Name(COMMENT_CLASSIFIER)]
+        internal static ClassificationTypeDefinition NDjangoComment = null; // null is not really necessary, but to keep the compiler happy...
+
+        [Export(typeof(EditorFormatDefinition))]
+        [Name("ndjango.comment.format")]
+        [DisplayName("ndjango comment format")]
+        [UserVisible(false)]
+        [ClassificationType(ClassificationTypeNames = COMMENT_CLASSIFIER)]
+        [Order]
+        internal sealed class NDjangoCommentFormat : ClassificationFormatDefinition
+        {
+            public NDjangoCommentFormat()
+            {
+                ForegroundColor = Colors.Green;
+            }
+        }
+
         /// NDJANGO content type is defined to be just text - pretty much any text
         /// the actual filtering of the content types is done in the IsNDjango method 
         /// on the parser

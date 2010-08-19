@@ -78,7 +78,7 @@ namespace NDjango.Designer.CodeCompletion
                 case CompletionContext.Tag:
                     return AbstractCompletionSet.Create<TagCompletionSet>(
                         this, point,
-                            nodeProvider.GetNodes(point, n => n.NodeType == NodeType.ParsingContext).FindLast(n => true)
+                            nodeProvider.GetNodes(point, n => n.NodeType == NodeType.ParsingContext || n.NodeType == NodeType.CommentContext).FindLast(n => true)
                             );
 
                 case CompletionContext.Variable:

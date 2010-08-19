@@ -203,8 +203,11 @@ module public ParserNodes =
         abstract member Values: seq<string>
         default x.Values = context.Provider.Tags |> Map.toSeq |> Seq.map (fun tag -> fst tag)
 
+        abstract member NodeType: NodeType 
+        default x.NodeType = NodeType.ParsingContext
+
         interface INode with
-            member x.NodeType = NodeType.ParsingContext
+            member x.NodeType = x.NodeType
             /// Position - the position of the first character of the context 
             member x.Position = position
             /// Length - length of the context
@@ -224,7 +227,11 @@ module public ParserNodes =
     type CommentContextNode (context, position, length) =
         inherit ParsingContextNode(context, position, length)
 
+        override x.NodeType = NodeType.CommentContext
+        
         override x.Values = Seq.empty
+
+
                     
     /// For tags decorated with this attribute the string given as a parmeter for the attribute
     /// will be shown in the tooltip for the tag            

@@ -142,6 +142,13 @@ namespace NDjango.Designer.Classifiers
                                     classificationTypeRegistry.GetClassificationType(Constants.MARKER_CLASSIFIER)
                                     ));
                             break;
+                        case NodeType.CommentContext:
+                            classifications.Add(
+                                new ClassificationSpan(
+                                    node.SnapshotSpan,
+                                    classificationTypeRegistry.GetClassificationType(Constants.COMMENT_CLASSIFIER)
+                                    ));
+                            break;
                         default:
                             break;
                     };
