@@ -78,8 +78,13 @@ module internal Misc =
         interface ITag with
             member x.is_header_tag = false
             member this.Perform token context tokens =
-                let remaining = (context.Provider :?> IParser).Seek tokens ["endcomment"]
-                ((TagNode(context, token, this) :> INodeImpl), context, remaining)
+                let context_node, close_tag, remaining = (context.Provider :?> IParser).Seek tokens context ["endcomment"]
+                ((
+                    {
+                        new TagNode(context, token, this) with
+                            override x.nodelist = [context_node; close_tag]
+                    }
+                    :> INodeImpl), context, remaining)
                 
     /// Outputs a whole load of debugging information, including the current
     /// context and imported modules.

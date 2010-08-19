@@ -353,7 +353,7 @@ type internal IParser =
    
     /// Produces an uncommited token list as a result of parsing until
     /// a block from the string list is encotuntered
-    abstract member Seek: tokens:LazyList<Lexer.Token> -> parse_until:string list -> LazyList<Lexer.Token>
+    abstract member Seek: tokens:LazyList<Lexer.Token> -> context:IParsingContext -> parse_until:string list -> (INodeImpl * INodeImpl * LazyList<Lexer.Token>)
     
 type ICompletionProvider = interface end
 

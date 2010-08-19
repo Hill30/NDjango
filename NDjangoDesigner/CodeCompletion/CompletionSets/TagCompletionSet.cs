@@ -25,7 +25,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {
-            return BuildCompletions(Node.Context.Provider.Tags.Select(Tag=>Tag.Key));
+            return BuildCompletions(Node.Values);
         }
 
         protected override IEnumerable<Completion> BuildNodeCompletionBuilders()

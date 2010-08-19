@@ -316,16 +316,16 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             
     /// tries to return a list positioned just after one of the elements of parse_until. Returns None
     /// if no such element was found.
-    let rec seek_internal parse_until tokens = 
+    let rec seek_internal (context:IParsingContext) length tokens = 
         match tokens with 
-        | LazyList.Nil -> 
-            raise (SyntaxError (fail_closing parse_until))
+        | LazyList.Nil ->
+            length, None, LazyList.empty 
         | LazyList.Cons(token, tokens) -> 
             match token with 
-            | Lexer.Block block when parse_until |> List.exists block.Verb.Value.Equals ->
-                 tokens
+            | Lexer.Block block when context.TagClosures |> List.exists block.Verb.Value.Equals ->
+                 length + token.Length, Some (CloseTagNode(context, block) :> INodeImpl), tokens
             | _ ->
-                seek_internal parse_until tokens
+                seek_internal context (length+token.Length) tokens
     
     public new () =
         new TemplateManagerProvider(Defaults.defaultSettings, Defaults.standardTags, Defaults.standardFilters, new DefaultLoader(), Defaults.defaultDictionary)
@@ -489,9 +489,19 @@ type TemplateManagerProvider (settings:Map<string,obj>, tags, filters, loader:IT
             (x :> IParser).Parse None (NDjango.Lexer.tokenize template) (ParsingContext.Implementation(x, resolver, model)) |> fst
 
         /// Repositions the token stream after the first token found from the parse_until list
-        member x.Seek tokens parse_until = 
+        member x.Seek tokens context parse_until = 
             if List.length parse_until = 0 then 
                 raise (SyntaxError("Seek must have at least one termination tag"))
             else
-                seek_internal parse_until tokens
+                let context = context.ChildOf.WithClosures(parse_until)
+            
+                // take a note of the current position - this will be the
+                // start position for the parsing context being built
+                let start_pos = (tokens |> LazyList.head).Position
+            
+                let length, close_tag, remainder = seek_internal context 0 tokens
+                match close_tag with
+                | Some tag -> CommentContextNode(context, start_pos, length) :> INodeImpl, tag, remainder
+                | None -> raise (SyntaxError (fail_closing parse_until, [ParsingContextNode(context, start_pos, length) :> INodeImpl]))
+
 

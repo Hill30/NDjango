@@ -200,6 +200,9 @@ module public ParserNodes =
     /// context as well as boundaries of the context. 
     /// Ignore during rendering
     type ParsingContextNode (context: IParsingContext, position, length) =
+        abstract member Values: seq<string>
+        default x.Values = context.Provider.Tags |> Map.toSeq |> Seq.map (fun tag -> fst tag)
+
         interface INode with
             member x.NodeType = NodeType.ParsingContext
             /// Position - the position of the first character of the context 
@@ -212,13 +215,17 @@ module public ParserNodes =
             member x.Context = context
 
         interface ICompletionValuesProvider with
-            member x.Values = context.Provider.Tags |> Map.toSeq |> Seq.map (fun tag -> fst tag)
+            member x.Values = x.Values
 
-            
         interface INodeImpl with
             member x.Token = failwith ("Token on the ParsingContextNode should not be accessed")
             member x.walk manager walker = walker
-            
+         
+    type CommentContextNode (context, position, length) =
+        inherit ParsingContextNode(context, position, length)
+
+        override x.Values = Seq.empty
+                    
     /// For tags decorated with this attribute the string given as a parmeter for the attribute
     /// will be shown in the tooltip for the tag            
     type DescriptionAttribute(description: string) = 
