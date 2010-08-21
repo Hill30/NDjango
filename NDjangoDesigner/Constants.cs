@@ -77,9 +77,9 @@ namespace NDjango.Designer
         internal static ClassificationTypeDefinition NDjangoMarker = null; // null is not really necessary, but to keep the compiler happy...
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name("ndjango.marker.format")]
+        [Name("NDjango Tag Brackets")]
         [DisplayName("ndjango marker format")]
-        [UserVisible(false)]
+        [UserVisible(true)]
         [ClassificationType(ClassificationTypeNames = MARKER_CLASSIFIER)]
         [Order]
         internal sealed class NDjangoMarkerFormat : ClassificationFormatDefinition
@@ -96,9 +96,9 @@ namespace NDjango.Designer
         internal static ClassificationTypeDefinition NDjangoComment = null; // null is not really necessary, but to keep the compiler happy...
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name("ndjango.comment.format")]
+        [Name("NDjango Comment")]
         [DisplayName("ndjango comment format")]
-        [UserVisible(false)]
+        [UserVisible(true)]
         [ClassificationType(ClassificationTypeNames = COMMENT_CLASSIFIER)]
         [Order]
         internal sealed class NDjangoCommentFormat : ClassificationFormatDefinition
