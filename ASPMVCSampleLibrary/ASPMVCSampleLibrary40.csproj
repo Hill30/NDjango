@@ -57,11 +57,11 @@
   <ItemGroup>
     <ProjectReference Include="..\ASPMVCIntegration\ASPMVCIntegration40.csproj">
       <Project>{F8D5E545-691B-4743-9177-3FF50CC67E74}</Project>
-      <Name>ASPMVC2010Integration</Name>
+      <Name>ASPMVCIntegration40</Name>
     </ProjectReference>
     <ProjectReference Include="..\NDjangoParser\NDjangoParser40.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
-      <Name>NDjangoParser2010</Name>
+      <Name>NDjangoParser40</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

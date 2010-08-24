@@ -34,9 +34,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="NDjangoFilters.NDjangoExtension40">
-      <HintPath>..\NDjangoParserFilters\bin\NDjangoFilters.NDjangoExtension40.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -124,13 +121,17 @@
       <Project>{31DA6E9F-1CDC-48B7-B559-E60591DE8159}</Project>
       <Name>ASPMVCSampleLibrary2010</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters40.csproj">
+      <Project>{89DC9575-C706-4D0D-944A-79E5865FFE88}</Project>
+      <Name>NDjangoParserFilters40</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NDjangoParser\NDjangoParser40.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
       <Name>NDjangoParser2010</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
+  <Import Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets')" Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
