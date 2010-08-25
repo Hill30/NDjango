@@ -38,6 +38,8 @@ namespace NDjango.UnitTests
         public object[] Result { get; set; }
         public List<DesignerData> ResultForDesigner { get; set; }
         public string[] Vars { get; set; }
+        public int RecursionDepth { get; set; }
+
         ResultGetter resultGetter;
 
         public override string ToString()
@@ -50,6 +52,14 @@ namespace NDjango.UnitTests
             Name = name;
             Template = template;
             ResultForDesigner = designResult;
+            RecursionDepth = 2;
+        }
+        public TestDescriptor(string name, string template, List<DesignerData> designResult,int modelDepth)
+        {
+            Name = name;
+            Template = template;
+            ResultForDesigner = designResult;
+            RecursionDepth = modelDepth;
         }
 
         public TestDescriptor(string name, string template, object[] values, object[] result, List<DesignerData> designResult, params string[] vars)
@@ -131,19 +141,7 @@ namespace NDjango.UnitTests
                     .ToString();
             }
         }
-        public void AnalyzeBlockNameNode(NDjango.Interfaces.ITemplateManager manager)
-        {
-            ITemplate template = manager.GetTemplate(Template);
-            INode bn_node = GetNodes(template.Nodes.ToList<INodeImpl>().ConvertAll
-                    (node => (INode)node)).Find(node => node.NodeType == NodeType.BlockName);
-            var value_provider = bn_node as ICompletionValuesProvider;
-            var values = (value_provider == null) ? new List<string>() : value_provider.Values;
-            List<string> blockNames = new List<string>(values);
-            Assert.Greater(0, blockNames.Count(), "The dropdown with block names is empty");
-            foreach(string name in Result) 
-                Assert.Contains(name, blockNames, "Invalid block names list: there is no " + name);
 
-        }
 
         public void Run(NDjango.Interfaces.ITemplateManager manager)
         {
@@ -207,7 +205,7 @@ namespace NDjango.UnitTests
                     }
                     else if (node.NodeType == NodeType.Reference)
                     {
-                        return new DesignerData(node.Position, node.Length, GetModelValues(node.Context.Model, 2).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
+                        return new DesignerData(node.Position, node.Length, GetModelValues(node.Context.Model, RecursionDepth).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
                     }
                     else
                         return new DesignerData(node.Position, node.Length, new List<string>(values).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
@@ -222,7 +220,7 @@ namespace NDjango.UnitTests
                 Assert.AreEqual(ResultForDesigner[i].Position, actualResult[i].Position, "Invalid Position");
                 Assert.AreEqual(ResultForDesigner[i].Severity, actualResult[i].Severity, "Invalid Severity");
                 Assert.AreEqual(ResultForDesigner[i].ErrorMessage, actualResult[i].ErrorMessage, "Invalid ErrorMessage");
-                Assert.AreEqual(ResultForDesigner[i].Values, actualResult[i].Values, "Invalid Values Array");
+                Assert.AreEqual(ResultForDesigner[i].Values, actualResult[i].Values, "Invalid Values Array " + i);
             }            
         }
 
@@ -244,7 +242,6 @@ namespace NDjango.UnitTests
             }
             return result;
         }
-
         //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
         private static List<INode> GetNodes(IEnumerable<INode> nodes)
         {

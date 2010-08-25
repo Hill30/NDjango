@@ -22,6 +22,7 @@
 namespace NDjango
 
 open System.IO
+open System.Text
 open NDjango.Lexer
 open NDjango.Interfaces
 open NDjango.Filters
@@ -108,7 +109,10 @@ module Defaults =
 type private DefaultLoader() =
     interface ITemplateLoader with
         member this.GetTemplate source = 
-            if not <| File.Exists(source) then
+            if source.StartsWith("temp://") then
+                let  byteArray = Encoding.ASCII.GetBytes(source.Remove(0,7)) 
+                (new StreamReader(new MemoryStream(byteArray)) :> TextReader)
+            else if not <| File.Exists(source) then
                 raise (FileNotFoundException (sprintf "Could not locate template '%s'" source))
             else
                 (new StreamReader(source) :> TextReader)

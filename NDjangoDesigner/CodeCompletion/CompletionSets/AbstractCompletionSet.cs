@@ -79,7 +79,9 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 
             var existing_text = new SnapshotSpan(point.Snapshot.TextBuffer.CurrentSnapshot, span);
 
-            var completion_offset = InitializeFilters(existing_text.GetText().Substring(0, point.Position - existing_text.Start));
+            int completion_offset = 0;
+            if (!String.IsNullOrEmpty(existing_text.GetText()))
+                 completion_offset = InitializeFilters(existing_text.GetText().Substring(0, point.Position - existing_text.Start));
 
             //Adjust the span to be replaced for variables/members;
             var to_be_replaced = new Span(span.Start + completion_offset, span.Length - completion_offset);

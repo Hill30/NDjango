@@ -40,6 +40,11 @@ namespace NDjango.Designer.CodeCompletion
     {
         private NodeProvider nodeProvider;
         private ITextBuffer textBuffer;
+        public Source(NodeProvider provider, ITextBuffer textBuffer)
+        {
+            this.textBuffer = textBuffer;
+            nodeProvider = provider;
+        }
         public Source(INodeProviderBroker nodeProviderBroker, ITextBuffer textBuffer)
         {
             this.textBuffer = textBuffer;

@@ -48,28 +48,7 @@ namespace NDjango.UnitTests
             }
         }
 
-        //[Test, TestCaseSource("GetBlockNamesTests")]
-        //public void BlockNames(TestDescriptor test)
-        //{
-            
-        //    test.AnalyzeBlockNameNode(managerForDesigner);
-        //}
-
-        //public IList<TestDescriptor> GetBlockNamesTests()
-        //{
-        //    IList<TestDescriptor> lst = new List<TestDescriptor>();
-        //    //1. simple inheritance
-        //    lst.Add(new TestDescriptor("BlockNamesTest 01", "{% extends \"t1\" %} skip1--{% block b1 %}the replacement{% endblock %}--skip2", null, new string[] { "b1" }, ""));
-        //    //2. two-level hierarchy
-        //    lst.Add(new TestDescriptor("BlockNamesTest 02", "{% extends \"t21\" %} skip1--{% block b1 %}the replacement1++{{ block.super }}++{% endblock %}--skip2", null, new string[] { "b1", "b2" }));
-        //    //3. base template with html tags
-        //    lst.Add(new TestDescriptor("BlockNameTest_Std",
-        //        "{% extends \"base\" %}{% block ValidateVars %}{% endblock %}", null,
-        //        new string[] { "SubSub", "Sub1", "MainContent", "Title" }));
-
-
-        //    return lst;
-        //}
+      
 
         public IList<TestDescriptor> GetDesignerTests()
         {
@@ -337,12 +316,10 @@ namespace NDjango.UnitTests
                     Node(27, 19, "empty", "endfor"),
                     ErrorNode(30, 1, EmptyList, 2, "Could not parse some characters | "),
                     VariableNode(30, 1, 2, "Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '",
-                        "Standard", "ToString", "GetHashCode", "GetType", "forloop", "counter", "counter0", "revcounter",
-                        "revcounter0", "first", "last", "var"),
+                        "Standard", "forloop", "var"),
                     StandardNode(37, 6),
                     StandardNode(3, 3)
-                ));
-
+                ),1);
             NewTest("variables-standard-designer-nested", "{% for a in b %}{% for a in c %}{{ }}{% endfor %}{% endfor %}",
                 Nodes
                 (
@@ -350,13 +327,24 @@ namespace NDjango.UnitTests
                     Node(16, 45, "empty", "endfor"),
                     Node(32,17,"empty","endfor"),
                     ErrorNode(34, 1, EmptyList, 2, "Could not parse some characters | "),
-                    VariableNode(34,1,2,"Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '","Standard", "ToString", "GetHashCode", "GetType","forloop","parent", "counter", "counter0", "revcounter","revcounter0", "first", "last", "a"),
+                    VariableNode(34,1,2,"Variables and attributes may not be empty, begin with underscores or minus (-) signs: ' '","Standard","forloop", "a"),
                     StandardNode(40, 6),
                     StandardNode(19,3),
                     StandardNode(52,6),
                     StandardNode(3, 3)
-                ));
-
+                ),1);
+            //NewTest("blocknames-dropdown-designer", "{% extends \"base\" %}{% block ValidateVars %}{% endblock %}",
+            //    Nodes
+            //    (
+            //        StandardNode(0,20),
+            //        StandardNode(20,38),//PC for extends node
+            //        Node(44,14,"endblock","endblock ValidateVars"),//PC for closure endblock
+            //        StandardNode(47,8),//endblock
+            //        Node(29, 12, "SubSub", "Sub1", "MainContent", "Title"),//BlockNameNode
+            //        StandardNode(23,5),//block
+            //        //StandardNode(11,6),//TemplateNameNode
+            //        StandardNode(3,7)//extends
+            //    ));
             //NewTest("add-filter-designer", "{{ value| add:\"2\" }}"
             //    , Nodes 
             //    (
@@ -449,6 +437,10 @@ namespace NDjango.UnitTests
         {
             tests.Add(new TestDescriptor(name, template, nodeList.ToList<DesignerData>()));
         }
+        private void NewTest(string name, string template, DesignerData[] nodeList,int depth)
+        {
+            tests.Add(new TestDescriptor(name, template, nodeList.ToList<DesignerData>(),depth));
+        }
 
         private string[] AddToStandardList(params string[] tags)
         {
@@ -469,7 +461,6 @@ namespace NDjango.UnitTests
 
         #endregion
     }
-
     public class EmptyClass { }
 
     //this class is required for model tests

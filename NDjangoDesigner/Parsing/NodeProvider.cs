@@ -34,6 +34,8 @@ using System.ComponentModel.Design;
 
 namespace NDjango.Designer.Parsing
 {
+
+      
     /// <summary>
     /// Manages a list of syntax nodes for a given buffer.
     /// </summary>
@@ -45,7 +47,7 @@ namespace NDjango.Designer.Parsing
         
         // this lock is used to synchronize access to the nodes list
         private object node_lock = new object();
-        public ProjectHandler Project { get; private set; }
+        public IHandler Project { get;  set; }
 
         /// <summary>
         /// The delay (in milliseconds) of parser invoking. 
@@ -58,7 +60,7 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         private Timer parserTimer;
 
-        private TypeResolver type_resolver;
+        private NDjango.TypeResolver.ITypeResolver type_resolver;
 
         public string Filename { get; private set; }
 
@@ -67,7 +69,7 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider(ProjectHandler project, string filename, TypeResolver type_resolver)
+        public NodeProvider(IHandler project, string filename, NDjango.TypeResolver.ITypeResolver type_resolver)
         {
             Project = project;
             this.type_resolver = type_resolver;

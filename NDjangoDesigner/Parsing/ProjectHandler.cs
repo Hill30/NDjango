@@ -12,10 +12,20 @@ using NDjango.Interfaces;
 
 namespace NDjango.Designer.Parsing
 {
-    public class ProjectHandler: IDisposable
+    public interface IHandler
+    {
+        TemplateDirectory TemplateDirectory { get; set; }
+        ITextSnapshot GetSnapshot(string filename);
+        FSharpList<INodeImpl> ParseTemplate(string filename, NDjango.TypeResolver.ITypeResolver resolver);
+        void Unregister(string filename);
+        void RemoveDiagnostics(Microsoft.VisualStudio.Shell.ErrorTask errorTask);
+        void ShowDiagnostics(Microsoft.VisualStudio.Shell.ErrorTask errorTask);
+
+    }
+    public class ProjectHandler: IDisposable,IHandler
     {
         
-        public TemplateDirectory TemplateDirectory { get; private set; }
+        public TemplateDirectory TemplateDirectory { get; set; }
 
         private NodeProviderBroker broker;
 
@@ -60,7 +70,6 @@ namespace NDjango.Designer.Parsing
         {
             return parser.GetTemplate(filename, resolver, new NDjango.TypeResolver.ModelDescriptor(GetDefaultModel(filename))).Nodes;
         }
-
         protected virtual IEnumerable<NDjango.TypeResolver.IDjangoType> GetDefaultModel(string filename)
         {
             return new List<NDjango.TypeResolver.IDjangoType>();
@@ -72,17 +81,17 @@ namespace NDjango.Designer.Parsing
         }
 
 
-        internal void Unregister(string filename)
+        public void Unregister(string filename)
         {
             template_loader.Unregister(filename);
         }
 
-        internal void RemoveDiagnostics(Microsoft.VisualStudio.Shell.ErrorTask errorTask)
+        public void RemoveDiagnostics(Microsoft.VisualStudio.Shell.ErrorTask errorTask)
         {
             broker.RemoveDiagnostics(errorTask);
         }
 
-        internal void ShowDiagnostics(Microsoft.VisualStudio.Shell.ErrorTask errorTask)
+        public void ShowDiagnostics(Microsoft.VisualStudio.Shell.ErrorTask errorTask)
         {
             broker.ShowDiagnostics(errorTask);
         }
