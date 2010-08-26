@@ -7,7 +7,7 @@ namespace NDjango.Designer.CodeCompletion.CompletionSets
 {
     abstract class AbstractMember : AbstractCompletionSet
     {
-        string[] facets;
+        string[] facets = new string[] {""};
 
         protected override IEnumerable<Completion> BuildNodeCompletions()
         {

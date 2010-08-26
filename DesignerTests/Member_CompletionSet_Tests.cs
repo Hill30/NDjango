@@ -105,6 +105,9 @@ namespace DesignerTests
             source.AugmentCompletionSession(session.Object, completionSets);
 
             Assert.AreEqual(1, completionSets.Count);
+            var c = completionSets[0];
+            Assert.AreEqual(3, c.Completions.Count);
+            
         }
     }
 }
