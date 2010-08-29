@@ -88,6 +88,8 @@ namespace NDjango.Designer.Parsing
         /// <param name="e"></param>
         private void buffer_Changed(object sender, TextContentChangedEventArgs e)
         {
+            throw new Exception("here");
+
             // shut down the old one 
             parserTimer.Dispose();
             

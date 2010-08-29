@@ -70,6 +70,7 @@ namespace NDjango.Designer.Parsing
         {
             return parser.GetTemplate(filename, resolver, new NDjango.TypeResolver.ModelDescriptor(GetDefaultModel(filename))).Nodes;
         }
+        
         protected virtual IEnumerable<NDjango.TypeResolver.IDjangoType> GetDefaultModel(string filename)
         {
             return new List<NDjango.TypeResolver.IDjangoType>();
