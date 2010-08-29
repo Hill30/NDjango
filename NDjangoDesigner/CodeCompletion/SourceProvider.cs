@@ -40,7 +40,7 @@ namespace NDjango.Designer.CodeCompletion
         public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)
         {
             if (nodeProviderBroker.IsNDjango(textBuffer))
-                return new Source(nodeProviderBroker, textBuffer);
+                return new Source(nodeProviderBroker.GetNodeProvider(textBuffer), textBuffer);
             return null;
         }
     }

@@ -47,7 +47,7 @@ namespace NDjango.Designer.Parsing
         
         // this lock is used to synchronize access to the nodes list
         private object node_lock = new object();
-        public IHandler Project { get;  set; }
+        public IProjectHandler Project { get;  set; }
 
         /// <summary>
         /// The delay (in milliseconds) of parser invoking. 
@@ -69,7 +69,7 @@ namespace NDjango.Designer.Parsing
         /// </summary>
         /// <param name="parser"></param>
         /// <param name="buffer">buffer to watch</param>
-        public NodeProvider(IHandler project, string filename, NDjango.TypeResolver.ITypeResolver type_resolver)
+        public NodeProvider(IProjectHandler project, string filename, NDjango.TypeResolver.ITypeResolver type_resolver)
         {
             Project = project;
             this.type_resolver = type_resolver;

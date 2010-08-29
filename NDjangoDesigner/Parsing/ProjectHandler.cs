@@ -12,7 +12,7 @@ using NDjango.Interfaces;
 
 namespace NDjango.Designer.Parsing
 {
-    public interface IHandler
+    public interface IProjectHandler
     {
         TemplateDirectory TemplateDirectory { get; set; }
         ITextSnapshot GetSnapshot(string filename);
@@ -22,7 +22,7 @@ namespace NDjango.Designer.Parsing
         void ShowDiagnostics(Microsoft.VisualStudio.Shell.ErrorTask errorTask);
 
     }
-    public class ProjectHandler: IDisposable,IHandler
+    public class ProjectHandler: IProjectHandler, IDisposable
     {
         
         public TemplateDirectory TemplateDirectory { get; set; }

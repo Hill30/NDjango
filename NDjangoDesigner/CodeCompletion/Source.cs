@@ -45,11 +45,6 @@ namespace NDjango.Designer.CodeCompletion
             this.textBuffer = textBuffer;
             nodeProvider = provider;
         }
-        public Source(INodeProviderBroker nodeProviderBroker, ITextBuffer textBuffer)
-        {
-            this.textBuffer = textBuffer;
-            nodeProvider = nodeProviderBroker.GetNodeProvider(textBuffer);
-        }
 
         public CompletionContext Context { get; private set; }
         public ICompletionSession Session { get; private set; }
