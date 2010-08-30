@@ -117,7 +117,10 @@ type private DefaultLoader() =
             else
                 (new StreamReader(source) :> TextReader)
                 
-        member this.IsUpdated (source, timestamp) = File.GetLastWriteTime(source) > timestamp
+        member this.IsUpdated (source, timestamp) = 
+            if not <| source.StartsWith("temp://") then
+                File.GetLastWriteTime(source) > timestamp
+            else false
             
 ///<summary>
 /// Manager Provider object serves as a container for all the environment variables controlling 
