@@ -21,18 +21,33 @@ namespace DesignerTests
     }
     public static class TestHelper
     {
+        
         public static ITemplateManager InitializeParser()
         {
 
             List<Tag> tags = new List<Tag>();
             List<Filter> filters = new List<Filter>();
-            TemplateManagerProvider provider = new TemplateManagerProvider();
             return provider
                     .WithTags(tags)
                     .WithFilters(filters)
                     .WithSetting(NDjango.Constants.EXCEPTION_IF_ERROR, false)
                     .GetNewManager();
 
+        }
+        private static TemplateManagerProvider provider =  new TemplateManagerProvider();
+        public static ICollection<string> StandardTags
+        {
+            get
+            {
+                return ((IDictionary<string, ITag>)((ITemplateManagerProvider)provider).Tags).Keys;
+            }
+        }
+        public static ICollection<string> StandardFilters 
+        {
+            get
+            {
+                return ((IDictionary<string, ISimpleFilter>)((ITemplateManagerProvider)provider).Filters).Keys;
+            }
         }
     }
     public class TextLine : ITextSnapshotLine
