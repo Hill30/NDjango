@@ -63,6 +63,13 @@ namespace NDjango.Designer.Commands
         string projectName;
         string viewsFolderName;
         INode blockNameNode = null;
+        Project curProject;
+        Project CurrentProject 
+        {
+            get {GetCurrentProject();return curProject;}
+
+            set { curProject = value; }
+        }
         ProjectItems viewsFolder;
         IVsHierarchy hierarchy;
         ITemplateManager parser;
@@ -108,8 +115,8 @@ namespace NDjango.Designer.Commands
         {
             if (name == null)
                 throw new ArgumentException("name");
-            int activeProject = GetActiveProject();
-            ProjectItems parent = dte.Solution.Projects.Item(activeProject).ProjectItems;
+            GetCurrentProject();
+            ProjectItems parent = CurrentProject.ProjectItems;
             if (parent == null)
                 throw new ArgumentException("project");
 
@@ -141,20 +148,17 @@ namespace NDjango.Designer.Commands
         public void AddFromFile(string fileName,string itemName)
         {
             string folderName = GetFolderName();
-            int index = GetActiveProject();
-            if (index > 0)
-            {
-                viewsFolder = dte.Solution.Projects.Item(index).ProjectItems; ;//default ViewsFolder is  the root of the project
-                SearchFolder(folderName, viewsFolder);//find the real folder the new view must be inserted to
-                viewsFolder.AddFromTemplate(fileName, itemName);
-                int i = 1;
-                for (; i < viewsFolder.Count; i++)
-                    if (viewsFolder.Item(i).Name == itemName)
-                        break;
-                //EnvDTE.Constants.vsViewKindCode = {7651A701-06E5-11D1-8EBD-00A0C90F26EA}
-                viewsFolder.Item(i).Open("{7651A701-06E5-11D1-8EBD-00A0C90F26EA}").Visible = true;
+            GetCurrentProject(); 
+            viewsFolder = curProject.ProjectItems; ;//default ViewsFolder is  the root of the project
+            SearchFolder(folderName, viewsFolder);//find the real folder the new view must be inserted to
+            viewsFolder.AddFromTemplate(fileName, itemName);
+            int i = 1;
+            for (; i < viewsFolder.Count; i++)
+                if (viewsFolder.Item(i).Name == itemName)
+                    break;
+            //EnvDTE.Constants.vsViewKindCode = {7651A701-06E5-11D1-8EBD-00A0C90F26EA}
+            viewsFolder.Item(i).Open("{7651A701-06E5-11D1-8EBD-00A0C90F26EA}").Visible = true;
                 
-            }
         }
 
         private string GetFolderName()
@@ -165,7 +169,7 @@ namespace NDjango.Designer.Commands
         }
         public List<Assembly> GetReferences()
         {
-            Project project = GetCurrentProject();
+            Project project = CurrentProject;
             List<Assembly> list = new List<Assembly>();
 
             string fullProjectPath = project.Properties.Item("FullPath").Value.ToString();
@@ -220,14 +224,27 @@ namespace NDjango.Designer.Commands
 
         }
 
-        private Project GetCurrentProject()
+        private void GetCurrentProject()
         {
             foreach (Project project in dte.Solution.Projects)
                 if (project.Name == projectName)
-                    return project;
-            return null;
+                {
+                    curProject = project;
+                    break;
+                }
+                else if (project.ProjectItems != null)
+                    LoopItems(project);
         }
+        private void LoopItems(Project project)
+        {
+            foreach (ProjectItem item in project.ProjectItems)
+                if (item.Name == projectName)
+                {
+                    curProject = item.SubProject;
+                    break;
+                }
 
+        }
         public IEnumerable<string> GetTemplates(string root)
         {
             return templatesDir.GetTemplates(root);
@@ -266,20 +283,6 @@ namespace NDjango.Designer.Commands
 
             }
             return blocks;
-        }
-        /// <summary>
-        /// In case when the solution has several project - necessary to find out the index of the active project
-        /// </summary>
-        /// <returns>index in Solution.Projects collection</returns>
-        private int GetActiveProject()
-        {
-            int i = 1;
-            foreach (Project p in dte.Solution.Projects)
-                if (String.Compare(p.Name, projectName) == 0)
-                    return i;
-                else
-                    i++;
-            return -1;//if there is no project with specified name in the collection
         }
         /// <summary>
         /// Helper method to walk through the project tree and find folder with the specified name
