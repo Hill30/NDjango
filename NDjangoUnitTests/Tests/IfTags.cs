@@ -22,6 +22,24 @@ namespace NDjango.UnitTests
 
             IList<TestDescriptor> lst = new List<TestDescriptor>();
 
+            // ### SMART IF TAG ################################################################
+            lst.Add(new TestDescriptor("if-tag < 01", "{% if foo < bar %}yes{% else %}no{% endif %}", ContextObjects.p("foo", 1, "bar", 2), ContextObjects.p("yes")));
+            lst.Add(new TestDescriptor("if-tag < 02", "{% if foo < bar %}yes{% else %}no{% endif %}", ContextObjects.p("foo", 1, "bar", 1), ContextObjects.p("no")));
+            lst.Add(new TestDescriptor("if-tag < 03", "{% if foo < bar %}yes{% else %}no{% endif %}", ContextObjects.p("foo", 2, "bar", 1), ContextObjects.p("no")));
+            lst.Add(new TestDescriptor("if-tag < 04", "{% if foo > bar %}yes{% else %}no{% endif %}", ContextObjects.p("foo", 1, "bar", 2), ContextObjects.p("no")));
+            lst.Add(new TestDescriptor("if-tag < 05", "{% if foo == bar %}yes{%else %}no{% endif %}", ContextObjects.p("foo", 1, "bar", 2), ContextObjects.p("no")));
+            
+            // AND and OR raised a TemplateSyntaxError in django 1.1 but we can use OR and AND in one expression since django 1.2
+            lst.Add(new TestDescriptor("if-tag-orand", "{% if foo or bar and baz %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", false), ContextObjects.p("no")));
+            lst.Add(new TestDescriptor("if-tag-andor","{% if foo and bar or baz %}yes{% else %}no{% endif %}",ContextObjects.p("foo",true,"baz",false),ContextObjects.p("no")));
+            lst.Add(new TestDescriptor("if-tag-andand", "{% if foo and bar and baz %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true, "bar", true, "baz", true), ContextObjects.p("yes")));
+            lst.Add(new TestDescriptor("if-tag->and", "{% if foo > bar and baz %}yes{% else %}no{% endif %}", ContextObjects.p("foo", 3, "bar", 2, "baz", true), ContextObjects.p("yes")));
+            lst.Add(new TestDescriptor("if-tag->and<", "{% if foo > bar and baz < bar %}yes{% else %}no{% endif %}", ContextObjects.p("foo", 3, "bar", 2, "baz", 1), ContextObjects.p("yes")));
+            lst.Add(new TestDescriptor("if-tag-not-or-and01", "{% if foo or not bar and baz  %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", false, "baz", false), ContextObjects.p("no")));
+            lst.Add(new TestDescriptor("if-tag-not-or-and02", "{% if foo or not bar and baz  %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true, "bar", false, "baz", false), ContextObjects.p("yes")));
+            lst.Add(new TestDescriptor("if-tag-not-or-and03", "{% if foo or not bar and baz  %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", true, "baz", false), ContextObjects.p("no")));
+            lst.Add(new TestDescriptor("if-tag-not-or-and04", "{% if foo or not bar and baz  %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", false, "baz", false), ContextObjects.p("no")));
+            
             // ### IF TAG ################################################################
             lst.Add(new TestDescriptor("if-tag01", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p("yes")));
             lst.Add(new TestDescriptor("if-tag02", "{% if foo %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false), ContextObjects.p("no")));
@@ -93,13 +111,13 @@ namespace NDjango.UnitTests
             lst.Add(new TestDescriptor("if-tag-not34", "{% if not foo or not bar %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", true), ContextObjects.p("yes")));
             lst.Add(new TestDescriptor("if-tag-not35", "{% if not foo or not bar %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", false), ContextObjects.p("yes")));
 
-            // AND and OR raises a TemplateSyntaxError
-            lst.Add(new TestDescriptor("if-tag-error01", "{% if foo or bar and baz %}yes{% else %}no{% endif %}", ContextObjects.p("foo", false, "bar", false), ContextObjects.p(typeof(SyntaxException))));
-            lst.Add(new TestDescriptor("if-tag-error02", "{% if foo and %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
-            lst.Add(new TestDescriptor("if-tag-error03", "{% if foo or %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
-            lst.Add(new TestDescriptor("if-tag-error04", "{% if not foo and %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
-            lst.Add(new TestDescriptor("if-tag-error05", "{% if not foo or %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
-            lst.Add(new TestDescriptor("if-tag-error06", "{% if not foo %}yes{% else %}no", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
+            
+            
+            lst.Add(new TestDescriptor("if-tag-error01", "{% if foo and %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
+            lst.Add(new TestDescriptor("if-tag-error02", "{% if foo or %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
+            lst.Add(new TestDescriptor("if-tag-error03", "{% if not foo and %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
+            lst.Add(new TestDescriptor("if-tag-error04", "{% if not foo or %}yes{% else %}no{% endif %}", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
+            lst.Add(new TestDescriptor("if-tag-error05", "{% if not foo %}yes{% else %}no", ContextObjects.p("foo", true), ContextObjects.p(typeof(SyntaxException))));
             
             // IFEqual TAG
             lst.Add(new TestDescriptor("ifequal-tag-01", "{% ifequal foo bar %}yes{% else %}no{% endifequal %}", ContextObjects.p("foo", true, "bar", true), ContextObjects.p("yes")));

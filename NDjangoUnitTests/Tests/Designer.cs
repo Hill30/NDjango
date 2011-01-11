@@ -90,24 +90,32 @@ namespace NDjango.UnitTests
             NewTest("if-tag-designer-error2", "{% if foo or b and c %}yes{% else %}no{% endif %}"
                 , Nodes
                 (
-                    StandardNode(0, 49),
+                    //for django 1.1 we threw an error,but since django 1.2 we should not...
+                    /*StandardNode(0, 49),
                     ErrorNode(0, 27, EmptyList, 2, "'if' tags can't mix 'and' and 'or'"),
                     Node(23, 13, "else", "endif"),
                     StandardNode(29, 4),
                     Node(36, 13, "endif"),
                     StandardNode(41, 5),
-                    StandardNode(3, 2)
+                    StandardNode(3, 2)*/
+
+                    StandardNode(0,49),
+                    Node(36,13,"endif"),
+                    StandardNode(41,5),
+                    Node(23,13,"else","endif"),
+                    StandardNode(29,4),
+                    StandardNode(3,2)
                 ));
             NewTest("if-tag-designer-error3", "{% if foo or b and c %}yes{% else %}no"
                , Nodes
                (
                    StandardNode(0, 23),
-                   ErrorNode(0, 23, EmptyList, 2, "'if' tags can't mix 'and' and 'or'"),
-                   Node(23, 13, "else", "endif"),
-                   StandardNode(29, 4),
+                   /*ErrorNode(0, 23, EmptyList, 2, "'if' tags can't mix 'and' and 'or'"),*/
                    Node(36, 2, "endif"),
                    ErrorNode(0, 23, EmptyList, 2, "Missing closing tag. Available tags: endif"),
                    StandardNode(3, 2),
+                   Node(23, 13, "else", "endif"),
+                   StandardNode(29, 4),
                    StandardNode(3, 2)
                ));
             NewTest("if-tag-designer-error4", "{% if foo or b or c %}yes{% else %}no"
