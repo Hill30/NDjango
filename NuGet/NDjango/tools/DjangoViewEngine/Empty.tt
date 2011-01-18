@@ -1,0 +1,46 @@
+<#@ template language="C#" HostSpecific="True" #>
+<#@ output extension=".django" #>
+<#MvcTextTemplateHost mvcHost = (MvcTextTemplateHost)(Host);#>
+<# if(!mvcHost.IsContentPage){
+	if (!String.IsNullOrEmpty(mvcHost.ViewDataTypeName)){
+	#>
+{% model Model:<#= mvcHost.ViewDataTypeName #> %}
+	<#
+	}if (!String.IsNullOrEmpty(mvcHost.MasterPageFile)){
+	#>
+{% extends "<#= mvcHost.MasterPageFile #>" %}
+	<#
+	}
+	#>
+	<# if (mvcHost.ContentPlaceHolderIDs != null)
+		foreach(string blockName in mvcHost.ContentPlaceHolderIDs) {
+			if (blockName.Contains("title")) {
+	#>
+			{% block title %}<#= mvcHost.ViewName #>{% endblock %}
+	
+	<#
+		}
+	}
+	#>
+<#
+} else {
+#>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title><#= mvcHost.ViewName #></title>
+</head>
+<body>
+
+    <div>
+    
+    </div>
+
+
+</body>
+</html>
+<#
+}
+#>

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <id>ndjango</id>
+    <version>0.9.9.0</version>
+    <authors>Hill30</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>NDjango is an implementation of the Django Template Language on the .NET platform, using the F# language.</description>
+  </metadata>
+</package>
