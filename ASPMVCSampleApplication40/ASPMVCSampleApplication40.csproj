@@ -65,6 +65,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppStart_SparkWebMvc.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs">
@@ -75,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
+    <Content Include="packages.config" />
     <None Include="Views\Home\Django.django" />
     <None Include="Views\Shared\Site.django" />
     <None Include="Views\Account\Register.django" />

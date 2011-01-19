@@ -9,9 +9,9 @@ open System.Runtime.InteropServices;
 
 module AssemblyInfo =
   [<Literal>] 
-  let public Version = "0.9.8.0"
+  let public Version = "0.9.9.0"
   [<Literal>]
-  let public FileVersion = "0.9.8.1"
+  let public FileVersion = "0.9.9.0"
 
 
 // General Information about an assembly is controlled through the following

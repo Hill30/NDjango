@@ -147,6 +147,18 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ItemTemplates\NDjangoTemplate.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ProjectTemplates\ASPMVCEmptyApplication40.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectTemplates\ASPMVCSampleApplication40.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -187,6 +199,7 @@
       <Name>NDjangoParser40</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
   </PropertyGroup>
