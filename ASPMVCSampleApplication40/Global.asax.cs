@@ -24,7 +24,7 @@ namespace ASPMVCSampleApplication40
 
         }
 
-        public NDjango.Interfaces.ITemplateManager DjangoTemplateManager { get; set; }
+        public NDjango.Interfaces.ITemplateManager DjangoTemplateManager ;
         
         protected void Application_Start()
         {

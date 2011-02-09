@@ -46,3 +46,11 @@ If ($mvc3_exist) {
 	Copy-Item $toolspath\DjangoViewEngine\*.* -Destination ($mvc3 + "\DjangoViewEngine")
 }
 
+$proj = get-project
+$app = $proj.ProjectItems.Item("global.asax").ProjectItems.Item("global.asax.cs").FileCodeModel.CodeElements | where-object {$_.Kind -eq 5}
+$class = $app.Children.Item(1)
+$result = $class.AddVariable("DjangoTemplateManager","NDjango.Interfaces.ITemplateManager",0,1)
+#$result = $class.AddProperty("DjangoTemplateManager","DjangoTemplateManager","NDjango.Interfaces.ITemplateManager",0,1)
+
+
+
