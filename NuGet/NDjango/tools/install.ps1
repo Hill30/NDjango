@@ -34,8 +34,9 @@ If (!$designer_exist) {
 
 $dirinfo = New-Object System.Io.Directoryinfo($Env:Vs100comntools)
 $mvc3 = [Io.Path]::Combine($Dirinfo.Parent.Fullname, "Ide")
+$mvc2 = $mvc3
 $mvc3 = $mvc3 + "\Itemtemplates\Csharp\Web\Mvc 3\Codetemplates\AddView"
-
+$mvc2 = $mvc2 + "\Itemtemplates\Csharp\Web\Mvc 2\Codetemplates\AddView"
 $mvc3_exist = test-path -path $mvc3
 If ($mvc3_exist) {
 
@@ -44,6 +45,15 @@ If ($mvc3_exist) {
 	}
 
 	Copy-Item $toolspath\DjangoViewEngine\*.* -Destination ($mvc3 + "\DjangoViewEngine")
+}
+$mvc2_exist = test-path -path $mvc2
+If ($mvc2_exist) {
+
+	if(!(test-path -Path ($mvc2 + "\DjangoViewEngine")))	{
+		New-Item ($mvc2 + "\DjangoViewEngine") -itemtype directory | Out-Null
+	}
+
+	Copy-Item $toolspath\DjangoViewEngine\*.* -Destination ($mvc2 + "\DjangoViewEngine")
 }
 
 $proj = get-project
