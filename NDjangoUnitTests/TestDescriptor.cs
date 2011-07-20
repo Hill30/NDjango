@@ -47,18 +47,19 @@ namespace NDjango.UnitTests
             return Name;
         }
 
-        public TestDescriptor(string name, string template, List<DesignerData> designResult)
+        public TestDescriptor(string name, string template, DesignerData[] designResult)
         {
             Name = name;
             Template = template;
-            ResultForDesigner = designResult;
+            ResultForDesigner = new List<DesignerData>(designResult);
             RecursionDepth = 2;
         }
-        public TestDescriptor(string name, string template, List<DesignerData> designResult,int modelDepth)
+
+        public TestDescriptor(string name, string template, DesignerData[] designResult,int modelDepth)
         {
             Name = name;
             Template = template;
-            ResultForDesigner = designResult;
+            ResultForDesigner = new List<DesignerData>(designResult);
             RecursionDepth = modelDepth;
         }
 
@@ -175,53 +176,52 @@ namespace NDjango.UnitTests
             }
         }
 
-        private void ValidateSyntaxTree(NDjango.Interfaces.ITemplateManager manager)
+        private void ValidateSyntaxTree(ITemplateManager manager)
         {
-            ITemplate template = manager.GetTemplate(Template, new TestTyperesolver(),
-                new NDjango.TypeResolver.ModelDescriptor(new NDjango.TypeResolver.IDjangoType[] 
+            var template = manager.GetTemplate(Template, new TestTyperesolver(),
+                new TypeResolver.ModelDescriptor(new TypeResolver.IDjangoType[] 
                     {
-                        new NDjango.TypeResolver.CLRTypeDjangoType("Standard", typeof(EmptyClass))
+                        new TypeResolver.CLRTypeDjangoType("Standard", typeof(EmptyClass))
                     }));
             
             //the same logic responsible for retriving nodes as in NodeProvider class (DjangoDesigner).
-            List<INode> nodes = GetNodes(template.Nodes.ToList<INodeImpl>().ConvertAll
+            var nodes = GetNodes(template.Nodes.ToList().ConvertAll
                 (node => (INode)node)).FindAll(node =>
                     (node is ICompletionValuesProvider) 
                     || (node.NodeType == NodeType.ParsingContext) 
                     || (node.ErrorMessage.Message != ""));
-            List<DesignerData> actualResult = nodes.ConvertAll(
+            var actualResult = nodes.ConvertAll(
                 node =>
                 {
-                    var value_provider = node as ICompletionValuesProvider;
+                    var valueProvider = node as ICompletionValuesProvider;
                     var values =
-                        value_provider == null ?
+                        valueProvider == null ?
                             new List<string>()
-                            : value_provider.Values;
-                    List<string> contextValues = new List<string>(values);
-                    if (node.NodeType == NodeType.ParsingContext)
+                            : valueProvider.Values;
+                    var contextValues = new List<string>(values);
+                    switch (node.NodeType)
                     {
-                        contextValues.InsertRange(0 ,(node.Context.TagClosures));
-                        return new DesignerData(node.Position, node.Length, contextValues.ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
+                        case NodeType.ParsingContext:
+                            contextValues.InsertRange(0 ,(node.Context.TagClosures));
+                            return new DesignerData(node.Position, node.Length, contextValues.ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
+                        case NodeType.Reference:
+                            return new DesignerData(node.Position, node.Length, GetModelValues(node.Context.Model, RecursionDepth).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
+                        default:
+                            return new DesignerData(node.Position, node.Length, new List<string>(values).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
                     }
-                    else if (node.NodeType == NodeType.Reference)
-                    {
-                        return new DesignerData(node.Position, node.Length, GetModelValues(node.Context.Model, RecursionDepth).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
-                    }
-                    else
-                        return new DesignerData(node.Position, node.Length, new List<string>(values).ToArray(), node.ErrorMessage.Severity, node.ErrorMessage.Message);
                 });
             
-            for (int i = 0; i < actualResult.Count; i++)
+            for (var i = 0; i < actualResult.Count; i++)
             {
-                if (actualResult[i].Values.Length == 0)
-                    continue;
-
                 Assert.AreEqual(ResultForDesigner[i].Length, actualResult[i].Length, "Invalid Length");
                 Assert.AreEqual(ResultForDesigner[i].Position, actualResult[i].Position, "Invalid Position");
-                Assert.AreEqual(ResultForDesigner[i].Severity, actualResult[i].Severity, "Invalid Severity");
                 Assert.AreEqual(ResultForDesigner[i].ErrorMessage, actualResult[i].ErrorMessage, "Invalid ErrorMessage");
+                Assert.AreEqual(ResultForDesigner[i].Severity, actualResult[i].Severity, "Invalid Severity");
                 Assert.AreEqual(ResultForDesigner[i].Values, actualResult[i].Values, "Invalid Values Array " + i);
-            }            
+            }
+
+            Assert.AreEqual(ResultForDesigner.Count(), actualResult.Count);
+
         }
 
         private static List<string> GetModelValues(NDjango.TypeResolver.IDjangoType model, int recursionDepth)

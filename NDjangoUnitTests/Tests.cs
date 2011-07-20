@@ -80,8 +80,8 @@ this is inner2
         NDjango.Interfaces.ITemplateManager manager;
         NDjango.Interfaces.ITemplateManager managerForDesigner;
         TemplateManagerProvider provider;
-        public ICollection<string> standardTags = new List<string>();
-        public ICollection<string> standardFilters = new List<string>();
+        public Func<IEnumerable<string>> standardTags;
+        public Func<IEnumerable<string>> standardFilters;
 
         [TestFixtureSetUp]
         public void Setup()

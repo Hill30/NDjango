@@ -47,6 +47,18 @@ namespace TemplateViewer
             #endregion
         }
 
+        public class TypeResolver : NDjango.TypeResolver.ITypeResolver
+        {
+            #region ITypeResolver Members
+
+            public Type Resolve(string type_name)
+            {
+                return Type.GetType(type_name);
+            }
+
+            #endregion
+        }
+
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -56,13 +68,27 @@ namespace TemplateViewer
             }
         }
 
+        public class EmptyClass
+        {
+            public String HereY { get; set; }
+        }
+
         private void parseToolStripMenuItem_Click(object sender, EventArgs e)
         {
             templateTree.Nodes.Clear();
             Diagonstics.Clear();
             try
             {
-                foreach (INode node in provider.GetTemplate("does not matter").Nodes)
+                foreach (INode node in provider
+                        .GetTemplate(
+                            "does not matter",
+                            new TypeResolver(),
+                            new NDjango.TypeResolver.ModelDescriptor(
+                                new NDjango.TypeResolver.IDjangoType[] 
+                                {
+                                    new NDjango.TypeResolver.CLRTypeDjangoType("Standard", typeof(EmptyClass))
+                                })
+                        ).Nodes)
                     Process(templateTree.Nodes, node);
             }
             catch (Exception ex)
@@ -97,12 +123,20 @@ namespace TemplateViewer
                 tnode.Nodes.Add("(Error)" + node.ErrorMessage.Message);
 
             string vlist = "";
-            var completion_provider = node as ICompletionProvider;
-            //if (completion_provider != null)
-            //    foreach (string s in completion_provider.Values)
-            //        vlist += s + ' ';
+            var completion_provider = node as ICompletionValuesProvider;
+            if (completion_provider != null)
+                foreach (string s in completion_provider.Values)
+                    vlist += s + ' ';
+
             if (!string.IsNullOrEmpty(vlist))
                 tnode.Nodes.Add("(Values) = " + vlist);
+
+            var mlist = "";
+            foreach (var member in node.Context.Model.Members)
+                mlist += member.Name + " ";
+
+            if (!string.IsNullOrEmpty(mlist))
+                tnode.Nodes.Add("(Members) = " + mlist);
 
             foreach (KeyValuePair<string, IEnumerable<INode>> item in node.Nodes)
             {
