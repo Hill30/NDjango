@@ -99,64 +99,32 @@ namespace Microsoft.SymbolBrowser
             ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
             AddLibList(libRoot, "Project", globalLibs);
 
-            IVsNavInfo navInfo = new NavInfo();
-
             IVsObjectList2 objects = null;
-            if ((libFlags & (uint)_LIB_FLAGS.LF_PROJECT) != 0)
-                try
-                {
-                    ErrorHandler.Succeeded(lib.GetList2(
-                        (uint) (_LIB_LISTTYPE.LLT_NAMESPACES),
-                        (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                        new[]
-                            {
-                                new VSOBSEARCHCRITERIA2
-                                    {
-                                        eSrchType = VSOBSEARCHTYPE.SO_SUBSTRING,
-                                        grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
-                                        pIVsNavInfo = navInfo,
-                                        szName = "Class"
-                                    }
-                                ,
+            try
+            {
+                ErrorHandler.Succeeded(lib.GetList2(
+                    (uint) (_LIB_LISTTYPE.LLT_NAMESPACES),
+                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                    new[]
+                        {
+                            new VSOBSEARCHCRITERIA2
+                                {
+                                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                                    szName = "*"
+                                }
+                            ,
 
-                            },
-                        out objects
-                                               ));
-                }
-                catch (Exception e)
-                {
-                    var s = e.Message;
-                }
+                        },
+                    out objects
+                                            ));
+            }
+            catch (Exception e)
+            {
+                var s = e.Message;
+            }
             AddContent(libRoot, objects as IVsSimpleObjectList2);
 
-        }
-
-        class NavInfo : IVsNavInfo
-        {
-
-            #region IVsNavInfo Members
-
-            public int EnumCanonicalNodes(out IVsEnumNavInfoNodes ppEnum)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int EnumPresentationNodes(uint dwFlags, out IVsEnumNavInfoNodes ppEnum)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int GetLibGuid(out Guid pGuid)
-            {
-                throw new NotImplementedException();
-            }
-
-            public int GetSymbolType(out uint pdwType)
-            {
-                throw new NotImplementedException();
-            }
-
-            #endregion
         }
 
         private void AddContent(TreeViewItem parent, IVsSimpleObjectList2 objects)
