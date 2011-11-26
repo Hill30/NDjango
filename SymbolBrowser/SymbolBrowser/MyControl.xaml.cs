@@ -91,17 +91,26 @@ namespace Microsoft.SymbolBrowser
             var libRoot = new TreeViewItem { Header = "giud=(" + libGuid + ") + flags=" + flags };
             treeView1.Items.Add(libRoot);
 
-            IVsLiteTreeList globalLibs;
-            ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
-            AddLibList(libRoot, "Global", globalLibs);
+            //IVsLiteTreeList globalLibs;
+            //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
+            //AddLibList(libRoot, "Global", globalLibs);
 
-            IVsLiteTreeList projectLibs;
-            ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
-            AddLibList(libRoot, "Project", globalLibs);
+            //IVsLiteTreeList projectLibs;
+            //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
+            //AddLibList(libRoot, "Project", globalLibs);
 
+            AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_NAMESPACES);
+
+            AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_CLASSES);
+
+            AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_MEMBERS);
+        }
+
+        private void AddNested(IVsLibrary2 lib, TreeViewItem libRoot, _LIB_LISTTYPE listType)
+        {
             IVsObjectList2 objects;
             ErrorHandler.Succeeded(lib.GetList2(
-                (uint) (_LIB_LISTTYPE.LLT_NAMESPACES),
+                (uint)listType,
                 (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
                 new[]
                     {
@@ -115,24 +124,10 @@ namespace Microsoft.SymbolBrowser
                 out objects
                                         ));
 
-            AddContent(libRoot, objects as IVsSimpleObjectList2, "--Root--", null);
-
-        }
-
-        private void AddContent(TreeViewItem parent, IVsSimpleObjectList2 objects, string name, string path)
-        {
             if (objects == null)
                 return;
 
-            var root = new TreeViewItem { Header = name };
-
-            if (path != null)
-                root.Items.Add("Path = " + path);
-
-            uint count;
-            ErrorHandler.Succeeded(objects.GetItemCount(out count));
-            root.Items.Add("Items count " + count);
-
+            var root = new TreeViewItem {Header = listType};
             uint libFlags;
             ErrorHandler.Succeeded(objects.GetCapabilities2(out libFlags));
 
@@ -158,59 +153,148 @@ namespace Microsoft.SymbolBrowser
             if (flags != "")
             {
                 flags = flags.Substring(1);
-                root.Items.Add("Flags " + flags);
+                root.Items.Add("flags = " + flags);
             }
+
+            uint count;
+            ErrorHandler.Succeeded(objects.GetItemCount(out count));
 
             for (var i = (uint)0; i < count; i++)
             {
-                IVsSimpleObjectList2 nestedObjects;
-                ErrorHandler.Succeeded(objects.GetList2(
-                    i,
-                    (uint)(_LIB_LISTTYPE.LLT_CLASSES),
-                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                    new[]
-                        {
-                            new VSOBSEARCHCRITERIA2
-                                {
-                                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
-                                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
-                                    szName = "*"
-                                }
-                        },
-                    out nestedObjects
-                                            ));
-
                 object propValue;
+                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_LEAFNAME, out propValue));
+                var item = new TreeViewItem {Header = propValue};
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
-                var fullName = (string) propValue;
+                item.Items.Add("Full Name " + (string)propValue);
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
-                var componentPath = (string)propValue;
-                AddContent(root, nestedObjects, fullName, componentPath);
-
-                ErrorHandler.Succeeded(objects.GetList2(
-                    i,
-                    (uint)(_LIB_LISTTYPE.LLT_NAMESPACES),
-                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                    new[]
-                        {
-                            new VSOBSEARCHCRITERIA2
-                                {
-                                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
-                                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
-                                    szName = "*"
-                                }
-                        },
-                    out nestedObjects
-                                            ));
-
-                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
-                fullName = (string)propValue;
-                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
-                componentPath = (string)propValue;
-                //AddContent(root, nestedObjects, fullName, componentPath);
+                item.Items.Add("Path " + (string)propValue);
+                root.Items.Add(item);
             }
-            parent.Items.Add(root);
+
+            libRoot.Items.Add(root);
         }
+
+        //private void AddContent(TreeViewItem parent, IVsSimpleObjectList2 objects, string name, string path)
+        //{
+        //    if (objects == null)
+        //        return;
+
+        //    var root = new TreeViewItem { Header = name };
+
+        //    if (path != null)
+        //        root.Items.Add("Path = " + path);
+
+        //    uint count;
+        //    ErrorHandler.Succeeded(objects.GetItemCount(out count));
+        //    root.Items.Add("Items count " + count);
+
+        //    uint libFlags;
+        //    ErrorHandler.Succeeded(objects.GetCapabilities2(out libFlags));
+
+        //    var flags = "";
+        //    if ((libFlags & (uint)_LIB_LISTCAPABILITIES.LLC_ALLOWDELETE) != 0)
+        //        flags += "|LLC_ALLOWDELETE";
+        //    if ((libFlags & (uint)_LIB_LISTCAPABILITIES.LLC_ALLOWDRAGDROP) != 0)
+        //        flags += "|LLC_ALLOWDRAGDROP";
+        //    if ((libFlags & (uint)_LIB_LISTCAPABILITIES.LLC_ALLOWRENAME) != 0)
+        //        flags += "|LLC_ALLOWRENAME";
+        //    if ((libFlags & (uint)_LIB_LISTCAPABILITIES.LLC_ALLOWSCCOPS) != 0)
+        //        flags += "|LLC_ALLOWSCCOPS";
+        //    if ((libFlags & (uint)_LIB_LISTCAPABILITIES.LLC_HASBROWSEOBJ) != 0)
+        //        flags += "|LLC_HASBROWSEOBJ";
+        //    if ((libFlags & (uint)_LIB_LISTCAPABILITIES.LLC_HASCOMMANDS) != 0)
+        //        flags += "|LLC_HASCOMMANDS";
+        //    if ((libFlags & (uint)_LIB_LISTCAPABILITIES.LLC_HASDESCPANE) != 0)
+        //        flags += "|LLC_HASDESCPANE";
+        //    if ((libFlags & (uint)_LIB_LISTCAPABILITIES.LLC_NONE) != 0)
+        //        flags += "|LLC_NONE";
+        //    if ((libFlags & (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH) != 0)
+        //        flags += "|LLC_ALLOWELEMENTSEARCH";
+        //    if (flags != "")
+        //    {
+        //        flags = flags.Substring(1);
+        //        root.Items.Add("Flags " + flags);
+        //    }
+
+        //    for (var i = (uint)0; i < count; i++)
+        //    {
+        //        AddNested(root, objects, i, (uint)_LIB_LISTTYPE.LLT_CLASSES);
+
+        //        //IVsSimpleObjectList2 nestedObjects;
+        //        //ErrorHandler.Succeeded(objects.GetList2(
+        //        //    i,
+        //        //    (uint)(_LIB_LISTTYPE.LLT_CLASSES),
+        //        //    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+        //        //    new[]
+        //        //        {
+        //        //            new VSOBSEARCHCRITERIA2
+        //        //                {
+        //        //                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+        //        //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+        //        //                    szName = "*"
+        //        //                }
+        //        //        },
+        //        //    out nestedObjects
+        //        //                            ));
+
+        //        //object propValue;
+        //        //ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
+        //        //var fullName = (string) propValue;
+        //        //ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
+        //        //var componentPath = (string)propValue;
+        //        //AddContent(root, nestedObjects, fullName, componentPath);
+
+        //        //ErrorHandler.Succeeded(objects.GetList2(
+        //        //    i,
+        //        //    (uint)(_LIB_LISTTYPE.LLT_NAMESPACES),
+        //        //    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+        //        //    new[]
+        //        //        {
+        //        //            new VSOBSEARCHCRITERIA2
+        //        //                {
+        //        //                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+        //        //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+        //        //                    szName = "*"
+        //        //                }
+        //        //        },
+        //        //    out nestedObjects
+        //        //                            ));
+
+        //        //ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
+        //        //fullName = (string)propValue;
+        //        //ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
+        //        //componentPath = (string)propValue;
+        //        ////AddContent(root, nestedObjects, fullName, componentPath);
+        //    }
+        //    parent.Items.Add(root);
+        //}
+
+        //void AddNested(TreeViewItem parent, IVsSimpleObjectList2 objects, uint index, uint listType)
+        //{
+        //    IVsSimpleObjectList2 nestedObjects;
+        //    ErrorHandler.Succeeded(objects.GetList2(
+        //        index,
+        //        (uint)(_LIB_LISTTYPE.LLT_CLASSES),
+        //        (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+        //        new[]
+        //                {
+        //                    new VSOBSEARCHCRITERIA2
+        //                        {
+        //                            eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+        //                            grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+        //                            szName = "*"
+        //                        }
+        //                },
+        //        out nestedObjects
+        //                                ));
+
+        //    object propValue;
+        //    ErrorHandler.Succeeded(objects.GetProperty(index, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
+        //    var fullName = (string)propValue;
+        //    ErrorHandler.Succeeded(objects.GetProperty(index, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
+        //    var componentPath = (string)propValue;
+        //    AddContent(parent, nestedObjects, fullName, componentPath);
+        //}
 
         private void AddLibList(TreeViewItem parent, string header, IVsLiteTreeList theList)
         {
