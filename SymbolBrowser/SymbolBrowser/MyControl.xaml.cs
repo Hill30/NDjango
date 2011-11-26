@@ -104,6 +104,8 @@ namespace Microsoft.SymbolBrowser
             AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_CLASSES);
 
             AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_MEMBERS);
+
+            AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_REFERENCES);
         }
 
         private void AddNested(IVsLibrary2 lib, TreeViewItem libRoot, _LIB_LISTTYPE listType)
@@ -163,15 +165,54 @@ namespace Microsoft.SymbolBrowser
             {
                 object propValue;
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_LEAFNAME, out propValue));
-                var item = new TreeViewItem {Header = propValue};
+                var item = new TreeViewItem {Header = (string)propValue};
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
                 item.Items.Add("Full Name " + (string)propValue);
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
                 item.Items.Add("Path " + (string)propValue);
+                
+                IVsObjectList2 nestedObjects;
+                ErrorHandler.Succeeded(objects.GetList2(
+                    i,
+                    (uint)(_LIB_LISTTYPE.LLT_CLASSES),
+                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                    new[]
+                        {
+                            new VSOBSEARCHCRITERIA2
+                                {
+                                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                                    szName = "*"
+                                }
+                        },
+                    out nestedObjects
+                                            ));
+                AddNested(item, nestedObjects);
+
                 root.Items.Add(item);
             }
 
             libRoot.Items.Add(root);
+        }
+
+        private void AddNested(TreeViewItem parent, IVsObjectList2 objects)
+        {
+            uint count;
+            ErrorHandler.Succeeded(objects.GetItemCount(out count));
+
+            for (var i = (uint)0; i < count; i++)
+            {
+                object propValue;
+                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_LEAFNAME, out propValue));
+                var item = new TreeViewItem { Header = (string)propValue };
+                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
+                item.Items.Add("Full Name " + (string)propValue);
+                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
+                item.Items.Add("Path " + (string)propValue);
+
+                parent.Items.Add(item);
+            }
+
         }
 
         //private void AddContent(TreeViewItem parent, IVsSimpleObjectList2 objects, string name, string path)
