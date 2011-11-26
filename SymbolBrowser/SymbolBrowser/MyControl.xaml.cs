@@ -163,16 +163,8 @@ namespace Microsoft.SymbolBrowser
                 ErrorHandler.Succeeded(objects.GetList2(
                     i,
                     (uint)(_LIB_LISTTYPE.LLT_HIERARCHY),
-                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                    new []
-                    {
-                        new VSOBSEARCHCRITERIA2
-                            {
-                                eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
-                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
-                                szName = "*"
-                            }
-                    },
+                    (uint)_LIB_LISTFLAGS.LLF_NONE,
+                    new VSOBSEARCHCRITERIA2[] {},
                     out nestedObjects
                                             ));
 
@@ -181,8 +173,6 @@ namespace Microsoft.SymbolBrowser
                 var fullName = (string) propValue;
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
                 var componentPath = (string)propValue;
-                
-//                if (!name.Contains("eferences"))
                 AddContent(root, nestedObjects, fullName, componentPath);
             }
             parent.Items.Add(root);
