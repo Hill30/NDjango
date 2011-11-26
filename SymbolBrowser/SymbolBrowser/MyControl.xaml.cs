@@ -114,6 +114,7 @@ namespace Microsoft.SymbolBrowser
                     },
                 out objects
                                         ));
+
             AddContent(libRoot, objects as IVsSimpleObjectList2, "--Root--", null);
 
         }
@@ -154,17 +155,28 @@ namespace Microsoft.SymbolBrowser
                 flags += "|LLC_NONE";
             if ((libFlags & (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH) != 0)
                 flags += "|LLC_ALLOWELEMENTSEARCH";
-            flags = flags.Substring(1);
-            root.Items.Add("Flags " + flags);
+            if (flags != "")
+            {
+                flags = flags.Substring(1);
+                root.Items.Add("Flags " + flags);
+            }
 
             for (var i = (uint)0; i < count; i++)
             {
                 IVsSimpleObjectList2 nestedObjects;
                 ErrorHandler.Succeeded(objects.GetList2(
                     i,
-                    (uint)(_LIB_LISTTYPE.LLT_HIERARCHY),
-                    (uint)_LIB_LISTFLAGS.LLF_NONE,
-                    new VSOBSEARCHCRITERIA2[] {},
+                    (uint)(_LIB_LISTTYPE.LLT_CLASSES),
+                    (uint)_LIB_LISTFLAGS.LLF_TRUENESTING,
+                    new[]
+                        {
+                            new VSOBSEARCHCRITERIA2
+                                {
+                                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                                    szName = "*"
+                                }
+                        },
                     out nestedObjects
                                             ));
 
