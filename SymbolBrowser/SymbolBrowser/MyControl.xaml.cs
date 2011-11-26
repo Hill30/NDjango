@@ -99,38 +99,38 @@ namespace Microsoft.SymbolBrowser
             ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
             AddLibList(libRoot, "Project", globalLibs);
 
-            IVsObjectList2 objects = null;
-            try
-            {
-                ErrorHandler.Succeeded(lib.GetList2(
-                    (uint) (_LIB_LISTTYPE.LLT_NAMESPACES),
-                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                    new[]
-                        {
-                            new VSOBSEARCHCRITERIA2
-                                {
-                                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
-                                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
-                                    szName = "*"
-                                }
-                            ,
-
-                        },
-                    out objects
-                                            ));
-            }
-            catch (Exception e)
-            {
-                var s = e.Message;
-            }
-            AddContent(libRoot, objects as IVsSimpleObjectList2);
+            IVsObjectList2 objects;
+            ErrorHandler.Succeeded(lib.GetList2(
+                (uint) (_LIB_LISTTYPE.LLT_NAMESPACES),
+                (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                new[]
+                    {
+                        new VSOBSEARCHCRITERIA2
+                            {
+                                eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                                szName = "*"
+                            }
+                    },
+                out objects
+                                        ));
+            AddContent(libRoot, objects as IVsSimpleObjectList2, "--Root--", null);
 
         }
 
-        private void AddContent(TreeViewItem parent, IVsSimpleObjectList2 objects)
+        private void AddContent(TreeViewItem parent, IVsSimpleObjectList2 objects, string name, string path)
         {
             if (objects == null)
                 return;
+
+            var root = new TreeViewItem { Header = name };
+
+            if (path != null)
+                root.Items.Add("Path = " + path);
+
+            uint count;
+            ErrorHandler.Succeeded(objects.GetItemCount(out count));
+            root.Items.Add("Items count " + count);
 
             uint libFlags;
             ErrorHandler.Succeeded(objects.GetCapabilities2(out libFlags));
@@ -155,15 +155,35 @@ namespace Microsoft.SymbolBrowser
             if ((libFlags & (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH) != 0)
                 flags += "|LLC_ALLOWELEMENTSEARCH";
             flags = flags.Substring(1);
+            root.Items.Add("Flags " + flags);
 
-            uint count;
-            ErrorHandler.Succeeded(objects.GetItemCount(out count));
-            var root = new TreeViewItem() {Header = "Items count = " + count + " flags = " + flags};
-            for (var i = 0; i < count; i++)
+            for (var i = (uint)0; i < count; i++)
             {
-                string text;
-                objects.GetTextWithOwnership((uint)i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
-                root.Items.Add(text);
+                IVsSimpleObjectList2 nestedObjects;
+                ErrorHandler.Succeeded(objects.GetList2(
+                    i,
+                    (uint)(_LIB_LISTTYPE.LLT_HIERARCHY),
+                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                    new []
+                    {
+                        new VSOBSEARCHCRITERIA2
+                            {
+                                eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                                szName = "*"
+                            }
+                    },
+                    out nestedObjects
+                                            ));
+
+                object propValue;
+                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
+                var fullName = (string) propValue;
+                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
+                var componentPath = (string)propValue;
+                
+//                if (!name.Contains("eferences"))
+                AddContent(root, nestedObjects, fullName, componentPath);
             }
             parent.Items.Add(root);
         }
