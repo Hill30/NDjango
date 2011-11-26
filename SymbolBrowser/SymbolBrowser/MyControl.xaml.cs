@@ -167,7 +167,7 @@ namespace Microsoft.SymbolBrowser
                 ErrorHandler.Succeeded(objects.GetList2(
                     i,
                     (uint)(_LIB_LISTTYPE.LLT_CLASSES),
-                    (uint)_LIB_LISTFLAGS.LLF_TRUENESTING,
+                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
                     new[]
                         {
                             new VSOBSEARCHCRITERIA2
@@ -186,6 +186,28 @@ namespace Microsoft.SymbolBrowser
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
                 var componentPath = (string)propValue;
                 AddContent(root, nestedObjects, fullName, componentPath);
+
+                ErrorHandler.Succeeded(objects.GetList2(
+                    i,
+                    (uint)(_LIB_LISTTYPE.LLT_NAMESPACES),
+                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                    new[]
+                        {
+                            new VSOBSEARCHCRITERIA2
+                                {
+                                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                                    szName = "*"
+                                }
+                        },
+                    out nestedObjects
+                                            ));
+
+                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
+                fullName = (string)propValue;
+                ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
+                componentPath = (string)propValue;
+                //AddContent(root, nestedObjects, fullName, componentPath);
             }
             parent.Items.Add(root);
         }
