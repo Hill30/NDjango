@@ -26,10 +26,120 @@ namespace Microsoft.SymbolBrowser
             InitializeComponent();
         }
 
+        class Library : IVsSimpleLibrary2
+        {
+            #region IVsSimpleLibrary2 Members
+
+            public int AddBrowseContainer(VSCOMPONENTSELECTORDATA[] pcdComponent, ref uint pgrfOptions, out string pbstrComponentAdded)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int CreateNavInfo(SYMBOL_DESCRIPTION_NODE[] rgSymbolNodes, uint ulcNodes, out IVsNavInfo ppNavInfo)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int GetGuid(out Guid pguidLib)
+            {
+                pguidLib = GetType().GUID;
+                return VSConstants.S_OK;
+            }
+
+            public int GetLibFlags2(out uint pgrfFlags)
+            {
+                pgrfFlags = (uint)_LIB_FLAGS.LF_PROJECT | (uint)_LIB_FLAGS2.LF_SUPPORTSLISTREFERENCES;
+                return VSConstants.S_OK;
+            }
+
+            public int GetList2(uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
+            {
+                switch (ListType)
+                {
+                    case (uint)_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS:
+                        ppIVsSimpleObjectList2 = null;
+                        return VSConstants.E_FAIL;
+
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
+            public int GetSeparatorStringWithOwnership(out string pbstrSeparator)
+            {
+                pbstrSeparator = ".";
+                return VSConstants.S_OK;
+            }
+
+            public int GetSupportedCategoryFields2(int Category, out uint pgrfCatField)
+            {
+                switch (Category)
+                {
+                    case (int)LIB_CATEGORY.LC_LISTTYPE:
+                        pgrfCatField = (uint)_LIB_LISTTYPE.LLT_REFERENCES;
+                        return VSConstants.S_OK;
+                    case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
+                    case (int)LIB_CATEGORY.LC_CLASSACCESS:
+                    case (int)LIB_CATEGORY.LC_CLASSTYPE:
+                    case (int)LIB_CATEGORY.LC_MEMBERACCESS:
+                    case (int)LIB_CATEGORY.LC_MEMBERTYPE:
+                    case (int)LIB_CATEGORY.LC_MODIFIER:
+                    case (int)LIB_CATEGORY.LC_NODETYPE:
+                    case (int)LIB_CATEGORY.LC_VISIBILITY:
+                    case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
+                    case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
+                    case (int)_LIB_CATEGORY2.LC_NIL:
+                    case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
+                    case (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE:
+                    default:
+                        pgrfCatField = 0;
+                        return VSConstants.E_FAIL;
+                }
+            }
+
+            public int LoadState(VisualStudio.OLE.Interop.IStream pIStream, LIB_PERSISTTYPE lptType)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int RemoveBrowseContainer(uint dwReserved, string pszLibName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int SaveState(VisualStudio.OLE.Interop.IStream pIStream, LIB_PERSISTTYPE lptType)
+            {
+                throw new NotImplementedException();
+            }
+
+            private uint updateCounter = 0;
+            public int UpdateCounter(out uint pCurUpdate)
+            {
+                pCurUpdate = updateCounter;
+                return VSConstants.S_OK;
+            }
+
+            #endregion
+        }
+
+        Library library;
+        private uint libCookie;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             var objectManager = SymbolBrowserPackage.GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
+            if (library == null)
+            {
+                library = new Library();
+                objectManager.RegisterSimpleLibrary(library, out libCookie);
+            }
+
             IVsEnumLibraries2 libs;
             ErrorHandler.Succeeded(objectManager.EnumLibraries(out libs));
             var libArray = new IVsLibrary2[20];
@@ -107,13 +217,13 @@ namespace Microsoft.SymbolBrowser
 
             libRoot.Items.Add("Flags=" + flags);
 
-            //IVsLiteTreeList globalLibs;
-            //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
-            //AddLibList(libRoot, "Global", globalLibs);
+            IVsLiteTreeList globalLibs;
+            ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
+            AddLibList(libRoot, "Global", globalLibs);
 
-            //IVsLiteTreeList projectLibs;
-            //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
-            //AddLibList(libRoot, "Project", globalLibs);
+            IVsLiteTreeList projectLibs;
+            ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
+            AddLibList(libRoot, "Project", globalLibs);
 
             AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_NAMESPACES);
 
