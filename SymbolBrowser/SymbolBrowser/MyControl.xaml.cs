@@ -38,15 +38,35 @@ namespace Microsoft.SymbolBrowser
             treeView1.Items.Clear();
             foreach (var lib in libArray)
             {
-                AddLibraryContent(lib);
+                AddLibrary(lib);
             }
 
         }
 
-        private void AddLibraryContent(IVsLibrary2 lib)
+        private void AddLibrary(IVsLibrary2 lib)
         {
             if (lib == null)
                 return;
+
+            var simpleLib = lib as IVsSimpleLibrary2;
+
+            Guid libGuid;
+            ErrorHandler.Succeeded(simpleLib.GetGuid(out libGuid));
+            var libRoot = new TreeViewItem { Header = "guid=(" + libGuid + ")" };
+            var expander = new TreeViewItem();
+            libRoot.Items.Add(expander);
+            libRoot.Expanded += (sender, args) => AddLibraryContent(libRoot, expander, lib);
+            treeView1.Items.Add(libRoot);
+        }
+
+        private void AddLibraryContent(TreeViewItem libRoot, TreeViewItem expander, IVsLibrary2 lib)
+        {
+            if (lib == null)
+                return;
+
+            if (libRoot.Items.Count != 1 || libRoot.Items[0] != expander)
+                return;
+            libRoot.Items.Clear();
 
             var simpleLib = lib as IVsSimpleLibrary2;
 
@@ -84,12 +104,8 @@ namespace Microsoft.SymbolBrowser
                 flags += "|LF_SUPPORTSPROJECTREFERENCES";
             flags = flags.Substring(1);
 
-            Guid libGuid;
 
-            ErrorHandler.Succeeded(simpleLib.GetGuid(out libGuid));
-
-            var libRoot = new TreeViewItem { Header = "giud=(" + libGuid + ") + flags=" + flags };
-            treeView1.Items.Add(libRoot);
+            libRoot.Items.Add("Flags=" + flags);
 
             //IVsLiteTreeList globalLibs;
             //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
@@ -106,10 +122,12 @@ namespace Microsoft.SymbolBrowser
             AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_MEMBERS);
 
             AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_REFERENCES);
+
         }
 
         private void AddNested(IVsLibrary2 lib, TreeViewItem libRoot, _LIB_LISTTYPE listType)
         {
+            var timestamp = DateTime.Now;
             IVsObjectList2 objects;
             ErrorHandler.Succeeded(lib.GetList2(
                 (uint)listType,
@@ -192,6 +210,7 @@ namespace Microsoft.SymbolBrowser
                 root.Items.Add(item);
             }
 
+            root.Items.Insert(0, "Elapsed " + (DateTime.Now - timestamp).TotalMilliseconds);
             libRoot.Items.Add(root);
         }
 
