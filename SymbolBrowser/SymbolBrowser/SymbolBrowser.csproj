@@ -114,17 +114,21 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Library.cs" />
     <Compile Include="MyControl.xaml.cs">
       <DependentUpon>MyControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="MyToolWindow.cs" />
     <Compile Include="Guids.cs" />
+    <Compile Include="ObjectLists\ModelReferenceList.cs" />
+    <Compile Include="ObjectLists\TemplateList.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="ObjectLists\ResultList.cs" />
     <Compile Include="SymbolBrowserPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />
