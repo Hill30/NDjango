@@ -1,23 +1,78 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.SymbolBrowser
+namespace Microsoft.SymbolBrowser.ObjectLists
 {
-    public class ResultList : IVsSimpleObjectList2
+    /// <summary>
+    /// Root of our object list model
+    /// </summary>
+    public class ResultList : IVsSimpleObjectList2, IVsNavInfoNode
     {
+
+        /// <summary>
+        /// Enumeration of the possible types of node. The type of a node can be the combination
+        /// of one of more of these values.
+        /// This is actually a copy of the _LIB_LISTTYPE enumeration with the difference that the
+        /// Flags attribute is set so that it is possible to specify more than one value.
+        /// </summary>
+        [Flags]
+        public enum LibraryNodeType
+        {
+            None = 0,
+            Hierarchy = _LIB_LISTTYPE.LLT_HIERARCHY,
+            Namespaces = _LIB_LISTTYPE.LLT_NAMESPACES,
+            Classes = _LIB_LISTTYPE.LLT_CLASSES,
+            Members = _LIB_LISTTYPE.LLT_MEMBERS,
+            Package = _LIB_LISTTYPE.LLT_PACKAGE,
+            PhysicalContainer = _LIB_LISTTYPE.LLT_PHYSICALCONTAINERS,
+            Containment = _LIB_LISTTYPE.LLT_CONTAINMENT,
+            ContainedBy = _LIB_LISTTYPE.LLT_CONTAINEDBY,
+            UsesClasses = _LIB_LISTTYPE.LLT_USESCLASSES,
+            UsedByClasses = _LIB_LISTTYPE.LLT_USEDBYCLASSES,
+            NestedClasses = _LIB_LISTTYPE.LLT_NESTEDCLASSES,
+            InheritedInterface = _LIB_LISTTYPE.LLT_INHERITEDINTERFACES,
+            InterfaceUsedByClasses = _LIB_LISTTYPE.LLT_INTERFACEUSEDBYCLASSES,
+            Definitions = _LIB_LISTTYPE.LLT_DEFINITIONS,
+            References = _LIB_LISTTYPE.LLT_REFERENCES,
+            DeferExpansion = _LIB_LISTTYPE.LLT_DEFEREXPANSION,
+        }
+
         private string symbolText = string.Empty;
+        private readonly string fName;
+        private readonly uint lineNumber;
         private List<ResultList> children = new List<ResultList>();
         private uint updateCount = 0;
+        private LibraryNodeType nodeType;
 
-        public ResultList(string text)
+        public ResultList(string text, string fName, uint lineNumber, LibraryNodeType type)
         {
             symbolText = text;
+            this.fName = fName;
+            this.lineNumber = lineNumber;
+            nodeType = type;
         }
+
+
+        public void AddChild(ResultList child)
+        {
+            children.Add(child);
+            updateCount++;
+        }
+        public void RemoveChild(ResultList child)
+        {
+            children.Remove(child);
+            updateCount++;
+        }
+
+        public virtual string UniqueName
+        {
+            get { return symbolText; }
+        }
+
+        public VSTREEDISPLAYDATA DisplayData { get; set; }
 
         #region Implementation of IVsSimpleObjectList2
         /// <summary>
@@ -56,7 +111,15 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int UpdateCounter(out uint pCurUpdate)
         {
-            pCurUpdate = updateCount;
+            pCurUpdate = 0;
+            
+            uint temp = 0;
+            foreach (var c in children)
+            {
+                c.UpdateCounter(out temp);
+                pCurUpdate += temp;
+            }
+            pCurUpdate = updateCount + temp;
             return VSConstants.S_OK;
         }
         /// <summary>
@@ -77,6 +140,15 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int GetDisplayData(uint index, VSTREEDISPLAYDATA[] pData)
         {
+            // ToDo: Find out where the displayData takes from in IronPython and supply it here
+            Logger.Log("GetDisplayData index:"+index);
+            if (index >= (uint)children.Count)
+            {
+                throw new ArgumentOutOfRangeException("index");
+            }
+            pData[0] = children[(int)index].DisplayData;
+            return VSConstants.S_OK;
+
             throw new NotImplementedException();
         }
         /// <summary>
@@ -104,15 +176,16 @@ namespace Microsoft.SymbolBrowser
             return VSConstants.S_OK;
         }
         /// <summary>
-        /// Returns the value for the specified category for the given list item.
+        /// Returns the value for the specified category for the given list item. (LIB_CATEGORY enumeration)
         /// </summary>
         /// <param name="index"></param>
         /// <param name="Category"></param>
         /// <param name="pfCatField"></param>
         /// <returns></returns>
-        public int GetCategoryField2(uint index, int Category, out uint pfCatField)
+        public virtual int GetCategoryField2(uint index, int Category, out uint pfCatField)
         {
-            throw new NotImplementedException();
+            pfCatField = (int)LIB_CATEGORY.LC_ACTIVEPROJECT;
+            return VSConstants.S_OK;
         }
         /// <summary>
         /// Returns a pointer to the property browse IDispatch for the given list item.
@@ -122,6 +195,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int GetBrowseObject(uint index, out object ppdispBrowseObj)
         {
+            Logger.Log("GetBrowseObject");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -152,7 +226,9 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int GetSourceContextWithOwnership(uint index, out string pbstrFilename, out uint pulLineNum)
         {
-            throw new NotImplementedException();
+            pbstrFilename = fName;
+            pulLineNum = lineNumber;
+            return VSConstants.S_OK;
         }
         /// <summary>
         /// Returns the hierarchy and the number of ItemIDs corresponding to source files for the given list item.
@@ -164,6 +240,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int CountSourceItems(uint index, out IVsHierarchy ppHier, out uint pItemid, out uint pcItems)
         {
+            Logger.Log("CountSourceItems");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -187,6 +264,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int CanGoToSource(uint index, VSOBJGOTOSRCTYPE SrcType, out int pfOK)
         {
+            Logger.Log("CanGoToSource");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -252,6 +330,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int CanDelete(uint index, out int pfOK)
         {
+            Logger.Log("CanDelete");
             throw new NotImplementedException();
         }
 
@@ -268,6 +347,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int FillDescription2(uint index, uint grfOptions, IVsObjectBrowserDescription3 pobDesc)
         {
+            Logger.Log("FillDescription2");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -305,6 +385,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int GetExtendedClipboardVariant(uint index, uint grfFlags, VSOBJCLIPFORMAT[] pcfFormat, out object pvarFormat)
         {
+            Logger.Log("GetExtendedClipboardVariant");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -316,6 +397,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int GetProperty(uint index, int propid, out object pvar)
         {
+            Logger.Log("GetProperty");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -326,6 +408,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int GetNavInfo(uint index, out IVsNavInfo ppNavInfo)
         {
+            Logger.Log("GetNavInfo");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -336,6 +419,9 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int GetNavInfoNode(uint index, out IVsNavInfoNode ppNavInfoNode)
         {
+            Logger.Log("GetNavInfoNode");
+            ppNavInfoNode = this;
+            return VSConstants.S_OK;
             throw new NotImplementedException();
         }
         /// <summary>
@@ -357,6 +443,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int GetExpandable3(uint index, uint ListTypeExcluded, out int pfExpandable)
         {
+            Logger.Log("GetExpandable3");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -370,6 +457,7 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int GetList2(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
         {
+            Logger.Log(GetType() + ": GetList2");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -379,7 +467,24 @@ namespace Microsoft.SymbolBrowser
         /// <returns></returns>
         public int OnClose(VSTREECLOSEACTIONS[] ptca)
         {
+            Logger.Log("OnClose");
             throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region Implementation of IVsNavInfoNode
+
+        int IVsNavInfoNode.get_Name(out string pbstrName)
+        {
+            pbstrName = UniqueName;
+            return VSConstants.S_OK;
+        }
+
+        int IVsNavInfoNode.get_Type(out uint pllt)
+        {
+            pllt = (uint)nodeType;
+            return VSConstants.S_OK;
         }
 
         #endregion

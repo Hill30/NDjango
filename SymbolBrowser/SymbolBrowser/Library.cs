@@ -1,7 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Text;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.SymbolBrowser.ObjectLists;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -10,6 +12,61 @@ namespace Microsoft.SymbolBrowser
 {
     public class Library : IVsSimpleLibrary2
     {
+        private const string SUPPORTED_EXT = ".django";
+        private ResultList root;
+        
+        
+        public Library()
+        {
+            root = new ResultList("NDjango templates", "", 0, ResultList.LibraryNodeType.PhysicalContainer);
+
+            ResultList nestedNode = new ModelReferenceList("GetString2", "index.django");
+
+            root.AddChild(nestedNode);
+            root.AddChild(new TemplateList("index1.django", "index1.django"));
+            GetSupportedFileList();
+        }
+
+        private ProjectItems GetSupportedFileList()
+        {
+              
+                foreach (Project p in SymbolBrowserPackage.DTE2Obj.Solution.Projects)
+                {
+                    
+                    Logger.Log("Project: " + p.FullName);
+                    foreach (ProjectItem pi in p.ProjectItems)
+                    {
+                        Logger.Log("Project item");
+                        Logger.Log("File count: " + pi.FileCount);
+                        Logger.Log("File names: ");
+
+                        for (short i = 0; i < pi.FileCount; i++)
+                            Logger.Log(pi.FileNames[i]);
+                    }
+
+                    // This cast resulted in an exception
+                    //var a = ((IVsHierarchy) p).GetHashCode();
+
+                    //("*.django");
+                /*
+                 * Project item
+                    File count: 1
+                    File names: 
+                    C:\projects\NDjango_copy\NDjangoDesigner\GlobalServices.cs
+                    Project item
+                    File count: 1
+                    File names: 
+                    C:\projects\NDjango_copy\NDjangoDesigner\GlobalSuppressions.cs
+                    Project item
+                    File count: 1
+                    File names: 
+                    C:\projects\NDjango_copy\NDjangoDesigner\ItemTemplates\
+
+                 * */
+            }
+            return null;
+        }
+
         #region IVsSimpleLibrary2 Members
 
         public int AddBrowseContainer(VSCOMPONENTSELECTORDATA[] pcdComponent, ref uint pgrfOptions, out string pbstrComponentAdded)
@@ -109,18 +166,21 @@ namespace Microsoft.SymbolBrowser
 
             return VSConstants.S_OK;
             */
-            
+
+            ppIVsSimpleObjectList2 = root;
+            return VSConstants.S_OK;
+
             switch (ListType)
             {
                 case (uint)_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS: //16
-                    ppIVsSimpleObjectList2 = null;
-                    return VSConstants.E_FAIL;
+                    ppIVsSimpleObjectList2 = root;
+                    return VSConstants.S_OK;
                 case (uint)_LIB_LISTTYPE.LLT_NAMESPACES: //2
                     ppIVsSimpleObjectList2 = null;
-                    return VSConstants.E_FAIL;
+                    return VSConstants.S_OK;
                 case (uint)_LIB_LISTTYPE.LLT_CLASSES: //??
                     ppIVsSimpleObjectList2 = null;
-                    return VSConstants.E_FAIL;
+                    return VSConstants.S_OK;
                 case (uint)_LIB_LISTTYPE.LLT_MEMBERS: //8
                     ppIVsSimpleObjectList2 = null;
                     return VSConstants.E_FAIL;
@@ -142,7 +202,8 @@ namespace Microsoft.SymbolBrowser
 
         public int GetSupportedCategoryFields2(int Category, out uint pgrfCatField)
         {
-            /*switch (Category)
+            Logger.Log("GetSupportedCategoryFields2 with Category " + Category);
+            switch (Category)
             {
                 case (int)LIB_CATEGORY.LC_MEMBERTYPE:
                     pgrfCatField = (uint)_LIBCAT_MEMBERTYPE.LCMT_METHOD;
@@ -171,8 +232,8 @@ namespace Microsoft.SymbolBrowser
                     return VSConstants.E_FAIL;
             }
             return VSConstants.S_OK;
-            */
             
+            /*
             switch (Category)
             {
                 case (int)LIB_CATEGORY.LC_LISTTYPE:
@@ -194,7 +255,7 @@ namespace Microsoft.SymbolBrowser
                 default:
                     pgrfCatField = 0;
                     return VSConstants.E_FAIL;
-            }
+            }*/
         }
 
         public int LoadState(VisualStudio.OLE.Interop.IStream pIStream, LIB_PERSISTTYPE lptType)

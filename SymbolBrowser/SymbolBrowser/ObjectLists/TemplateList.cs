@@ -5,10 +5,14 @@ using System.Text;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
+    /// <summary>
+    /// Node of PhisicalContainer type
+    /// </summary>
     public class TemplateList:ResultList
     {
         // file list
-        public TemplateList(string text) : base(text)
+        public TemplateList(string text, string fName)
+            : base(text, fName, 0, LibraryNodeType.PhysicalContainer)
         {
         }
     }

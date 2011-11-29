@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -34,6 +36,7 @@ namespace Microsoft.SymbolBrowser
     [Guid(GuidList.guidSymbolBrowserPkgString)]
     public sealed class SymbolBrowserPackage : Package
     {
+        private static DTE2 dteObj;
         /// <summary>
         /// Default constructor of the package.
         /// Inside this method you can place any initialization code that does not require 
@@ -62,9 +65,13 @@ namespace Microsoft.SymbolBrowser
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+            ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
 
+        public static DTE2 DTE2Obj
+        {
+            get { return dteObj; }
+        }
 
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
@@ -89,6 +96,8 @@ namespace Microsoft.SymbolBrowser
                 mcs.AddCommand( menuToolWin );
             }
 
+            // Obtain a reference to DTE2 type object.
+            dteObj = GetService(typeof(DTE)) as DTE2;
         }
 
         #endregion
