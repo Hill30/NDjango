@@ -8,7 +8,7 @@
             // class list
         }
 
-        public override bool IsExpandable
+        protected override bool IsExpandable
         {
             get { return false; }
         }

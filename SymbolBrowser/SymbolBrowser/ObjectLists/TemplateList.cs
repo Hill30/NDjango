@@ -21,6 +21,11 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             get { return true; }
         }
 
+        protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
+        {
+            base.GotoSource(gotoType);
+        }
+
         public override bool CanGoToSource
         {
             get
