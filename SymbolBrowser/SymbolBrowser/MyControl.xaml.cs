@@ -147,7 +147,7 @@ namespace Microsoft.SymbolBrowser
                             {
                                 eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
                                 grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
-                                szName = "c"
+                                szName = "*"
                             }
                     },
                 out objects
@@ -194,12 +194,12 @@ namespace Microsoft.SymbolBrowser
                 object propValue;
                 string text;
                 Type objType;
-                objects.GetText(i, VSTREETEXTOPTIONS.TTO_BASETEXT, out text);
+                //objects.GetText(i, VSTREETEXTOPTIONS.TTO_BASETEXT, out text);
                 objType = objects.GetType();
 
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_LEAFNAME, out propValue));
-                //var item = new TreeViewItem {Header = (string)propValue};
-                var item = new TreeViewItem { Header = text };
+                var item = new TreeViewItem {Header = (string)propValue};
+                //var item = new TreeViewItem { Header = "TExt" };
                 item.Items.Add("Type: " + objType);
                 
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
