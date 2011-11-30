@@ -7,5 +7,17 @@
         {
             // class list
         }
+
+        public override bool IsExpandable
+        {
+            get { return false; }
+        }
+        public override bool CanGoToSource
+        {
+            get
+            {
+                return true; // models can go to source
+            }
+        }
     }
 }

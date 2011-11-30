@@ -15,5 +15,18 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             : base(text, fName, 0, LibraryNodeType.PhysicalContainer)
         {
         }
+
+        protected override bool IsExpandable
+        {
+            get { return true; }
+        }
+
+        public override bool CanGoToSource
+        {
+            get
+            {
+                return true; // templates can go to source
+            }
+        }
     }
 }

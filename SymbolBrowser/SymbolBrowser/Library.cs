@@ -24,7 +24,7 @@ namespace Microsoft.SymbolBrowser
 
             root.AddChild(nestedNode);
             root.AddChild(new TemplateList("index1.django", "index1.django"));
-            GetSupportedFileList();
+            //GetSupportedFileList();
         }
 
         private ProjectItems GetSupportedFileList()
@@ -167,6 +167,7 @@ namespace Microsoft.SymbolBrowser
             return VSConstants.S_OK;
             */
 
+            Logger.Log("GetList2 : Library");
             ppIVsSimpleObjectList2 = root;
             return VSConstants.S_OK;
 
