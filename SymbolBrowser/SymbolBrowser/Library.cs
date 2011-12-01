@@ -20,7 +20,7 @@ namespace Microsoft.SymbolBrowser
         {
             root = new ResultList("NDjango templates", "", 0, ResultList.LibraryNodeType.PhysicalContainer);
 
-            ResultList nestedNode = new ModelReferenceList("GetString2", "index.django");
+            ResultList nestedNode = new ModelReferenceList("ClassLibrary1.Class1.GetBlaBlaBla()", "Class1.cs1");
 
             root.AddChild(nestedNode);
             root.AddChild(new TemplateList("index1.django", "index1.django"));
