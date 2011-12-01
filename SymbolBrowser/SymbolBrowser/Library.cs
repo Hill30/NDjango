@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using EnvDTE;
-using EnvDTE80;
 using Microsoft.SymbolBrowser.ObjectLists;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,40 +10,40 @@ namespace Microsoft.SymbolBrowser
     {
         private const string SUPPORTED_EXT = ".django";
         private ResultList root;
-        
-        
+
+
         public Library()
         {
             root = new ResultList("NDjango templates", "", 0, ResultList.LibraryNodeType.PhysicalContainer);
 
-            ResultList nestedNode = new ModelReferenceList("ClassLibrary1.Class1.GetBlaBlaBla()", "Class1.cs1");
-
+            ResultList nestedNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla", "Class1.cs1");
+            nestedNode.AddChild(new ModelReferenceList("Class1", "Class1.cs1"));
+            
             root.AddChild(nestedNode);
-            root.AddChild(new TemplateList("index1.django", "index1.django"));
+            
             //GetSupportedFileList();
         }
 
         private ProjectItems GetSupportedFileList()
         {
-              
-                foreach (Project p in SymbolBrowserPackage.DTE2Obj.Solution.Projects)
+            foreach (Project p in SymbolBrowserPackage.DTE2Obj.Solution.Projects)
+            {
+
+                Logger.Log("Project: " + p.FullName);
+                foreach (ProjectItem pi in p.ProjectItems)
                 {
-                    
-                    Logger.Log("Project: " + p.FullName);
-                    foreach (ProjectItem pi in p.ProjectItems)
-                    {
-                        Logger.Log("Project item");
-                        Logger.Log("File count: " + pi.FileCount);
-                        Logger.Log("File names: ");
+                    Logger.Log("Project item");
+                    Logger.Log("File count: " + pi.FileCount);
+                    Logger.Log("File names: ");
 
-                        for (short i = 0; i < pi.FileCount; i++)
-                            Logger.Log(pi.FileNames[i]);
-                    }
+                    for (short i = 0; i < pi.FileCount; i++)
+                        Logger.Log(pi.FileNames[i]);
+                }
 
-                    // This cast resulted in an exception
-                    //var a = ((IVsHierarchy) p).GetHashCode();
+                // This cast resulted in an exception
+                //var a = ((IVsHierarchy) p).GetHashCode();
 
-                    //("*.django");
+                //("*.django");
                 /*
                  * Project item
                     File count: 1
@@ -92,7 +88,16 @@ namespace Microsoft.SymbolBrowser
 
         public int GetLibFlags2(out uint pgrfFlags)
         {
-            pgrfFlags = (uint)_LIB_FLAGS.LF_PROJECT | (uint)_LIB_FLAGS2.LF_SUPPORTSLISTREFERENCES;
+            pgrfFlags =
+                (uint)_LIB_FLAGS.LF_EXPANDABLE
+                |(uint)_LIB_FLAGS.LF_PROJECT
+                | (uint)_LIB_FLAGS2.LF_SUPPORTSBASETYPES
+                | (uint)_LIB_FLAGS2.LF_SUPPORTSCLASSDESIGNER
+                | (uint)_LIB_FLAGS2.LF_SUPPORTSFILTERING
+                | (uint)_LIB_FLAGS2.LF_SUPPORTSINHERITEDMEMBERS
+                | (uint)_LIB_FLAGS2.LF_SUPPORTSLISTREFERENCES
+                | (uint)_LIB_FLAGS2.LF_SUPPORTSPRIVATEMEMBERS
+                | (uint)_LIB_FLAGS2.LF_SUPPORTSPROJECTREFERENCES;
             return VSConstants.S_OK;
         }
 
@@ -167,32 +172,35 @@ namespace Microsoft.SymbolBrowser
             return VSConstants.S_OK;
             */
 
-            Logger.Log("GetList2 : Library");
+            Logger.Log(string.Format("GetList2 : Library ListType:{0}({1}) flags: {2}",
+                Enum.GetName(typeof(_LIB_LISTTYPE2), ListType), 
+                Enum.GetName(typeof(_LIB_LISTTYPE), ListType),
+                Enum.GetName(typeof(_LIB_LISTFLAGS), flags)));
             ppIVsSimpleObjectList2 = root;
             return VSConstants.S_OK;
 
-            switch (ListType)
-            {
-                case (uint)_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS: //16
-                    ppIVsSimpleObjectList2 = root;
-                    return VSConstants.S_OK;
-                case (uint)_LIB_LISTTYPE.LLT_NAMESPACES: //2
-                    ppIVsSimpleObjectList2 = null;
-                    return VSConstants.S_OK;
-                case (uint)_LIB_LISTTYPE.LLT_CLASSES: //??
-                    ppIVsSimpleObjectList2 = null;
-                    return VSConstants.S_OK;
-                case (uint)_LIB_LISTTYPE.LLT_MEMBERS: //8
-                    ppIVsSimpleObjectList2 = null;
-                    return VSConstants.E_FAIL;
-                case (uint)_LIB_LISTTYPE.LLT_REFERENCES: //8192
-                    ppIVsSimpleObjectList2 = null;
-                    return VSConstants.E_FAIL;
+            //switch (ListType)
+            //{
+            //    case (uint)_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS: //16
+            //        ppIVsSimpleObjectList2 = root;
+            //        return VSConstants.S_OK;
+            //    case (uint)_LIB_LISTTYPE.LLT_NAMESPACES: //2
+            //        ppIVsSimpleObjectList2 = null;
+            //        return VSConstants.S_OK;
+            //    case (uint)_LIB_LISTTYPE.LLT_CLASSES: //??
+            //        ppIVsSimpleObjectList2 = null;
+            //        return VSConstants.S_OK;
+            //    case (uint)_LIB_LISTTYPE.LLT_MEMBERS: //8
+            //        ppIVsSimpleObjectList2 = null;
+            //        return VSConstants.E_FAIL;
+            //    case (uint)_LIB_LISTTYPE.LLT_REFERENCES: //8192
+            //        ppIVsSimpleObjectList2 = null;
+            //        return VSConstants.E_FAIL;
 
-                default:
-                    ppIVsSimpleObjectList2 = null;
-                    return VSConstants.E_FAIL;
-            }
+            //    default:
+            //        ppIVsSimpleObjectList2 = null;
+            //        return VSConstants.E_FAIL;
+            //}
         }
 
         public int GetSeparatorStringWithOwnership(out string pbstrSeparator)
@@ -203,7 +211,7 @@ namespace Microsoft.SymbolBrowser
 
         public int GetSupportedCategoryFields2(int Category, out uint pgrfCatField)
         {
-            Logger.Log("GetSupportedCategoryFields2 with Category " + Category);
+            Logger.Log("GetSupportedCategoryFields2 with Category " + Enum.GetName(typeof(LIB_CATEGORY), Category));
             switch (Category)
             {
                 case (int)LIB_CATEGORY.LC_MEMBERTYPE:
@@ -233,7 +241,7 @@ namespace Microsoft.SymbolBrowser
                     return VSConstants.E_FAIL;
             }
             return VSConstants.S_OK;
-            
+
             /*
             switch (Category)
             {

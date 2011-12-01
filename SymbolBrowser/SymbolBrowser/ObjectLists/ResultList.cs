@@ -40,12 +40,12 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             DeferExpansion = _LIB_LISTTYPE.LLT_DEFEREXPANSION,
         }
 
-        private string symbolText = string.Empty;
+        private readonly string symbolText = string.Empty;
         private readonly string fName;
         private readonly uint lineNumber;
-        private List<ResultList> children = new List<ResultList>();
+        private readonly List<ResultList> children = new List<ResultList>();
         private uint updateCount = 0;
-        private LibraryNodeType nodeType;
+        private readonly LibraryNodeType nodeType;
 
         public ResultList(string text, string fName, uint lineNumber, LibraryNodeType type)
         {
@@ -112,7 +112,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetCapabilities2(out uint pgrfCapabilities)
         {
-            pgrfCapabilities = (uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT;
+            pgrfCapabilities = (uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT | (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH;
             return VSConstants.S_OK;
             //_LIB_LISTCAPABILITIES.LLC_HASDESCPANE |
             //_LIB_LISTCAPABILITIES.LLC_HASCOMMANDS | 
@@ -140,7 +140,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                 pCurUpdate += temp;
             }
             pCurUpdate = updateCount + temp;
-            Logger.Log("UpdateCounter count:" + pCurUpdate);
+            Logger.Log("ResultList.UpdateCounter count:" + pCurUpdate);
             return VSConstants.S_OK;
         }
         /// <summary>
@@ -162,7 +162,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int GetDisplayData(uint index, VSTREEDISPLAYDATA[] pData)
         {
             // ToDo: Find out where the displayData takes from in IronPython and supply it here
-            Logger.Log("GetDisplayData index:"+index);
+            Logger.Log("ResultList.GetDisplayData index:" + index);
             if (index >= (uint)children.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
@@ -203,7 +203,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public virtual int GetCategoryField2(uint index, int Category, out uint pfCatField)
         {
-            Logger.Log("GetCategoryField2, setting to E_NOTIMPL");
+            Logger.Log("ResultList.GetCategoryField2, setting to E_NOTIMPL");
             pfCatField = (int)LIB_CATEGORY.LC_ACTIVEPROJECT;
             return VSConstants.E_NOTIMPL;
         }
@@ -215,7 +215,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetBrowseObject(uint index, out object ppdispBrowseObj)
         {
-            Logger.Log("GetBrowseObject");
+            Logger.Log("ResultList.GetBrowseObject");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -260,7 +260,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int CountSourceItems(uint index, out IVsHierarchy ppHier, out uint pItemid, out uint pcItems)
         {
-            Logger.Log("CountSourceItems");
+            Logger.Log("ResultList.CountSourceItems");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -284,7 +284,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         int IVsSimpleObjectList2.CanGoToSource(uint index, VSOBJGOTOSRCTYPE SrcType, out int pfOK)
         {
-            Logger.Log("CanGoToSource");
+            Logger.Log("ResultList.CanGoToSource");
             if (index >= (uint)children.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
@@ -306,7 +306,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         int IVsSimpleObjectList2.GoToSource(uint index, VSOBJGOTOSRCTYPE SrcType)
         {
-            Logger.Log("GoToSource");
+            Logger.Log("ResultList.GoToSource");
             if (index >= (uint)children.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
@@ -324,7 +324,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetContextMenu(uint index, out Guid pclsidActive, out int pnMenuId, out IOleCommandTarget ppCmdTrgtActive)
         {
-            Logger.Log("GetContextMenu, returning E_NOTIMPL");
+            Logger.Log("ResultList.GetContextMenu, returning E_NOTIMPL");
             ppCmdTrgtActive = null;
             pnMenuId = 0;
             pclsidActive = new Guid();
@@ -371,7 +371,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int CanDelete(uint index, out int pfOK)
         {
-            Logger.Log("CanDelete");
+            Logger.Log("ResultList.CanDelete");
             throw new NotImplementedException();
         }
 
@@ -388,7 +388,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int FillDescription2(uint index, uint grfOptions, IVsObjectBrowserDescription3 pobDesc)
         {
-            Logger.Log("FillDescription2");
+            Logger.Log("ResultList.FillDescription2");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -426,7 +426,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetExtendedClipboardVariant(uint index, uint grfFlags, VSOBJCLIPFORMAT[] pcfFormat, out object pvarFormat)
         {
-            Logger.Log("GetExtendedClipboardVariant");
+            Logger.Log("ResultList.GetExtendedClipboardVariant");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -438,7 +438,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetProperty(uint index, int propid, out object pvar)
         {
-            Logger.Log("GetProperty, out:null, returning VSConstants.E_NOTIMPL");
+            Logger.Log(string.Format("ResultList.GetProperty index:{0} propid:{1}, out:null, returning VSConstants.E_NOTIMPL", 
+                index, 
+                Enum.GetName(typeof(_VSOBJLISTELEMPROPID), propid)));
             pvar = null;
             return VSConstants.E_NOTIMPL;
         }
@@ -450,7 +452,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetNavInfo(uint index, out IVsNavInfo ppNavInfo)
         {
-            Logger.Log("GetNavInfo");
+            Logger.Log("ResultList.GetNavInfo");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -461,7 +463,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetNavInfoNode(uint index, out IVsNavInfoNode ppNavInfoNode)
         {
-            Logger.Log("GetNavInfoNode");
+            Logger.Log("ResultList.GetNavInfoNode");
             ppNavInfoNode = this;
             return VSConstants.S_OK;
             throw new NotImplementedException();
@@ -474,7 +476,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int LocateNavInfoNode(IVsNavInfoNode pNavInfoNode, out uint pulIndex)
         {
-            Logger.Log("LocateNavInfoNode   ");
+            Logger.Log("ResultList.LocateNavInfoNode   ");
             throw new NotImplementedException();
         }
         /// <summary>
@@ -486,7 +488,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetExpandable3(uint index, uint ListTypeExcluded, out int pfExpandable)
         {
-            Logger.Log("GetExpandable3");
+            Logger.Log("ResultList.GetExpandable3");
             pfExpandable = children[(int)index].IsExpandable ? 1 : 0;
             return VSConstants.S_OK;
         }
@@ -501,7 +503,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetList2(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
         {
-            Logger.Log("GetList2(" + GetType() + ")");
+            Logger.Log("ResultList.GetList2(" + GetType() + ")");
             ppIVsSimpleObjectList2 = this;
             return VSConstants.S_OK;
         }
@@ -512,7 +514,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int OnClose(VSTREECLOSEACTIONS[] ptca)
         {
-            Logger.Log("OnClose");
+            Logger.Log("ResultList.OnClose");
             throw new NotImplementedException();
         }
 
@@ -522,14 +524,14 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         int IVsNavInfoNode.get_Name(out string pbstrName)
         {
-            Logger.Log("IVsNavInfoNode.get_Name");
+            Logger.Log("ResultList.IVsNavInfoNode.get_Name");
             pbstrName = UniqueName;
             return VSConstants.S_OK;
         }
 
         int IVsNavInfoNode.get_Type(out uint pllt)
         {
-            Logger.Log("IVsNavInfoNode.get_Type");
+            Logger.Log("ResultList.IVsNavInfoNode.get_Type");
             pllt = (uint)nodeType;
             return VSConstants.S_OK;
         }
