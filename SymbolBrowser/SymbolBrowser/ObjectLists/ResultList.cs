@@ -11,7 +11,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
     /// </summary>
     public class ResultList : IVsSimpleObjectList2, IVsNavInfoNode
     {
-
+        private Dictionary<LibraryNodeType, ResultList> filteredView = new Dictionary<LibraryNodeType,ResultList>();
         /// <summary>
         /// Enumeration of the possible types of node. The type of a node can be the combination
         /// of one of more of these values.
@@ -67,6 +67,26 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         }
 
+        private ResultList(ResultList node)
+        {
+            symbolText = node.symbolText;
+            this.fName = node.fName;
+            this.lineNumber = node.lineNumber;
+            nodeType = node.nodeType;
+            DisplayData = new VSTREEDISPLAYDATA
+            {
+                ForceSelectLength = 5,
+                ForceSelectStart = 0,
+                hImageList = IntPtr.Zero,
+                Image = 0,
+                SelectedImage = 0,
+                Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
+                State = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK,
+                StateMask = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK
+            };
+
+        }
+
         public void AddChild(ResultList child)
         {
             children.Add(child);
@@ -92,6 +112,34 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         protected virtual void GotoSource(VSOBJGOTOSRCTYPE gotoType)
         {
             // Do nothing.
+        }
+
+        protected IVsSimpleObjectList2 FilterView(LibraryNodeType filterType)
+        {
+            ResultList filtered = null;
+            if (filteredView.TryGetValue(filterType, out filtered))
+            {
+                return filtered as IVsSimpleObjectList2;
+            }
+            filtered = this.Clone();
+            for (int i = 0; i < filtered.children.Count; )
+            {
+                if (0 == (filtered.children[i].nodeType & filterType))
+                {
+                    filtered.children.RemoveAt(i);
+                }
+                else
+                {
+                    i += 1;
+                }
+            }
+            filteredView.Add(filterType, filtered);
+            return filtered as IVsSimpleObjectList2;
+        }
+
+        protected virtual ResultList Clone()
+        {
+            return new ResultList(this);
         }
 
         #region Implementation of IVsSimpleObjectList2
@@ -505,8 +553,15 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetList2(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
         {
-            Logger.Log("ResultList.GetList2(" + GetType() + ")");
-            ppIVsSimpleObjectList2 = this;
+            Logger.Log("ResultList.GetList2");
+            // TODO: Use the flags and list type to actually filter the result.
+            if (index >= (uint)children.Count)
+            {
+                Logger.Log("ResultList.GetList2 EXCEPTION - index out of range");
+                throw new ArgumentOutOfRangeException("index");
+            }
+            //ppIVsSimpleObjectList2 = children[(int)index].FilterView((LibraryNodeType)ListType);
+            ppIVsSimpleObjectList2 = children[(int)index];
             return VSConstants.S_OK;
         }
         /// <summary>
@@ -517,7 +572,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int OnClose(VSTREECLOSEACTIONS[] ptca)
         {
             Logger.Log("ResultList.OnClose");
-            throw new NotImplementedException();
+            return VSConstants.E_NOTIMPL;
         }
 
         #endregion
