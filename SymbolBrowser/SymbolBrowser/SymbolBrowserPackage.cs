@@ -37,6 +37,8 @@ namespace Microsoft.SymbolBrowser
     public sealed class SymbolBrowserPackage : Package
     {
         private static DTE2 dteObj;
+        private static IVsRunningDocumentTable rdtObj;
+
         /// <summary>
         /// Default constructor of the package.
         /// Inside this method you can place any initialization code that does not require 
@@ -72,6 +74,10 @@ namespace Microsoft.SymbolBrowser
         {
             get { return dteObj; }
         }
+        public static IVsRunningDocumentTable RDTObj
+        {
+            get { return rdtObj; }
+        }
 
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
@@ -86,6 +92,7 @@ namespace Microsoft.SymbolBrowser
             Trace.WriteLine (string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             base.Initialize();
 
+            rdtObj = (IVsRunningDocumentTable)Package.GetGlobalService(typeof(SVsRunningDocumentTable)); 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if ( null != mcs )

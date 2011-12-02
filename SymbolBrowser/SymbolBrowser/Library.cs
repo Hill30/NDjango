@@ -14,12 +14,15 @@ namespace Microsoft.SymbolBrowser
 
         public Library()
         {
-            root = new ResultList("NDjango templates", "", 0, ResultList.LibraryNodeType.PhysicalContainer);
-
-            ResultList nestedNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla", "Class1.cs1");
-            nestedNode.AddChild(new ModelReferenceList("Class1", "Class1.cs1"));
+            root = new ResultList("Test template", "testTemplace.django", 0, ResultList.LibraryNodeType.PhysicalContainer);
             
-            root.AddChild(nestedNode);
+            var namespaceNode = new NamespaceReferenceList("ClassLibrary1", string.Empty);
+            var classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs1");
+            var memberNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla()", "Class1.cs1");
+            
+            classNode.AddChild(memberNode);
+            namespaceNode.AddChild(classNode);
+            root.AddChild(namespaceNode);            
             
             //GetSupportedFileList();
         }

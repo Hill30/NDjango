@@ -112,7 +112,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetCapabilities2(out uint pgrfCapabilities)
         {
-            pgrfCapabilities = (uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT | (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH;
+            pgrfCapabilities = /*(uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT |*/ (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH;
             return VSConstants.S_OK;
             //_LIB_LISTCAPABILITIES.LLC_HASDESCPANE |
             //_LIB_LISTCAPABILITIES.LLC_HASCOMMANDS | 
@@ -226,6 +226,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetUserContext(uint index, out object ppunkUserCtx)
         {
+            // is used for IntelliSence?... (uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT
+            // Got called on saving and closing the application using these symbols, WTF?!
             throw new NotImplementedException();
         }
         /// <summary>
