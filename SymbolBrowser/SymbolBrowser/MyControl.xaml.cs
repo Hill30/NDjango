@@ -33,10 +33,33 @@ namespace Microsoft.SymbolBrowser
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             var objectManager = SymbolBrowserPackage.GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
-            if (library == null)
+            //if (library == null)
+            //{
+            //    library = new Library();
+            //    objectManager.RegisterSimpleLibrary(library, out libCookie);
+            //}
+
+            IVsCombinedBrowseComponentSet extras;
+            ErrorHandler.Succeeded(objectManager.CreateCombinedBrowseComponentSet(out extras));
+
+            var solution = SymbolBrowserPackage.GetGlobalService(typeof (SVsSolution)) as IVsSolution;
+
+            IEnumHierarchies hiers;
+            ErrorHandler.Succeeded(solution.GetProjectEnum((uint) __VSENUMPROJFLAGS.EPF_ALLPROJECTS, Guid.Empty, out hiers));
+            var projects = new IVsHierarchy[20];
+            uint actualCount;
+            ErrorHandler.Succeeded(hiers.Next((uint) projects.Length, projects, out actualCount));
+
+            foreach (var project in projects)
             {
-                library = new Library();
-                objectManager.RegisterSimpleLibrary(library, out libCookie);
+                IVsSimpleBrowseComponentSet subset;
+                ErrorHandler.Succeeded(objectManager.CreateSimpleBrowseComponentSet(
+                    (uint)_BROWSE_COMPONENT_SET_TYPE.BCST_EXCLUDE_LIBRARIES,
+                    null, 0, out subset));
+
+                ErrorHandler.Succeeded(subset.put_Owner(project));
+
+                ErrorHandler.Succeeded(extras.AddSet(subset));
             }
 
             IVsEnumLibraries2 libs;
@@ -47,28 +70,30 @@ namespace Microsoft.SymbolBrowser
             treeView1.Items.Clear();
             foreach (var lib in libArray)
             {
-                AddLibrary(lib);
+                AddLibrary(lib, extras);
             }
 
         }
 
-        private void AddLibrary(IVsLibrary2 lib)
+        private void AddLibrary(IVsLibrary2 lib, IVsCombinedBrowseComponentSet extras)
         {
             if (lib == null)
                 return;
 
             var simpleLib = lib as IVsSimpleLibrary2;
 
+
             Guid libGuid;
             ErrorHandler.Succeeded(simpleLib.GetGuid(out libGuid));
+
             var libRoot = new TreeViewItem { Header = "guid=(" + libGuid + ")" };
             var expander = new TreeViewItem();
             libRoot.Items.Add(expander);
-            libRoot.Expanded += (sender, args) => AddLibraryContent(libRoot, expander, lib);
+            libRoot.Expanded += (sender, args) => AddLibraryContent(libRoot, expander, extras, lib);
             treeView1.Items.Add(libRoot);
         }
 
-        private void AddLibraryContent(TreeViewItem libRoot, TreeViewItem expander, IVsLibrary2 lib)
+        private void AddLibraryContent(TreeViewItem libRoot, TreeViewItem expander, IVsCombinedBrowseComponentSet extras, IVsLibrary2 lib)
         {
             if (lib == null)
                 return;
@@ -113,6 +138,99 @@ namespace Microsoft.SymbolBrowser
                 flags += "|LF_SUPPORTSPROJECTREFERENCES";
             flags = flags.Substring(1);
 
+
+            Guid libGuid;
+            ErrorHandler.Succeeded(simpleLib.GetGuid(out libGuid));
+
+            IVsNavInfo navInfo = null;
+
+            var rc = VSConstants.E_NOTIMPL;
+            //for (var i = (uint)0; navInfo==null && i<32 && rc != VSConstants.S_OK; i++)
+            //{
+            //    //rc = extras.CreateNavInfo(
+            //    //    libGuid,
+            //    //    new[]
+            //    //        {
+            //    //            new SYMBOL_DESCRIPTION_NODE {dwType = (uint)(0), pszName = "ClassLibrary12"},
+            //    //        },
+            //    //    1,
+            //    //    out navInfo
+            //    //    );
+            //    //if (rc == VSConstants.S_OK)
+            //    //    break;
+            rc = extras.CreateNavInfo(
+                libGuid,
+                new[]
+                        {
+                            new SYMBOL_DESCRIPTION_NODE {dwType = (uint)_LIB_LISTTYPE.LLT_NAMESPACES, pszName = "ClassLibrary3"},
+                        },
+                1,
+                out navInfo
+                );
+            //}
+
+            var navInfoRoot = new TreeViewItem { Header = "NavInfo (rc=" + rc + ")" };
+            if (rc == VSConstants.S_OK)
+            {
+                Guid symbolGuid;
+                ErrorHandler.Succeeded(navInfo.GetLibGuid(out symbolGuid));
+                navInfoRoot.Items.Add("Guid=" + symbolGuid);
+                uint symbolType;
+                ErrorHandler.Succeeded(navInfo.GetSymbolType(out symbolType));
+                var symbolTypeString = Enum.GetName(typeof (_LIB_LISTTYPE), symbolType);
+                if (symbolTypeString != null)
+                {
+                    navInfoRoot.Items.Add("Type = _LIB_LISTTYPE." + symbolTypeString);
+                }
+                else{
+                    symbolTypeString = Enum.GetName(typeof(_LIB_LISTTYPE2), symbolType);
+                    if (symbolTypeString != null)
+                    {
+                        navInfoRoot.Items.Add("Type = _LIB_LISTTYPE2." + symbolTypeString);
+                    }
+                    else
+                    {
+                        navInfoRoot.Items.Add("Type = " + symbolType);
+                    }
+                }
+
+                IVsEnumNavInfoNodes infoNodes;
+                ErrorHandler.Succeeded(navInfo.EnumCanonicalNodes(out infoNodes));
+                var navInfoNodesArray = new IVsNavInfoNode[20];
+                uint fetched;
+                ErrorHandler.Succeeded(infoNodes.Next((uint) navInfoNodesArray.Length, navInfoNodesArray, out fetched));
+                if (fetched > 0)
+                {
+                    var navNodes = new TreeViewItem {Header = "Nodes"};
+                    foreach (var node in navInfoNodesArray)
+                    {
+                        if (node == null)
+                            continue;
+                        string nodeName;
+                        ErrorHandler.Succeeded(node.get_Name(out nodeName));
+                        uint nodeType;
+                        ErrorHandler.Succeeded(node.get_Type(out nodeType));
+                        var nodeTypeString = Enum.GetName(typeof(_LIB_LISTTYPE), nodeType);
+                        if (nodeTypeString != null)
+                        {
+                            navNodes.Items.Add(nodeName + "(_LIB_LISTTYPE." + nodeTypeString + ")");
+                        }
+                        else {
+                            nodeTypeString = Enum.GetName(typeof(_LIB_LISTTYPE2), symbolType);
+                            if (symbolTypeString != null)
+                            {
+                                navNodes.Items.Add(nodeName + "(_LIB_LISTTYPE." + nodeTypeString + ")");
+                            }
+                            else
+                            {
+                                navNodes.Items.Add(nodeName + "(" + symbolType + ")");
+                            }
+                        }
+                    }
+                }
+
+            }
+            libRoot.Items.Add(navInfoRoot);
 
             libRoot.Items.Add("Flags=" + flags);
 
