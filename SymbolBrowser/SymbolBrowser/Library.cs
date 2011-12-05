@@ -15,10 +15,10 @@ namespace Microsoft.SymbolBrowser
         public Library()
         {
             root = new ResultList("Test template", "testTemplace.django", 0, ResultList.LibraryNodeType.PhysicalContainer);
-            
-            var namespaceNode = new NamespaceReferenceList("ClassLibrary1", string.Empty);
-            var classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs1");
-            var memberNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla()", "Class1.cs1");
+
+            NamespaceReferenceList namespaceNode = new NamespaceReferenceList("ClassLibrary1", string.Empty);
+            ModelReferenceList classNode = new ModelReferenceList("Class1", "Class1.cs");
+            MemberReferenceList memberNode = new MemberReferenceList(".GetBlaBlaBla()", "Class1.cs", 15);
             
             classNode.AddChild(memberNode);
             namespaceNode.AddChild(classNode);

@@ -24,10 +24,12 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                 return true; // models can go to source
             }
         }
+        protected override bool CanDelete { get { return false; } }
+
         protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
         {
             //foreach(SymbolBrowserPackage.DTE2Obj.Solution.Projects.Count
-            
+            throw new NotImplementedException();
         }
     }
 }

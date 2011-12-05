@@ -109,6 +109,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         {
             get { return true; }
         }
+        protected virtual bool CanDelete { get { return false; } }
         protected virtual void GotoSource(VSOBJGOTOSRCTYPE gotoType)
         {
             // Do nothing.
@@ -419,10 +420,15 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <param name="index"></param>
         /// <param name="pfOK"></param>
         /// <returns></returns>
-        public int CanDelete(uint index, out int pfOK)
+        int IVsSimpleObjectList2.CanDelete(uint index, out int pfOK)
         {
             Logger.Log("ResultList.CanDelete");
-            throw new NotImplementedException();
+            if (index >= (uint)children.Count)
+            {
+                throw new ArgumentOutOfRangeException("index");
+            }
+            pfOK = children[(int)index].CanDelete ? 1 : 0;
+            return VSConstants.S_OK;
         }
 
         public int DoDelete(uint index, uint grfFlags)
@@ -553,7 +559,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetList2(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
         {
-            Logger.Log("ResultList.GetList2");
+            Logger.Log(string.Format(
+                "ResultList.GetList2 index:{0} ListType: {1}",
+                index,
+                Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
             // TODO: Use the flags and list type to actually filter the result.
             if (index >= (uint)children.Count)
             {
