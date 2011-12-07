@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -35,8 +36,8 @@ namespace Microsoft.SymbolBrowser
             var objectManager = SymbolBrowserPackage.GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
             //if (library == null)
             //{
-            //    library = new Library();
-            //    objectManager.RegisterSimpleLibrary(library, out libCookie);
+                library = new Library();
+                objectManager.RegisterSimpleLibrary(library, out libCookie);
             //}
 
             IVsCombinedBrowseComponentSet extras;
@@ -67,9 +68,48 @@ namespace Microsoft.SymbolBrowser
             var libArray = new IVsLibrary2[20];
             uint fetched;
             libs.Next((uint)libArray.Length, libArray, out fetched);
+
             treeView1.Items.Clear();
             foreach (var lib in libArray)
             {
+                if (lib == null)
+                    continue;
+
+                // adding symbol to C# library
+                Guid g;
+                ((IVsSimpleLibrary2)lib).GetGuid(out g);
+                if (g.CompareTo(new Guid("58F1BAD0-2288-45b9-AC3A-D56398F7781D")) == 0)
+                {   
+                    // search criteria
+                    IVsObjectList2 outList;
+                    lib.GetList2(
+                        (uint)_LIB_LISTTYPE.LLT_MEMBERS,
+                        (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                        new[]{
+                                new VSOBSEARCHCRITERIA2
+                                    {
+                                        eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                        grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                                        szName = "GetBlaBlaBla*"
+                                    }
+                            },
+                            out outList);
+                    string projRef = string.Empty;
+                    solution.GetProjrefOfProject(projects[0], out projRef);
+
+                    VSCOMPONENTSELECTORDATA[] data = new VSCOMPONENTSELECTORDATA[]{
+                        new VSCOMPONENTSELECTORDATA{
+                            bstrFile = @"C:\Users\sivanov\documents\visual studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                            bstrTitle = "TestItem",                    
+                            dwSize = 16,
+                            bstrProjRef = projRef
+                        }
+                    };
+
+                    uint pgfrOptions = (uint)_LIB_ADDREMOVEOPTIONS.LARO_NONE;
+                    lib.AddBrowseContainer(data, ref pgfrOptions);
+                }
+
                 AddLibrary(lib, extras);
             }
 
@@ -168,6 +208,14 @@ namespace Microsoft.SymbolBrowser
                 out navInfo
                 );
             //}
+            
+            //IVsObjectList2 someList;
+            //extras.GetList2(
+            //    (uint)_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS,
+            //    (uint)_LIB_LISTFLAGS.LLF_NONE, 
+            //    null, 
+            //    (IVsObjectList2)new Library().Root, 
+            //    out someList);
 
             var navInfoRoot = new TreeViewItem { Header = "NavInfo (rc=" + rc + ")" };
             if (rc == VSConstants.S_OK)
@@ -250,6 +298,8 @@ namespace Microsoft.SymbolBrowser
 
             AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_REFERENCES);
             //expander.Items.Add(libRoot);
+
+            
         }
 
         private void AddNested(IVsLibrary2 lib, TreeViewItem libRoot, _LIB_LISTTYPE listType)
@@ -306,14 +356,14 @@ namespace Microsoft.SymbolBrowser
             uint count;
             ErrorHandler.Succeeded(objects.GetItemCount(out count));
             root.Items.Add("Items count: " + count);
+            string filePath;
 
             for (var i = (uint)0; i < count; i++)
             {
                 object propValue;
                 string text;
-                Type objType;
                 //objects.GetText(i, VSTREETEXTOPTIONS.TTO_BASETEXT, out text);
-                objType = objects.GetType();
+                Type objType = objects.GetType();
 
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_LEAFNAME, out propValue));
                 var item = new TreeViewItem {Header = (string)propValue};
@@ -348,6 +398,8 @@ namespace Microsoft.SymbolBrowser
 
             root.Items.Insert(0, "Elapsed " + (DateTime.Now - timestamp).TotalMilliseconds);
             libRoot.Items.Add(root);
+
+            
         }
 
         private void AddNested(TreeViewItem parent, IVsObjectList2 objects)
@@ -364,8 +416,7 @@ namespace Microsoft.SymbolBrowser
                 item.Items.Add("Full Name " + (string)propValue);
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
                 item.Items.Add("Path " + (string)propValue);
-
-                parent.Items.Add(item);
+                
             }
 
         }
