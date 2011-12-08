@@ -205,7 +205,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                 pCurUpdate += temp;
             }
             pCurUpdate = updateCount + temp;
-            Logger.Log("ResultList.UpdateCounter count:" + pCurUpdate);
+            //Logger.Log("ResultList.UpdateCounter count:" + pCurUpdate);
             return VSConstants.S_OK;
         }
         /// <summary>
