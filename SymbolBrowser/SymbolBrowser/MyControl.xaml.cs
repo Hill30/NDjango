@@ -82,7 +82,26 @@ namespace Microsoft.SymbolBrowser
                 {
                     // search criteria
                     IVsObjectList2 outList;
-                    int items = lib.GetList2(
+
+                    Logger.Log("Symbol details for Class1");
+
+                    lib.GetList2(
+                        (uint)_LIB_LISTTYPE.LLT_CLASSES,
+                        (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                        new[]{
+                                new VSOBSEARCHCRITERIA2
+                                    {
+                                        eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                        grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                                        szName = "Class1"
+                                    }
+                            },
+                            out outList);
+                    Logger.Log(GetListDetails(outList));
+
+                    Logger.Log("Symbol details for GetBlaBlaBla function");
+
+                    lib.GetList2(
                         (uint)_LIB_LISTTYPE.LLT_MEMBERS,
                         (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
                         new[]{
@@ -94,9 +113,9 @@ namespace Microsoft.SymbolBrowser
                                     }
                             },
                             out outList);
-                        string res = GetListDetails(outList);
-                        Logger.Log("Symbol details for GetBlaBlaBla function");
-                        Logger.Log(res);
+                    Logger.Log(GetListDetails(outList));
+
+                   
                     #region ...
                     //string projRef = string.Empty;
                     //solution.GetProjrefOfProject(projects[0], out projRef);
@@ -431,7 +450,7 @@ namespace Microsoft.SymbolBrowser
             }
 
         }
-
+        #region commented out
         //private void AddContent(TreeViewItem parent, IVsSimpleObjectList2 objects, string name, string path)
         //{
         //    if (objects == null)
@@ -553,6 +572,7 @@ namespace Microsoft.SymbolBrowser
         //    var componentPath = (string)propValue;
         //    AddContent(parent, nestedObjects, fullName, componentPath);
         //}
+        #endregion
 
         private void AddLibList(TreeViewItem parent, string header, IVsLiteTreeList theList)
         {
@@ -578,10 +598,14 @@ namespace Microsoft.SymbolBrowser
         private string GetListDetails(IVsObjectList2 list)
         {
             IVsSimpleObjectList2 simpleList = list as IVsSimpleObjectList2;
+            string res = string.Empty; // string for output
 
             // CATEGORIES
-            uint temp; // uint for flags            
-            string res = string.Empty; // string for output
+            uint temp; // uint for flags     
+            list.GetItemCount(out temp);
+            res += "\r\n>>>NESTED ITEMS\r\n";
+            res += "Count: " + temp + "\r\n";
+                        
             res += "\r\n>>>CAPABILITIES\r\n";
             simpleList.GetCapabilities2(out temp);
             if ((temp & (uint)_LIB_LISTCAPABILITIES.LLC_ALLOWDELETE) != 0) res += "|LLC_ALLOWDELETE";
