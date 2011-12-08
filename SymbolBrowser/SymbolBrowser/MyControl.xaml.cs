@@ -85,34 +85,36 @@ namespace Microsoft.SymbolBrowser
 
                     Logger.Log("Symbol details for Class1");
 
-                    lib.GetList2(
-                        (uint)_LIB_LISTTYPE.LLT_CLASSES,
-                        (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                        new[]{
-                                new VSOBSEARCHCRITERIA2
-                                    {
-                                        eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
-                                        grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
-                                        szName = "Class1"
-                                    }
-                            },
-                            out outList);
+                    //lib.GetList2(
+                    //    (uint)_LIB_LISTTYPE.LLT_CLASSES,
+                    //    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                    //    new[]{
+                    //            new VSOBSEARCHCRITERIA2
+                    //                {
+                    //                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                    //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                    //                    szName = "Class1"
+                    //                }
+                    //        },
+                    //        out outList);
+                    outList = GetListFromLib(_LIB_LISTTYPE.LLT_CLASSES, VSOBSEARCHTYPE.SO_SUBSTRING, lib, "Class1", false);
                     Logger.Log(GetListDetails(outList));
 
                     Logger.Log("Symbol details for GetBlaBlaBla function");
 
-                    lib.GetList2(
-                        (uint)_LIB_LISTTYPE.LLT_MEMBERS,
-                        (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                        new[]{
-                                new VSOBSEARCHCRITERIA2
-                                    {
-                                        eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
-                                        grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
-                                        szName = "GetBlaBlaBla*"
-                                    }
-                            },
-                            out outList);
+                    //lib.GetList2(
+                    //    (uint)_LIB_LISTTYPE.LLT_MEMBERS,
+                    //    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                    //    new[]{
+                    //            new VSOBSEARCHCRITERIA2
+                    //                {
+                    //                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                    //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE,
+                    //                    szName = "GetBlaBlaBla*"
+                    //                }
+                    //        },
+                    //        out outList);
+                    outList = GetListFromLib(_LIB_LISTTYPE.LLT_MEMBERS, VSOBSEARCHTYPE.SO_SUBSTRING, lib, "GetBlaBlaBla*", false);
                     Logger.Log(GetListDetails(outList));
 
                    
@@ -588,6 +590,34 @@ namespace Microsoft.SymbolBrowser
             //    var rc = theList.GetText((uint) i, VSTREETEXTOPTIONS.TTO_DEFAULT, out item);
             //    root.Items.Add(item);
             //}
+        }
+
+        /// <summary>
+        /// Searches the supplied library for something
+        /// </summary>
+        /// <param name="searchForType">Type of the item to search for</param>
+        /// <param name="searchType">Type of the search to perform</param>
+        /// <param name="lib">Library to search</param>
+        /// <param name="param">Text to search for</param>
+        /// <param name="caseSensitive">Is the search to be a case-sensitive or not</param>
+        /// <returns></returns>
+        IVsObjectList2 GetListFromLib(_LIB_LISTTYPE searchForType, VSOBSEARCHTYPE searchType, IVsLibrary2 lib, string param, bool caseSensitive)
+        {
+            IVsObjectList2 outList;
+
+            lib.GetList2(
+                (uint)searchForType,
+                (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                new[]{
+                                new VSOBSEARCHCRITERIA2
+                                    {
+                                        eSrchType = searchType,
+                                        grfOptions = (uint)(caseSensitive? _VSOBSEARCHOPTIONS.VSOBSO_CASESENSITIVE : _VSOBSEARCHOPTIONS.VSOBSO_NONE),
+                                        szName = param
+                                    }
+                            },
+                    out outList);
+            return outList;
         }
 
         /// <summary>
