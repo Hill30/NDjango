@@ -110,6 +110,7 @@
     <Compile Include="GlobalServices.cs" />
     <Compile Include="Parsing\ASPNETMVCProjectHandler.cs" />
     <Compile Include="Parsing\DesignerNode.cs" />
+    <Compile Include="Parsing\NDjangoType.cs" />
     <Compile Include="Parsing\NodeProvider.cs" />
     <Compile Include="Parsing\NodeProviderBroker.cs" />
     <Compile Include="Parsing\ProjectHandler.cs" />

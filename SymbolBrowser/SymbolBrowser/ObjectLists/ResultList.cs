@@ -392,7 +392,11 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int CountSourceItems(uint index, out IVsHierarchy ppHier, out uint pItemid, out uint pcItems)
         {
             Logger.Log("ResultList.CountSourceItems");
-            throw new NotImplementedException();
+            ppHier = null;
+            pItemid = 0;
+            pcItems = 0;
+            return 1;
+            //throw new NotImplementedException();
         }
         /// <summary>
         /// Returns the ItemID corresponding to source files for the given list item if more than one.

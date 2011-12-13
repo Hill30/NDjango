@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -35,6 +37,12 @@ namespace NDjangoDesigner
     [Guid(NDjango.Designer.Constants.guidNDjangoDesignerPkgString)]
     public sealed class NDjangoDesignerPackage : Package
     {
+        private static DTE2 dteObj;
+        public static DTE2 DTE2Obj
+        {
+            get { return dteObj; }
+        }
+
         private AddViewDlg viewDialog;
         /// <summary>
         /// Default constructor of the package.
@@ -80,6 +88,9 @@ namespace NDjangoDesigner
                 mcs.AddCommand(new AddViewCommand());
             }
             viewDialog = new AddViewDlg();
+
+            // Obtain a reference to DTE2 type object.
+            dteObj = GetService(typeof(DTE)) as DTE2;
         }
         #endregion
 
