@@ -125,7 +125,6 @@
     <Compile Include="ObjectLists\MemberReferenceList.cs" />
     <Compile Include="ObjectLists\ModelReferenceList.cs" />
     <Compile Include="ObjectLists\NamespaceReferenceList.cs" />
-    <Compile Include="ObjectLists\TemplateList.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
