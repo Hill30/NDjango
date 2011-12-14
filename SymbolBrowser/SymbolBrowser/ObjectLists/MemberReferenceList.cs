@@ -25,21 +25,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         }
         protected override bool CanDelete { get { return true; } }
 
-        /// <summary>
-        /// pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PUBLIC;
-        /// </summary>
-        public override bool IsPrivate{ get{ return true; } }
-
-        /// <summary>
-        /// pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED;
-        /// </summary>
-        public override bool IsProtected { get { return true; } }
-        
-        /// <summary>
-        /// pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED | (uint)_LIBCAT_MEMBERACCESS.LCMA_PACKAGE;
-        /// </summary>
-        public override bool IsAssembly { get { return false; } }
-
         protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
         {
             //foreach(SymbolBrowserPackage.DTE2Obj.Solution.Projects.Count

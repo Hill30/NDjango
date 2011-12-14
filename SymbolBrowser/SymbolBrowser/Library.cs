@@ -14,33 +14,18 @@ namespace Microsoft.SymbolBrowser
 
         public Library()
         {
-            // Approach1
-            //root = new ResultList("Test template", "testTemplace.django", 0, ResultList.LibraryNodeType.PhysicalContainer);
-
-            //NamespaceReferenceList namespaceNode = new NamespaceReferenceList("ClassLibrary1", string.Empty);
-            //ModelReferenceList classNode = new ModelReferenceList("Class1", "Class1.cs");
-            //MemberReferenceList memberNode = new MemberReferenceList(".GetBlaBlaBla()", "Class1.cs", 15);
-            
-            //classNode.AddChild(memberNode);
-            //namespaceNode.AddChild(classNode);
-            //root.AddChild(namespaceNode);            
-
-            // Approach 2
             root = new ResultList("Test template", "testTemplace.django", 0, ResultList.LibraryNodeType.PhysicalContainer);
 
             NamespaceReferenceList namespaceNode = new NamespaceReferenceList("ClassLibrary1", string.Empty);
-            ModelReferenceList classNode = new ModelReferenceList("ClassLibrary1.Class1", @"C:\Users\sivanov\documents\visual studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs");
-            MemberReferenceList memberNode = new MemberReferenceList("Class1.GetBlaBlaBla()", @"C:\Users\sivanov\documents\visual studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs", 15);
-
+            ModelReferenceList classNode = new ModelReferenceList("Class1", "Class1.cs");
+            MemberReferenceList memberNode = new MemberReferenceList(".GetBlaBlaBla()", "Class1.cs", 15);
+            
             classNode.AddChild(memberNode);
             namespaceNode.AddChild(classNode);
             root.AddChild(namespaceNode);            
             
             //GetSupportedFileList();
         }
-
-        // For obtaining form package
-        public ResultList Root { get { return root; } } 
 
         private ProjectItems GetSupportedFileList()
         {
@@ -90,8 +75,7 @@ namespace Microsoft.SymbolBrowser
 
         public int CreateNavInfo(SYMBOL_DESCRIPTION_NODE[] rgSymbolNodes, uint ulcNodes, out IVsNavInfo ppNavInfo)
         {
-            ppNavInfo = null;
-            return VSConstants.E_NOTIMPL;
+            throw new NotImplementedException();
         }
 
         public int GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual = null)

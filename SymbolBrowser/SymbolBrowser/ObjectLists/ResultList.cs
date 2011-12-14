@@ -40,8 +40,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             DeferExpansion = _LIB_LISTTYPE.LLT_DEFEREXPANSION,
         }
 
-        private const uint NULLINDEX = 4294967295;
-
         private readonly string symbolText = string.Empty;
         private readonly string fName;
         private readonly uint lineNumber;
@@ -102,22 +100,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         public virtual string UniqueName
         {
-            get { return this.GetType()+" "+symbolText; }
+            get { return symbolText; }
         }
-        /// <summary>
-        /// pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PUBLIC;
-        /// </summary>
-        public virtual bool IsPrivate { get { return false; } }
-
-        /// <summary>
-        /// pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED;
-        /// </summary>
-        public virtual bool IsProtected { get { return false; } }
-
-        /// <summary>
-        /// pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED | (uint)_LIBCAT_MEMBERACCESS.LCMA_PACKAGE;
-        /// </summary>
-        public virtual bool IsAssembly { get { return false; } }
 
         public virtual VSTREEDISPLAYDATA DisplayData { get; set; }
 
@@ -205,7 +189,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                 pCurUpdate += temp;
             }
             pCurUpdate = updateCount + temp;
-            //Logger.Log("ResultList.UpdateCounter count:" + pCurUpdate);
+            Logger.Log("ResultList.UpdateCounter count:" + pCurUpdate);
             return VSConstants.S_OK;
         }
         /// <summary>
@@ -227,7 +211,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int GetDisplayData(uint index, VSTREEDISPLAYDATA[] pData)
         {
             // ToDo: Find out where the displayData takes from in IronPython and supply it here
-            //Logger.Log("ResultList.GetDisplayData index:" + index);
+            Logger.Log("ResultList.GetDisplayData index:" + index);
             if (index >= (uint)children.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
@@ -262,76 +246,15 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <summary>
         /// Returns the value for the specified category for the given list item. (LIB_CATEGORY enumeration)
         /// </summary>
-        /// <param name="index">Specifies the index of the list item of interest.</param>
-        /// <param name="Category">[in] Specifies the category of interest. Values are taken from the LIB_CATEGORY enumeration. </param>
+        /// <param name="index"></param>
+        /// <param name="Category"></param>
         /// <param name="pfCatField"></param>
         /// <returns></returns>
         public virtual int GetCategoryField2(uint index, int Category, out uint pfCatField)
         {
-            Logger.Log(string.Format(
-                "ResultList.GetCategoryField2 index:{0} Category:{1}, setting to E_NOTIMPL",
-                index,
-                Enum.GetName(typeof(LIB_CATEGORY), Category)));
-
-            pfCatField = 0;
-
-            switch ((LIB_CATEGORY)Category)
-            {
-                case LIB_CATEGORY.LC_MEMBERTYPE:
-                    pfCatField = (uint)_LIBCAT_MEMBERTYPE.LCMT_METHOD;
-                    break;
-
-                case LIB_CATEGORY.LC_MEMBERACCESS:
-                    {
-                        ResultList method = children[(int)index];
-
-                        if (!method.IsPrivate)
-                        {
-                            Logger.Log("is public");
-                            pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PUBLIC;
-                        }
-                        else if (method.IsPrivate)
-                        {
-                            Logger.Log("is private");
-                            pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PRIVATE;
-                        }
-                        else if (method.IsProtected)
-                        {
-                            Logger.Log("is protected");
-                            pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED;
-                        }
-                        else if (method.IsAssembly)
-                        {
-                            Logger.Log("protected+assembly");
-                            pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED |
-                                         (uint)_LIBCAT_MEMBERACCESS.LCMA_PACKAGE;
-                        }
-                        else
-                        {
-                            Logger.Log("Is package");
-                            // Show everything else as internal.
-                            pfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PACKAGE;
-                        }
-                    }
-                    break;
-
-                case LIB_CATEGORY.LC_VISIBILITY:
-                    Logger.Log("visible");
-                    pfCatField = (uint)_LIBCAT_VISIBILITY.LCV_VISIBLE;
-                    break;
-
-                case LIB_CATEGORY.LC_LISTTYPE:
-                    Logger.Log("list type");
-                    pfCatField = (uint)_LIB_LISTTYPE.LLT_MEMBERS;
-                    break;
-
-                default:
-                    return Microsoft.VisualStudio.VSConstants.S_FALSE;
-            }
-            return Microsoft.VisualStudio.VSConstants.S_OK;
-
-            //pfCatField = (int)LIB_CATEGORY.LC_ACTIVEPROJECT;
-            //return VSConstants.E_NOTIMPL;
+            Logger.Log("ResultList.GetCategoryField2, setting to E_NOTIMPL");
+            pfCatField = (int)LIB_CATEGORY.LC_ACTIVEPROJECT;
+            return VSConstants.E_NOTIMPL;
         }
         /// <summary>
         /// Returns a pointer to the property browse IDispatch for the given list item.
@@ -354,9 +277,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         {
             // is used for IntelliSence?... (uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT
             // Got called on saving and closing the application using these symbols, WTF?!
-            ppunkUserCtx = null;
-            return VSConstants.E_NOTIMPL;
-
             throw new NotImplementedException();
         }
         /// <summary>
@@ -603,9 +523,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetNavInfoNode(uint index, out IVsNavInfoNode ppNavInfoNode)
         {
-            Logger.Log("ResultList.GetNavInfoNode("+this.symbolText+") for node "+index);
-            ppNavInfoNode = children[(int)index] as IVsNavInfoNode;
+            Logger.Log("ResultList.GetNavInfoNode");
+            ppNavInfoNode = this;
             return VSConstants.S_OK;
+            throw new NotImplementedException();
         }
         /// <summary>
         /// Reserved for future use.
@@ -627,7 +548,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetExpandable3(uint index, uint ListTypeExcluded, out int pfExpandable)
         {
-            //Logger.Log("ResultList.GetExpandable3");
+            Logger.Log("ResultList.GetExpandable3");
             pfExpandable = children[(int)index].IsExpandable ? 1 : 0;
             return VSConstants.S_OK;
         }
@@ -643,12 +564,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int GetList2(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
         {
             Logger.Log(string.Format(
-                "ResultList.GetList2 ({0}) index:{1} ListType: {2} flags:{3}",
-                this.symbolText,
+                "ResultList.GetList2 index:{0} ListType: {1}",
                 index,
-                Enum.GetName(typeof(_LIB_LISTTYPE), ListType),
-                Enum.GetName(typeof(_LIB_LISTFLAGS), flags))
-               );
+                Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
             // TODO: Use the flags and list type to actually filter the result.
             if (index >= (uint)children.Count)
             {
@@ -684,10 +602,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         int IVsNavInfoNode.get_Type(out uint pllt)
         {
             Logger.Log("ResultList.IVsNavInfoNode.get_Type");
-            if (nodeType == LibraryNodeType.Members)
-                pllt = (uint)_LIB_LISTTYPE2.LLT_MEMBERHIERARCHY;
-            else
-                pllt = (uint)nodeType;
+            pllt = (uint)nodeType;
             return VSConstants.S_OK;
         }
 
