@@ -234,7 +234,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetTextWithOwnership(uint index, VSTREETEXTOPTIONS tto, out string pbstrText)
         {
-            pbstrText = symbolText;
+            pbstrText = children[(int)index].symbolText;
             return VSConstants.S_OK;
         }
         /// <summary>
@@ -246,7 +246,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetTipTextWithOwnership(uint index, VSTREETOOLTIPTYPE eTipType, out string pbstrText)
         {
-            pbstrText = symbolText;
+            pbstrText = children[(int)index].symbolText;
             return VSConstants.S_OK;
         }
         /// <summary>
