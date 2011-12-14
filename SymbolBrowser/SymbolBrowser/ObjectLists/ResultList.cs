@@ -115,6 +115,12 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             // Do nothing.
         }
 
+        protected virtual void FillDescription(_VSOBJDESCOPTIONS flagsArg, IVsObjectBrowserDescription3 description)
+        {
+            description.ClearDescriptionText();
+            description.AddDescriptionText3(symbolText, VSOBDESCRIPTIONSECTION.OBDS_NAME, null);
+        }
+
         protected IVsSimpleObjectList2 FilterView(LibraryNodeType filterType)
         {
             ResultList filtered = null;
@@ -265,7 +271,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int GetBrowseObject(uint index, out object ppdispBrowseObj)
         {
             Logger.Log("ResultList.GetBrowseObject");
-            throw new NotImplementedException();
+            ppdispBrowseObj = null;
+            return VSConstants.E_NOTIMPL;
+            //throw new NotImplementedException();
         }
         /// <summary>
         /// Returns the user context object for the given list item.
@@ -277,7 +285,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         {
             // is used for IntelliSence?... (uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT
             // Got called on saving and closing the application using these symbols, WTF?!
-            throw new NotImplementedException();
+            ppunkUserCtx = null;
+            return VSConstants.E_NOTIMPL;
         }
         /// <summary>
         /// Allows the list to display help for the given list item.
@@ -448,8 +457,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int FillDescription2(uint index, uint grfOptions, IVsObjectBrowserDescription3 pobDesc)
         {
-            Logger.Log("ResultList.FillDescription2");
-            throw new NotImplementedException();
+            children[(int)index].FillDescription((_VSOBJDESCOPTIONS)grfOptions, pobDesc);
+            return VSConstants.S_OK;
         }
         /// <summary>
         /// Asks the given list item to enumerate its supported clipboard formats.
@@ -512,8 +521,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetNavInfo(uint index, out IVsNavInfo ppNavInfo)
         {
-            Logger.Log("ResultList.GetNavInfo");
-            throw new NotImplementedException();
+            ppNavInfo = null;
+            return VSConstants.E_NOTIMPL;
         }
         /// <summary>
         /// 	Reserved for future use.
