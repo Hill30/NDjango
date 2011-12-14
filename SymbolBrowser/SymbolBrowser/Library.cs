@@ -10,15 +10,17 @@ namespace Microsoft.SymbolBrowser
     {
         private const string SUPPORTED_EXT = ".django";
         private ResultList root;
-
+        NamespaceReferenceList namespaceNode;
+        ModelReferenceList classNode;
+        MemberReferenceList memberNode;
 
         public Library()
         {
             root = new ResultList("Test template", "testTemplace.django", 0, ResultList.LibraryNodeType.PhysicalContainer);
 
-            NamespaceReferenceList namespaceNode = new NamespaceReferenceList("ClassLibrary1", string.Empty);
-            ModelReferenceList classNode = new ModelReferenceList("Class1", "Class1.cs");
-            MemberReferenceList memberNode = new MemberReferenceList(".GetBlaBlaBla()", "Class1.cs", 15);
+            namespaceNode = new NamespaceReferenceList("ClassLibrary1", "Class1.cs");
+            classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs");
+            memberNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla", "Class1.cs", 15);
             
             classNode.AddChild(memberNode);
             namespaceNode.AddChild(classNode);
@@ -105,7 +107,8 @@ namespace Microsoft.SymbolBrowser
         }
 
         public int GetList2(uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
-        {/*
+        {
+            /*
             string strSearchCriteria = pobSrch[0].szName;
             uint grfOptions = pobSrch[0].grfOptions;
             IVsNavInfo NavInfo = pobSrch[0].pIVsNavInfo;
@@ -179,9 +182,39 @@ namespace Microsoft.SymbolBrowser
                 Enum.GetName(typeof(_LIB_LISTTYPE2), ListType), 
                 Enum.GetName(typeof(_LIB_LISTTYPE), ListType),
                 Enum.GetName(typeof(_LIB_LISTFLAGS), flags)));
-            ppIVsSimpleObjectList2 = root;
-            return VSConstants.S_OK;
+            if (pobSrch != null)
+            {
+                var txt = pobSrch[0].szName;
+                string temp = string.Empty;                
 
+                root.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+                if (string.Compare(temp, txt, true) == 0)
+                    ppIVsSimpleObjectList2 = namespaceNode;
+                else
+                {
+                    namespaceNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+                    if (string.Compare(temp, txt, true) == 0)
+                        ppIVsSimpleObjectList2 = classNode;
+                    else
+                    {
+                        classNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+                        if (string.Compare(temp, txt, true) == 0)
+                            ppIVsSimpleObjectList2 = memberNode;
+                        else
+                        {
+                            ppIVsSimpleObjectList2 = null;
+                            return VSConstants.E_FAIL;
+                        }
+                    }
+                }
+
+                return VSConstants.S_OK;
+            }
+            else
+            {
+                ppIVsSimpleObjectList2 = root;
+                return VSConstants.S_OK;
+            }
             //switch (ListType)
             //{
             //    case (uint)_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS: //16

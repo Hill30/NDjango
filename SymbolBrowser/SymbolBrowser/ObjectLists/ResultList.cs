@@ -576,12 +576,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                 "ResultList.GetList2 index:{0} ListType: {1}",
                 index,
                 Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
-            // TODO: Use the flags and list type to actually filter the result.
-            if (index >= (uint)children.Count)
-            {
-                Logger.Log("ResultList.GetList2 EXCEPTION - index out of range");
-                throw new ArgumentOutOfRangeException("index");
-            }
+
             //ppIVsSimpleObjectList2 = children[(int)index].FilterView((LibraryNodeType)ListType);
             ppIVsSimpleObjectList2 = children[(int)index];
             return VSConstants.S_OK;
