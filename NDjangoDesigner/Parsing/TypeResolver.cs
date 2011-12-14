@@ -102,70 +102,52 @@ namespace NDjango.Designer.Parsing
              * get info from symbol lib (C# and VBet c)
              * 
              */
-            //SearchLibaries(type_name);
+           SearchLibaries(type_name);
             //return GetDummyTypeInfo();
             return ((ITypeResolutionService)type_resolver).GetType(type_name);
         }
 
-        public NDjangoType GetDummyTypeInfo()
+        
+        public static NDjangoType SearchLibaries(string classname)
         {
             NDjangoType type = new NDjangoType();
-            type.AddMember("UserName");
-            type.AddMember("Test");
-            return type;
-        }
-
-        public static void SearchLibaries(string text)
-        {
             var libs = GetIVsLibraries(NDjangoDesignerPackage.DTE2Obj);
             foreach (var vsLibrary2 in libs)
             {
                 try
                 {
-                    var list = SearchIVsLibrary(vsLibrary2, text, VSOBSEARCHTYPE.SO_ENTIREWORD);
-                    if (list != null)
+                    IVsObjectList2 list = null;
+                    bool searchSucceed = ErrorHandler.Succeeded(vsLibrary2.GetList2((uint)(_LIB_LISTTYPE.LLT_MEMBERS),
+                                        (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                                        new[]
+                                        {
+                                            new VSOBSEARCHCRITERIA2
+                                                {
+                                                    eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_NONE,
+                                                    szName = "*"
+                                                }
+                                        }, out list));
+                    
+                    
+                    if (searchSucceed && list != null)
                     {
                         uint count;
                         ErrorHandler.Succeeded(list.GetItemCount(out count));
                         for (var i = (uint) 0; i < count; i++)
                         {
-                            object propValue;
-                            Type objType;
-                            objType = list.GetType();
-                            ErrorHandler.Succeeded(list.GetProperty(i,(int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME,out propValue));
+                            object symbol;
+                          
+                            ErrorHandler.Succeeded(list.GetProperty(i,(int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME,out symbol));
 
-                            IVsObjectList2 nestedObjects;
-                            ErrorHandler.Succeeded(list.GetList2(
-                                i,
-                                (uint)(_LIB_LISTTYPE.LLT_HIERARCHY),
-                                (uint) _LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                                new[]
-                                    {
-                                        new VSOBSEARCHCRITERIA2
-                                            {
-                                                eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
-                                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_NONE,
-                                                szName = "*"
-                                            }
-                                    },
-                                out nestedObjects
-                                                       ));
-
-                            uint nestedCount;
-                            ErrorHandler.Succeeded(nestedObjects.GetItemCount(out nestedCount));
-
-                            for (var n = (uint) 0; n < nestedCount; n++)
+                            if(symbol != null)
                             {
-                                object nestedPropValue;
-                                ErrorHandler.Succeeded(nestedObjects.GetProperty(n,
-                                                                                 (int)
-                                                                                 _VSOBJLISTELEMPROPID.
-                                                                                     VSOBJLISTELEMPROPID_FULLNAME,
-                                                                                 out nestedPropValue));
-
-
+                                string sSym = symbol.ToString();
+                                if(sSym.StartsWith(classname))
+                                {
+                                    type.AddMember(sSym.Replace(classname, string.Empty));
+                                }
                             }
-
 
 
                         }
@@ -174,24 +156,9 @@ namespace NDjango.Designer.Parsing
                 catch (AccessViolationException accessViolationException){/* eat this type of exception */}
                 
             }
+            return type;
         }
 
-        public static IVsObjectList2 SearchIVsLibrary(IVsLibrary2 library, string keyword, VSOBSEARCHTYPE searchType)
-        {
-            try
-            {
-            
-                VSOBSEARCHCRITERIA2[] searchCriteria = new VSOBSEARCHCRITERIA2[1];
-                searchCriteria[0].eSrchType = searchType;
-                searchCriteria[0].szName = keyword;
-
-                IVsObjectList2 objectList = null;
-                library.GetList2((uint)_LIB_LISTTYPE.LLT_CLASSES, (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER, searchCriteria, out objectList);
-                return objectList;
-            }
-            catch (AccessViolationException accessViolationException) {/* eat this type of exception */}
-            return null;
-        }
 
         public static readonly Guid CSharpLibrary = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
         public static readonly Guid VBLibrary = new Guid("414AC972-9829-4B6A-A8D7-A08152FEB8AA");
