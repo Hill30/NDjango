@@ -26,6 +26,8 @@ namespace NDjango.Designer
 
         public static readonly IVsSolution Solution = (IVsSolution)Package.GetGlobalService(typeof(SVsSolution));
 
+        public static readonly IVsObjectManager2 ObjectManager = (IVsObjectManager2)Package.GetGlobalService(typeof(SVsObjectManager));
+
         private static SVsServiceProvider serviceProvider;
 
         [Import]

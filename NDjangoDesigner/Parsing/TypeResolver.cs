@@ -1,19 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.ComponentModel.Composition;
-using EnvDTE80;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using System.ComponentModel.Design;
-using System.Runtime.Remoting.Messaging;
 using System.Reflection;
 using Microsoft.VisualStudio.Shell.Interop;
 using NDjango.Interfaces;
 using System.IO;
-using NDjangoDesigner;
 
 namespace NDjango.Designer.Parsing
 {
@@ -61,8 +52,8 @@ namespace NDjango.Designer.Parsing
         //    tags.Add(new Tag(((NameAttribute)attrs[0]).Name, (ITag)Activator.CreateInstance(tag)));
         //}
 
-        List<Tag> tags = new List<Tag>();
-        List<Filter> filters = new List<Filter>();
+        readonly List<Tag> tags = new List<Tag>();
+        readonly List<Filter> filters = new List<Filter>();
 
         private static void CreateEntry<T>(List<T> list, Type t) where T : class
         {
@@ -72,7 +63,7 @@ namespace NDjango.Designer.Parsing
                 return;
 
             var attrs = t.GetCustomAttributes(typeof(NameAttribute), false) as NameAttribute[];
-            if (attrs.Length == 0)
+            if (attrs != null && attrs.Length == 0)
                 return;
 
             if (t.GetConstructor(new Type[] { }) == null)
@@ -84,7 +75,7 @@ namespace NDjango.Designer.Parsing
         public IEnumerable<Tag> Tags { get { return tags; } }
 
         public IEnumerable<Filter> Filters { get { return filters; } }
-        
+
         #region IDisposable Members
 
         public void Dispose()
@@ -96,27 +87,21 @@ namespace NDjango.Designer.Parsing
 
         #region ITypeResolver Members
 
-        public Type Resolve(string type_name)
+        public Type Resolve(string typeName)
         {
-            /**
-             * get info from symbol lib (C# and VBet c)
-             * 
-             */
-           SearchLibaries(type_name);
-            //return GetDummyTypeInfo();
-            return ((ITypeResolutionService)type_resolver).GetType(type_name);
+            return SearchLibaries(typeName);
         }
 
-        
+
         public static NDjangoType SearchLibaries(string classname)
         {
             NDjangoType type = new NDjangoType();
-            var libs = GetIVsLibraries(NDjangoDesignerPackage.DTE2Obj);
+            var libs = GetIVsLibraries();
             foreach (var vsLibrary2 in libs)
             {
                 try
                 {
-                    IVsObjectList2 list = null;
+                    IVsObjectList2 list;
                     bool searchSucceed = ErrorHandler.Succeeded(vsLibrary2.GetList2((uint)(_LIB_LISTTYPE.LLT_MEMBERS),
                                         (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
                                         new[]
@@ -128,22 +113,22 @@ namespace NDjango.Designer.Parsing
                                                     szName = "*"
                                                 }
                                         }, out list));
-                    
-                    
+
+
                     if (searchSucceed && list != null)
                     {
                         uint count;
                         ErrorHandler.Succeeded(list.GetItemCount(out count));
-                        for (var i = (uint) 0; i < count; i++)
+                        for (var i = (uint)0; i < count; i++)
                         {
                             object symbol;
-                          
-                            ErrorHandler.Succeeded(list.GetProperty(i,(int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME,out symbol));
 
-                            if(symbol != null)
+                            ErrorHandler.Succeeded(list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out symbol));
+
+                            if (symbol != null)
                             {
                                 string sSym = symbol.ToString();
-                                if(sSym.StartsWith(classname))
+                                if (sSym.StartsWith(classname))
                                 {
                                     type.AddMember(sSym.Replace(classname, string.Empty));
                                 }
@@ -153,25 +138,25 @@ namespace NDjango.Designer.Parsing
                         }
                     }
                 }
-                catch (AccessViolationException accessViolationException){/* eat this type of exception */}
-                
+                catch (AccessViolationException accessViolationException) {/* eat this type of exception */}
+
             }
             return type;
         }
 
 
         public static readonly Guid CSharpLibrary = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
-        public static readonly Guid VBLibrary = new Guid("414AC972-9829-4B6A-A8D7-A08152FEB8AA");
+        public static readonly Guid VisualBasicLibrary = new Guid("414AC972-9829-4B6A-A8D7-A08152FEB8AA");
 
-        public static IVsLibrary2[] GetIVsLibraries(DTE2 dte)
+        public static IVsLibrary2[] GetIVsLibraries()
         {
             List<IVsLibrary2> libraries = new List<IVsLibrary2>();
 
-            IVsLibrary2 cSharpLibrary = GetIVsLibrary2(dte, CSharpLibrary);
+            IVsLibrary2 cSharpLibrary = GetIVsLibrary2(CSharpLibrary);
             if (cSharpLibrary != null)
                 libraries.Add(cSharpLibrary);
 
-            IVsLibrary2 vbLibrary = GetIVsLibrary2(dte, VBLibrary);
+            IVsLibrary2 vbLibrary = GetIVsLibrary2(VisualBasicLibrary);
             if (vbLibrary != null)
                 libraries.Add(vbLibrary);
 
@@ -179,30 +164,15 @@ namespace NDjango.Designer.Parsing
         }
 
 
-        public static IVsLibrary2 GetIVsLibrary2(DTE2 dte, Guid guid)
+        public static IVsLibrary2 GetIVsLibrary2(Guid guid)
         {
-            if (dte == null)
-                throw new ArgumentNullException("dte");
-
-            IVsObjectManager2 objectManager = GetIVsObjectManager2(dte);
-            IVsLibrary2 library = null;
+            IVsObjectManager2 objectManager = GlobalServices.ObjectManager;
+            IVsLibrary2 library;
             objectManager.FindLibrary(ref guid, out library);
             return library;
         }
 
-        private static IVsObjectManager2 GetIVsObjectManager2(DTE2 dte)
-        {
-            if (dte == null)
-                throw new ArgumentNullException("dte");
 
-            Microsoft.VisualStudio.OLE.Interop.IServiceProvider sp = (Microsoft.VisualStudio.OLE.Interop.IServiceProvider)dte;
-            Guid iid = typeof(IVsObjectManager2).GUID;
-            Guid service = typeof(SVsObjectManager).GUID;
-            IntPtr pUnk;
-            sp.QueryService(ref service, ref iid, out pUnk);
-            IVsObjectManager2 manager = (IVsObjectManager2)Marshal.GetObjectForIUnknown(pUnk);
-            return manager;
-        }
 
         #endregion
     }
