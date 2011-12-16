@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
@@ -45,17 +47,22 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             //symbolPrefix = string.Empty,
             fName = string.Empty;
 
-        protected readonly uint lineNumber;
-        private readonly List<ResultList> children = new List<ResultList>();
-        private uint updateCount = 0;
+        protected readonly int 
+            lineNumber = 0, 
+            columnNumber = 0;
+        private uint 
+            updateCount = 0;
+
+        private readonly List<ResultList> children = new List<ResultList>();        
         private readonly LibraryNodeType nodeType;
 
-        public ResultList(string text/*, string prefix*/, string fName, uint lineNumber, LibraryNodeType type)
+        public ResultList(string text/*, string prefix*/, string fName, int lineNumber, int columnNumber, LibraryNodeType type)
         {
             symbolText = text;
             //symbolPrefix = prefix;
             this.fName = fName;
             this.lineNumber = lineNumber;
+            this.columnNumber = columnNumber;
             nodeType = type;
             DisplayData = new VSTREEDISPLAYDATA
                               {
@@ -76,6 +83,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             symbolText = node.symbolText;
             this.fName = node.fName;
             this.lineNumber = node.lineNumber;
+            this.columnNumber = node.columnNumber;
             nodeType = node.nodeType;
             DisplayData = new VSTREEDISPLAYDATA
             {
@@ -152,6 +160,137 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         {
             return new ResultList(this);
         }
+
+        protected virtual void OpenSourceFile() 
+        {
+            var fName = @"c:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs";
+            var solution = SymbolBrowserPackage.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
+
+            IEnumHierarchies hiers;
+            ErrorHandler.Succeeded(solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, Guid.Empty, out hiers));
+            var projects = new IVsHierarchy[20];
+            uint actualCount;
+            ErrorHandler.Succeeded(hiers.Next((uint)projects.Length, projects, out actualCount));
+
+            uint pitemId = 0;
+            IVsProject3 containingProject = null;
+            foreach (IVsProject3 project in projects)
+            {
+                int pfFound = 0;
+                var docPriority = new VSDOCUMENTPRIORITY[0];
+                ErrorHandler.Succeeded(project.IsDocumentInProject(fName, out pfFound, docPriority, out pitemId));
+
+                if (pfFound > 0)
+                {
+                    containingProject = project;
+                    break;
+                }
+            }
+
+            if (null == containingProject) { return; }
+
+            IVsWindowFrame frame = null;
+            IntPtr documentData = IntPtr.Zero;
+            try
+            {
+                Guid viewGuid = VSConstants.LOGVIEWID_Code;
+                //SI: кажется не надо искать открыт ли этот документ или нет - Visual Studio сама это разруливает...
+                ErrorHandler.ThrowOnFailure(containingProject.OpenItem(pitemId, ref viewGuid, documentData, out frame));
+            }
+            finally
+            {
+                if (IntPtr.Zero != documentData)
+                {
+                    Marshal.Release(documentData);
+                    documentData = IntPtr.Zero;
+                }
+            }
+            // Make sure that the document window is visible.
+            ErrorHandler.ThrowOnFailure(frame.Show());
+
+            // Get the code window from the window frame.
+            object docView;
+            ErrorHandler.ThrowOnFailure(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docView));
+            IVsCodeWindow codeWindow = docView as IVsCodeWindow;
+            if (null == codeWindow)
+            {
+                object docData;
+                ErrorHandler.ThrowOnFailure(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out docData));
+                codeWindow = docData as IVsCodeWindow;
+                if (null == codeWindow)
+                {
+                    return;
+                }
+            }
+
+            // Get the primary view from the code window.
+            IVsTextView textView;
+            ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out textView));
+
+            // Set the cursor at the beginning of the declaration.
+            ErrorHandler.ThrowOnFailure(textView.SetCaretPos((int)lineNumber, (int)columnNumber));
+
+            // Make sure that the text is visible.
+            TextSpan visibleSpan = new TextSpan();
+            visibleSpan.iStartLine = lineNumber;
+            visibleSpan.iStartIndex = columnNumber;
+            visibleSpan.iEndLine = lineNumber;
+            visibleSpan.iEndIndex = columnNumber + 1;
+            ErrorHandler.ThrowOnFailure(textView.EnsureSpanVisible(visibleSpan));
+        }
+
+        #region Iron Python had some search for document pointer using RDT. 
+        // To me it seems that VS does the same thing itself
+
+        //private IntPtr FindDocDataFromRDT(string fName)
+        //{
+        //    // Get a reference to the RDT.
+        //    IVsRunningDocumentTable rdt = PythonPackage.GetGlobalService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
+        //    if (null == rdt)
+        //    {
+        //        return IntPtr.Zero;
+        //    }
+
+        //    // Get the enumeration of the running documents.
+        //    IEnumRunningDocuments documents;
+        //    ErrorHandler.ThrowOnFailure(rdt.GetRunningDocumentsEnum(out documents));
+
+        //    IntPtr documentData = IntPtr.Zero;
+        //    uint[] docCookie = new uint[1];
+        //    uint fetched;
+        //    while ((VSConstants.S_OK == documents.Next(1, docCookie, out fetched)) && (1 == fetched))
+        //    {
+        //        uint flags;
+        //        uint editLocks;
+        //        uint readLocks;
+        //        string moniker;
+        //        IVsHierarchy docHierarchy;
+        //        uint docId;
+        //        IntPtr docData = IntPtr.Zero;
+        //        try
+        //        {
+        //            ErrorHandler.ThrowOnFailure(
+        //                rdt.GetDocumentInfo(docCookie[0], out flags, out readLocks, out editLocks, out moniker, out docHierarchy, out docId, out docData));
+        //            // Check if this document is the one we are looking for.
+        //            if ((docId == fileId) && (ownerHierarchy.Equals(docHierarchy)))
+        //            {
+        //                documentData = docData;
+        //                docData = IntPtr.Zero;
+        //                break;
+        //            }
+        //        }
+        //        finally
+        //        {
+        //            if (IntPtr.Zero != docData)
+        //            {
+        //                Marshal.Release(docData);
+        //            }
+        //        }
+        //    }
+
+        //    return documentData;
+        //}
+        #endregion
 
         #region Implementation of IVsSimpleObjectList2
         /// <summary>
@@ -303,7 +442,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int GetSourceContextWithOwnership(uint index, out string pbstrFilename, out uint pulLineNum)
         {
             pbstrFilename = fName;
-            pulLineNum = lineNumber;
+            pulLineNum = (uint)lineNumber;
             return VSConstants.S_OK;
         }
         /// <summary>

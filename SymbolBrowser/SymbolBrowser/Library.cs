@@ -18,11 +18,11 @@ namespace Microsoft.SymbolBrowser
 
         public Library()
         {
-            root = new ResultList("Test template", "testTemplace.zzz", 0, ResultList.LibraryNodeType.PhysicalContainer);
+            root = new ResultList("Test template", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.PhysicalContainer);
 
             namespaceNode = new NamespaceReferenceList("ClassLibrary1", "Class1.cs");
-            classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs", 8);
-            memberNode = new MemberReferenceList("ClassLibrary1.GetBlaBlaBla", "Class1.cs", 10);
+            classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs", 7, 17);
+            memberNode = new MemberReferenceList("ClassLibrary1.GetBlaBlaBla", "Class1.cs", 9, 22);
             
             classNode.AddChild(memberNode);
             namespaceNode.AddChild(classNode);

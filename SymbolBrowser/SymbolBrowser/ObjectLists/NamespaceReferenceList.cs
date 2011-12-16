@@ -8,7 +8,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
     class NamespaceReferenceList : ResultList
     {
         public NamespaceReferenceList(string text, string fName)
-            : base(text, fName, 0, LibraryNodeType.Namespaces)
+            : base(text, fName, 0, 0, LibraryNodeType.Namespaces)
         {
             // class list
         }
@@ -21,15 +21,14 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         {
             get
             {
-                return true; // models can go to source
+                return false; // Namespaces can not go to source I think )
             }
         }
         protected override bool CanDelete { get { return false; } }
 
         protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
         {
-            //foreach(SymbolBrowserPackage.DTE2Obj.Solution.Projects.Count
-            throw new NotImplementedException();
+            // do nothing - not supported for namespaces
         }
     }
 }

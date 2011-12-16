@@ -1,13 +1,11 @@
-﻿using EnvDTE;
-using EnvDTE80;
-using System;
+﻿using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
     public class MemberReferenceList : ResultList
     {
-        public MemberReferenceList(string text, string fName, uint lineNumber)
-            : base(text, fName, lineNumber, LibraryNodeType.Members)
+        public MemberReferenceList(string text, string fName, int lineNumber, int columnNumber)
+            : base(text, fName, lineNumber, columnNumber, LibraryNodeType.Members)
         {
             // class list
         }
@@ -26,15 +24,16 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         }
         protected override bool CanDelete { get { return true; } }
 
-        protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
+        
+        protected override void GotoSource(VSOBJGOTOSRCTYPE gotoType)
         {
-            // это "проба пера", сейчас переделывается на работу с COM объектами (как и для моделей)
+           // We do not support the "Goto Reference"
+            if (VSOBJGOTOSRCTYPE.GS_REFERENCE == gotoType)
+            {
+                return;
+            }
 
-            SymbolBrowserPackage.DTE2Obj.ItemOperations.OpenFile(
-                 @"c:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
-                 EnvDTE.Constants.vsViewKindCode);
-            ((TextSelection)SymbolBrowserPackage.DTE2Obj.ActiveDocument.Selection).GotoLine((int)lineNumber, false);
-            ((TextSelection)SymbolBrowserPackage.DTE2Obj.ActiveDocument.Selection).FindText("GetBlaBlaBla");
+            base.OpenSourceFile();
         }
     }
 }
