@@ -37,6 +37,13 @@ namespace Microsoft.SymbolBrowser
             {
                 library = new Library();
                 objectManager.RegisterSimpleLibrary(library, out libCookie);
+
+                IVsSimpleBrowseComponentSet subset;
+                ErrorHandler.Succeeded(objectManager.CreateSimpleBrowseComponentSet(
+                    (uint)_BROWSE_COMPONENT_SET_TYPE.BCST_INCLUDE_LIBRARIES,
+                    new Guid[] { new Guid("D918B9AC-1574-47BC-8CE8-3CFFD4073E88") }, 
+                    1, 
+                    out subset));
             }
 
             IVsCombinedBrowseComponentSet extras;
@@ -70,6 +77,32 @@ namespace Microsoft.SymbolBrowser
             treeView1.Items.Clear();
             foreach (var lib in libArray)
             {
+                if (lib == null)
+                    continue;
+
+                // tried to add symbol to C# library
+                //Guid g;
+                //((IVsSimpleLibrary2)lib).GetGuid(out g);
+                //if (g.CompareTo(new Guid("58F1BAD0-2288-45b9-AC3A-D56398F7781D")) == 0)
+                //{
+                    
+                //    string projRef = string.Empty;
+                //    solution.GetProjrefOfProject(projects[0], out projRef);
+
+                //    VSCOMPONENTSELECTORDATA[] data = new VSCOMPONENTSELECTORDATA[]{
+                //        new VSCOMPONENTSELECTORDATA{
+                //            bstrFile = @"C:\Users\sivanov\documents\visual studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                //            bstrTitle = "ClassLibrary1.Class1",                    
+                //            dwSize = 16,
+                //            bstrProjRef = projRef
+                //        }
+                //    };
+
+                //    uint pgfrOptions = (uint)_LIB_ADDREMOVEOPTIONS.LARO_NONE;
+                //    lib.AddBrowseContainer(data, ref pgfrOptions);
+                //}
+
+
                 AddLibrary(lib, extras);
             }
 
@@ -370,6 +403,7 @@ namespace Microsoft.SymbolBrowser
 
         }
 
+        #region ...
         //private void AddContent(TreeViewItem parent, IVsSimpleObjectList2 objects, string name, string path)
         //{
         //    if (objects == null)
@@ -491,6 +525,7 @@ namespace Microsoft.SymbolBrowser
         //    var componentPath = (string)propValue;
         //    AddContent(parent, nestedObjects, fullName, componentPath);
         //}
+        #endregion
 
         private void AddLibList(TreeViewItem parent, string header, IVsLiteTreeList theList)
         {

@@ -40,16 +40,20 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             DeferExpansion = _LIB_LISTTYPE.LLT_DEFEREXPANSION,
         }
 
-        private readonly string symbolText = string.Empty;
-        private readonly string fName;
-        private readonly uint lineNumber;
+        private readonly string 
+            symbolText = string.Empty,
+            //symbolPrefix = string.Empty,
+            fName = string.Empty;
+
+        protected readonly uint lineNumber;
         private readonly List<ResultList> children = new List<ResultList>();
         private uint updateCount = 0;
         private readonly LibraryNodeType nodeType;
 
-        public ResultList(string text, string fName, uint lineNumber, LibraryNodeType type)
+        public ResultList(string text/*, string prefix*/, string fName, uint lineNumber, LibraryNodeType type)
         {
             symbolText = text;
+            //symbolPrefix = prefix;
             this.fName = fName;
             this.lineNumber = lineNumber;
             nodeType = type;
@@ -187,14 +191,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int UpdateCounter(out uint pCurUpdate)
         {
             pCurUpdate = 0;
-            
-            uint temp = 0;
-            foreach (var c in children)
-            {
-                c.UpdateCounter(out temp);
-                pCurUpdate += temp;
-            }
-            pCurUpdate = updateCount + temp;
             Logger.Log("ResultList.UpdateCounter count:" + pCurUpdate);
             return VSConstants.S_OK;
         }

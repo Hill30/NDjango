@@ -14,8 +14,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         protected override bool IsExpandable
         {
-            get { return true; }
+            get { return false; }
         }
+
         public override bool CanGoToSource
         {
             get
@@ -27,9 +28,13 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
         {
-            //foreach(SymbolBrowserPackage.DTE2Obj.Solution.Projects.Count
-            //return null;
-            throw new NotImplementedException();
+            // это "проба пера", сейчас переделывается на работу с COM объектами (как и для моделей)
+
+            SymbolBrowserPackage.DTE2Obj.ItemOperations.OpenFile(
+                 @"c:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                 EnvDTE.Constants.vsViewKindCode);
+            ((TextSelection)SymbolBrowserPackage.DTE2Obj.ActiveDocument.Selection).GotoLine((int)lineNumber, false);
+            ((TextSelection)SymbolBrowserPackage.DTE2Obj.ActiveDocument.Selection).FindText("GetBlaBlaBla");
         }
     }
 }

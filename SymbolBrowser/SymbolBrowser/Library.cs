@@ -3,9 +3,11 @@ using EnvDTE;
 using Microsoft.SymbolBrowser.ObjectLists;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.SymbolBrowser
 {
+    [Guid("D918B9AC-1574-47BC-8CE8-3CFFD4073E88")]
     public class Library : IVsSimpleLibrary2
     {
         private const string SUPPORTED_EXT = ".django";
@@ -16,11 +18,11 @@ namespace Microsoft.SymbolBrowser
 
         public Library()
         {
-            root = new ResultList("Test template", "testTemplace.django", 0, ResultList.LibraryNodeType.PhysicalContainer);
+            root = new ResultList("Test template", "testTemplace.zzz", 0, ResultList.LibraryNodeType.PhysicalContainer);
 
             namespaceNode = new NamespaceReferenceList("ClassLibrary1", "Class1.cs");
-            classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs");
-            memberNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla", "Class1.cs", 15);
+            classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs", 8);
+            memberNode = new MemberReferenceList("ClassLibrary1.GetBlaBlaBla", "Class1.cs", 10);
             
             classNode.AddChild(memberNode);
             namespaceNode.AddChild(classNode);
@@ -29,44 +31,45 @@ namespace Microsoft.SymbolBrowser
             //GetSupportedFileList();
         }
 
-        private ProjectItems GetSupportedFileList()
-        {
-            foreach (Project p in SymbolBrowserPackage.DTE2Obj.Solution.Projects)
-            {
+        //SI: This should be performed using NDjango means
+        //private ProjectItems GetSupportedFileList()
+        //{
+        //    foreach (Project p in SymbolBrowserPackage.DTE2Obj.Solution.Projects)
+        //    {
 
-                Logger.Log("Project: " + p.FullName);
-                foreach (ProjectItem pi in p.ProjectItems)
-                {
-                    Logger.Log("Project item");
-                    Logger.Log("File count: " + pi.FileCount);
-                    Logger.Log("File names: ");
+        //        Logger.Log("Project: " + p.FullName);
+        //        foreach (ProjectItem pi in p.ProjectItems)
+        //        {
+        //            Logger.Log("Project item");
+        //            Logger.Log("File count: " + pi.FileCount);
+        //            Logger.Log("File names: ");
 
-                    for (short i = 0; i < pi.FileCount; i++)
-                        Logger.Log(pi.FileNames[i]);
-                }
+        //            for (short i = 0; i < pi.FileCount; i++)
+        //                Logger.Log(pi.FileNames[i]);
+        //        }
 
-                // This cast resulted in an exception
-                //var a = ((IVsHierarchy) p).GetHashCode();
+        //        // This cast resulted in an exception
+        //        //var a = ((IVsHierarchy) p).GetHashCode();
 
-                //("*.django");
-                /*
-                 * Project item
-                    File count: 1
-                    File names: 
-                    C:\projects\NDjango_copy\NDjangoDesigner\GlobalServices.cs
-                    Project item
-                    File count: 1
-                    File names: 
-                    C:\projects\NDjango_copy\NDjangoDesigner\GlobalSuppressions.cs
-                    Project item
-                    File count: 1
-                    File names: 
-                    C:\projects\NDjango_copy\NDjangoDesigner\ItemTemplates\
+        //        //("*.django");
+        //        /*
+        //         * Project item
+        //            File count: 1
+        //            File names: 
+        //            C:\projects\NDjango_copy\NDjangoDesigner\GlobalServices.cs
+        //            Project item
+        //            File count: 1
+        //            File names: 
+        //            C:\projects\NDjango_copy\NDjangoDesigner\GlobalSuppressions.cs
+        //            Project item
+        //            File count: 1
+        //            File names: 
+        //            C:\projects\NDjango_copy\NDjangoDesigner\ItemTemplates\
 
-                 * */
-            }
-            return null;
-        }
+        //         * */
+        //    }
+        //    return null;
+        //}
 
         #region IVsSimpleLibrary2 Members
 
@@ -77,7 +80,8 @@ namespace Microsoft.SymbolBrowser
 
         public int CreateNavInfo(SYMBOL_DESCRIPTION_NODE[] rgSymbolNodes, uint ulcNodes, out IVsNavInfo ppNavInfo)
         {
-            throw new NotImplementedException();
+            ppNavInfo = null;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual = null)
@@ -189,17 +193,17 @@ namespace Microsoft.SymbolBrowser
 
                 root.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
                 if (string.Compare(temp, txt, true) == 0)
-                    ppIVsSimpleObjectList2 = namespaceNode;
+                    ppIVsSimpleObjectList2 = root;
                 else
                 {
                     namespaceNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
                     if (string.Compare(temp, txt, true) == 0)
-                        ppIVsSimpleObjectList2 = classNode;
+                        ppIVsSimpleObjectList2 = namespaceNode;
                     else
                     {
                         classNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
                         if (string.Compare(temp, txt, true) == 0)
-                            ppIVsSimpleObjectList2 = memberNode;
+                            ppIVsSimpleObjectList2 = classNode;
                         else
                         {
                             ppIVsSimpleObjectList2 = null;

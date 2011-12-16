@@ -1,13 +1,12 @@
 ﻿using EnvDTE;
-using EnvDTE80;
-using System;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
     public class ModelReferenceList : ResultList
     {
-        public ModelReferenceList(string text, string fName)
-            : base(text, fName, 5, LibraryNodeType.Classes)
+        public ModelReferenceList(string text, string fName, uint lineNumber)
+            : base(text, fName, lineNumber, LibraryNodeType.Classes)
         {
             // class list
         }
@@ -27,8 +26,18 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
         {
-            //foreach(SymbolBrowserPackage.DTE2Obj.Solution.Projects.Count
-            throw new NotImplementedException();
+            //var fName = @"c:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs";
+            //var solution = SymbolBrowserPackage.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
+            //solution.
+            //    .OpenSolutionFile((uint)__VSSLNOPENOPTIONS.SLNOPENOPT_Silent, fName);
+
+            // это "проба пера", сейчас переделывается на работу с COM объектами
+
+            SymbolBrowserPackage.DTE2Obj.ItemOperations.OpenFile(
+                @"c:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                EnvDTE.Constants.vsViewKindCode);
+            ((TextSelection)SymbolBrowserPackage.DTE2Obj.ActiveDocument.Selection).GotoLine((int)lineNumber, false);
+            ((TextSelection)SymbolBrowserPackage.DTE2Obj.ActiveDocument.Selection).FindText("Class1");
         }
     }
 }
