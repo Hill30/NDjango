@@ -26,7 +26,7 @@ namespace Microsoft.SymbolBrowser
             
             classNode.AddChild(memberNode);
             namespaceNode.AddChild(classNode);
-            root.AddChild(namespaceNode);            
+            root.AddChild(namespaceNode);
             
             //GetSupportedFileList();
         }

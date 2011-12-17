@@ -33,17 +33,61 @@ namespace Microsoft.SymbolBrowser
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             var objectManager = SymbolBrowserPackage.GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
+
+            // ToDo:
+            // OBTAIN A LIST OF MODELS
+            string[] typeNames = new string[] { "ClassLibrary1.Class1", "ClassLibrary1.Class2" };
+            // creating storage fo rfound results
+            Dictionary<string, IVsSimpleObjectList2> foundLists = new Dictionary<string, IVsSimpleObjectList2>();
+            foreach (string s in typeNames)
+                foundLists.Add(s, null);
+
+            Guid csLibGuid = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
+
+            IVsLibrary2 csLib;
+            ErrorHandler.Succeeded(objectManager.FindLibrary(ref csLibGuid, out csLib));
+
+            // Obtain a list of corresponding symbols from native C# library
+            foreach (var s in typeNames)
+            {
+                IVsObjectList2 list;
+                var success = ErrorHandler.Succeeded(csLib.GetList2(
+                    (uint)_LIB_LISTTYPE.LLT_CLASSES,
+                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                    new[]
+                    {
+                        new VSOBSEARCHCRITERIA2
+                            {
+                                eSrchType = VSOBSEARCHTYPE.SO_SUBSTRING,
+                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_NONE,
+                                szName = s
+                            }
+                    }, out list));
+                if (success && list != null)
+                {
+                    uint count;
+                    list.GetItemCount(out count);
+                    if (count != 1)
+                        throw new Exception(string.Format(
+                            "Wrong number of classes returned by the search - {0}! Search algorithm needs revision.",
+                            count));
+                    
+                    object propVal = null;
+                    ErrorHandler.Succeeded(list.GetProperty(
+                        0,
+                        (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME,
+                        out propVal));
+                    
+                }
+            }//foreach
+            // Merge our symbols with the ones obtained from native lib
+
+
+
             if (library == null)
             {
                 library = new Library();
                 objectManager.RegisterSimpleLibrary(library, out libCookie);
-
-                IVsSimpleBrowseComponentSet subset;
-                ErrorHandler.Succeeded(objectManager.CreateSimpleBrowseComponentSet(
-                    (uint)_BROWSE_COMPONENT_SET_TYPE.BCST_INCLUDE_LIBRARIES,
-                    new Guid[] { new Guid("D918B9AC-1574-47BC-8CE8-3CFFD4073E88") }, 
-                    1, 
-                    out subset));
             }
 
             IVsCombinedBrowseComponentSet extras;
