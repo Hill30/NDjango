@@ -3,82 +3,27 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
-namespace NDjango.Designer.Parsing
+namespace NDjango.Designer.Parsing.TypeLibrary
 {
-    public class NDjangoMemberInfo : MemberInfo
-    {
-    
-        private readonly string name;
-
-        public NDjangoMemberInfo(string name)
-        {
-            this.name = name;
-        }
-
-        public override object[] GetCustomAttributes(bool inherit)
-        {
-            return new object[0];
-        }
-
-        public override bool IsDefined(Type attributeType, bool inherit)
-        {
-            return true;
-        }
-
-        public override MemberTypes MemberType
-        {
-            get { return MemberTypes.All; }
-        }
-
-        public override string Name
-        {
-            get { return name; }
-        }
-
-        public override Type DeclaringType
-        {
-            get { return typeof(object); }
-        }
-
-        public override Type ReflectedType
-        {
-            get { return typeof(object); }
-        }
-
-        public override object[] GetCustomAttributes(Type attributeType, bool inherit)
-        {
-            return new object[0];
-        }
-    }
-
     public class NDjangoType : Type
     {
-        private string name;
 
-        private Guid guid;
+        private readonly string fullName;
 
-        private Module module;
+        private readonly List<MemberInfo> members= new List<MemberInfo>();
 
-        private Assembly assembly;
-
-        private string fullName;
-
-        private string ns;
-
-        private string assemblyQualifiedName;
-
-        private Type baseType;
-
-        private Type underlyingSystemType;
-
-        private List<MemberInfo> members;
-
-        public NDjangoType()
+        public NDjangoType(string fullName)
         {
-            members = new List<MemberInfo>();
+            this.fullName = fullName;
         }
+
+        public void AddMember(Type type, string memberName)
+        {
+            members.Add(new NDjangoFieldInfo(this, type, memberName));
+        }
+
+        #region Type members implementations
 
         public override object[] GetCustomAttributes(bool inherit)
         {
@@ -165,12 +110,6 @@ namespace NDjango.Designer.Parsing
             throw new NotImplementedException();
         }
 
-        public void AddMember(string memberName)
-        {
-            if(members == null) members = new List<MemberInfo>();
-            members.Add(new NDjangoMemberInfo(name));
-        }
-
         public override MemberInfo[] GetMembers(BindingFlags bindingAttr)
         {
             return members.ToArray();
@@ -213,7 +152,7 @@ namespace NDjango.Designer.Parsing
 
         public override Type UnderlyingSystemType
         {
-            get { return underlyingSystemType; }
+            get { throw new NotImplementedException(); }
         }
 
         protected override ConstructorInfo GetConstructorImpl(BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers)
@@ -223,22 +162,22 @@ namespace NDjango.Designer.Parsing
 
         public override string Name
         {
-            get { return name; }
+            get { return fullName.Split('.').Last(); }
         }
 
         public override Guid GUID
         {
-            get { return guid; }
+            get { throw new NotImplementedException(); }
         }
 
         public override Module Module
         {
-            get { return module; }
+            get { throw new NotImplementedException(); }
         }
 
         public override Assembly Assembly
         {
-            get { return assembly; }
+            get { throw new NotImplementedException(); }
         }
 
         public override string FullName
@@ -248,22 +187,24 @@ namespace NDjango.Designer.Parsing
 
         public override string Namespace
         {
-            get { return ns; }
+            get { throw new NotImplementedException(); }
         }
 
         public override string AssemblyQualifiedName
         {
-            get { return assemblyQualifiedName; }
+            get { throw new NotImplementedException(); }
         }
 
         public override Type BaseType
         {
-            get { return baseType; }
+            get { throw new NotImplementedException(); }
         }
 
         public override object[] GetCustomAttributes(Type attributeType, bool inherit)
         {
             throw new NotImplementedException();
         }
+
+        #endregion
     }
 }
