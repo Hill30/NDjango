@@ -22,7 +22,7 @@ namespace Microsoft.SymbolBrowser
 
             namespaceNode = new NamespaceReferenceList("ClassLibrary1", "Class1.cs");
             classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs", 7, 17);
-            memberNode = new MemberReferenceList("ClassLibrary1.GetBlaBlaBla", "Class1.cs", 9, 22);
+            memberNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla", "Class1.cs", 9, 22);
             
             classNode.AddChild(memberNode);
             namespaceNode.AddChild(classNode);
@@ -44,12 +44,21 @@ namespace Microsoft.SymbolBrowser
                     break;
                 }
                 foreach (var c2 in c.Children)
+                {
                     if (string.Compare(symbol, c2.SymbolText, false) == 0)
                     {
                         c2.ListToReference = listToUse;
                         found = true;
                         break;
                     }
+                    foreach (var c3 in c2.Children)
+                        if (string.Compare(symbol, c3.SymbolText, false) == 0)
+                        {
+                            c3.ListToReference = listToUse;
+                            found = true;
+                            break;
+                        }
+                }
             }
             if(!found)
                 

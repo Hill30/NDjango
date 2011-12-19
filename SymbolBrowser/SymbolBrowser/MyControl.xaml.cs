@@ -42,6 +42,7 @@ namespace Microsoft.SymbolBrowser
             // ToDo:
             // OBTAIN A LIST OF MODELS
             string[] typeNames = new string[] { "ClassLibrary1.Class1" };
+            string[] methodNames = new string[] { "ClassLibrary1.Class1.GetBlaBlaBla" };
             // creating storage fo rfound results
             Dictionary<string, IVsSimpleObjectList2> foundLists = new Dictionary<string, IVsSimpleObjectList2>();
             foreach (string s in typeNames)
@@ -55,24 +56,14 @@ namespace Microsoft.SymbolBrowser
             // Obtain a list of corresponding symbols from native C# library
             foreach (var s in typeNames)
             {
-                IVsObjectList2 list;
-                var success = ErrorHandler.Succeeded(csLib.GetList2(
-                    (uint)_LIB_LISTTYPE.LLT_CLASSES,
-                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                    new[]
-                    {
-                        new VSOBSEARCHCRITERIA2
-                            {
-                                eSrchType = VSOBSEARCHTYPE.SO_SUBSTRING,
-                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_NONE,
-                                szName = s
-                            }
-                    }, out list));
-                if (success && list != null)
-                {
-                    // Merge our symbols with the ones obtained from native lib
-                    library.AddExternalReference(s, list);
-                }
+                AddSymbolToLibrary(_LIB_LISTTYPE.LLT_CLASSES, s, ref csLib);
+            }//foreach
+
+            // Obtain a list of corresponding symbols from native C# library
+            foreach (var s in methodNames)
+            {
+                AddSymbolToLibrary(_LIB_LISTTYPE.LLT_MEMBERS, s, ref csLib);
+                
             }//foreach
             
 
@@ -113,6 +104,32 @@ namespace Microsoft.SymbolBrowser
                 AddLibrary(lib, extras);
             }
 
+        }
+
+        private void AddSymbolToLibrary(_LIB_LISTTYPE symbolType, string symbolText, ref IVsLibrary2 csLib) 
+        {
+            IVsObjectList2 list;
+            var success = ErrorHandler.Succeeded(csLib.GetList2(
+                (uint)symbolType,
+                (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                new[]
+                    {
+                        new VSOBSEARCHCRITERIA2
+                            {
+                                eSrchType = VSOBSEARCHTYPE.SO_SUBSTRING,
+                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_NONE,
+                                szName = symbolText
+                            }
+                    }, out list));
+            if (success && list != null)
+            {
+                uint count = 0;
+                list.GetItemCount(out count);
+                if (count == 0)
+                    throw new Exception(String.Format("Error obtaining native symbol for class '{0}'", symbolText));
+                // Merge our symbols with the ones obtained from native lib
+                library.AddExternalReference(symbolText, list);
+            }
         }
 
         private void AddLibrary(IVsLibrary2 lib, IVsCombinedBrowseComponentSet extras)
