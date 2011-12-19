@@ -13,7 +13,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
     /// </summary>
     public class ResultList : IVsSimpleObjectList2, IVsNavInfoNode
     {
-        private Dictionary<LibraryNodeType, ResultList> filteredView = new Dictionary<LibraryNodeType,ResultList>();
         /// <summary>
         /// Enumeration of the possible types of node. The type of a node can be the combination
         /// of one of more of these values.
@@ -42,19 +41,23 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             DeferExpansion = _LIB_LISTTYPE.LLT_DEFEREXPANSION,
         }
 
-        private readonly string 
-            symbolText = string.Empty,
-            //symbolPrefix = string.Empty,
-            fName = string.Empty;
+        public const uint NullIndex = (uint)0xFFFFFFFF;
 
-        protected readonly int 
-            lineNumber = 0, 
+        protected readonly int
+            lineNumber = 0,
             columnNumber = 0;
+        
+        private readonly string 
+            symbolText,
+            //symbolPrefix = string.Empty,
+            fName;
+
         private uint 
             updateCount = 0;
-
+        private Dictionary<LibraryNodeType, ResultList> filteredView = new Dictionary<LibraryNodeType, ResultList>();
         private readonly List<ResultList> children = new List<ResultList>();        
         private readonly LibraryNodeType nodeType;
+        
 
         public ResultList(string text/*, string prefix*/, string fName, int lineNumber, int columnNumber, LibraryNodeType type)
         {
@@ -64,18 +67,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             this.lineNumber = lineNumber;
             this.columnNumber = columnNumber;
             nodeType = type;
-            DisplayData = new VSTREEDISPLAYDATA
-                              {
-                                  ForceSelectLength = 5,
-                                  ForceSelectStart = 0,
-                                  hImageList = IntPtr.Zero,
-                                  Image = 0,
-                                  SelectedImage = 0,
-                                  Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
-                                  State = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK,
-                                  StateMask = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK
-                              };
-
         }
 
         private ResultList(ResultList node)
@@ -85,19 +76,45 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             this.lineNumber = node.lineNumber;
             this.columnNumber = node.columnNumber;
             nodeType = node.nodeType;
-            DisplayData = new VSTREEDISPLAYDATA
-            {
-                ForceSelectLength = 5,
-                ForceSelectStart = 0,
-                hImageList = IntPtr.Zero,
-                Image = 0,
-                SelectedImage = 0,
-                Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
-                State = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK,
-                StateMask = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK
-            };
-
         }
+
+        protected virtual VSTREEDISPLAYDATA DisplayData {
+            get{
+                return new VSTREEDISPLAYDATA
+                {
+                    ForceSelectLength = 5,
+                    ForceSelectStart = 0,
+                    hImageList = IntPtr.Zero,
+                    Image = 0,
+                    SelectedImage = 0,
+                    Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
+                    State = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK,
+                    StateMask = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK
+                };
+            }
+        }
+
+        ///// <summary>
+        ///// IVsObjectList2 object that is to be used for going to source and, possibly, retrieving some properties
+        ///// </summary>
+        ///// <param name="symbol">Symbol that should use the list</param>
+        ///// <param name="list">IVsObjectList2 object from C# library</param>
+        //public void AddListToReference(string symbol, IVsObjectList2 list)
+        //{
+        //    bool found = false;
+        //    if(children.Count > 0)
+        //        for(int i=0;i<children.Count;i++)
+        //            if (String.Compare(children[i].SymbolText, symbol, true) == 0)
+        //            {
+        //                symbolReferenceList.Add(i, list);
+        //                found = true;
+        //                break;
+        //            }
+        //    if(!found)
+        //        throw new IndexOutOfRangeException(string.Format("Symbol '{0}' was not found", symbol));
+        //}
+
+        public IVsObjectList2 ListToReference { get; set; }
 
         public void AddChild(ResultList child)
         {
@@ -114,8 +131,14 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         {
             get { return symbolText; }
         }
+        
+        public virtual bool CanGoToSource
+        {
+            get { return false; } // Root can not go to source
+        }
 
-        public virtual VSTREEDISPLAYDATA DisplayData { get; set; }
+        public string SymbolText { get { return symbolText; } }
+        public string FileName { get { return fName; } }
 
         protected virtual bool IsExpandable
         {
@@ -238,6 +261,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             visibleSpan.iEndIndex = columnNumber + 1;
             ErrorHandler.ThrowOnFailure(textView.EnsureSpanVisible(visibleSpan));
         }
+
+        public List<ResultList> Children { get { return children; } }
 
         #region Iron Python had some search for document pointer using RDT. 
         // To me it seems that VS does the same thing itself
@@ -483,6 +508,12 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         int IVsSimpleObjectList2.CanGoToSource(uint index, VSOBJGOTOSRCTYPE SrcType, out int pfOK)
         {
+            //if (ListToReference != null && index == ) {
+                
+            //    ListToReference.CanGoToSource(index, SrcType, out pfOK);
+            //    return VSConstants.S_OK;
+            //}
+
             Logger.Log("ResultList.CanGoToSource");
             if (index >= (uint)children.Count)
             {
@@ -491,12 +522,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             pfOK = children[(int)index].CanGoToSource ? 1 : 0;
             return VSConstants.S_OK;
         }
-
-        public virtual bool CanGoToSource
-        {
-            get { return false; } // Root can not go to source
-        }
-
         /// <summary>
         /// 	Navigates to the source for the given list item.
         /// </summary>
@@ -505,14 +530,17 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         int IVsSimpleObjectList2.GoToSource(uint index, VSOBJGOTOSRCTYPE SrcType)
         {
-            Logger.Log("ResultList.GoToSource");
             if (index >= (uint)children.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
             }
-            children[(int)index].GotoSource(SrcType);
+            if(children[(int)index].ListToReference != null)
+                children[(int)index].ListToReference.GoToSource(0, SrcType);
+            else
+                children[(int)index].GotoSource(SrcType);
             return VSConstants.S_OK;
         }
+
         /// <summary>
         /// Allows the list to provide a different context menu and IOleCommandTarget for the given list item.
         /// </summary>
@@ -633,6 +661,20 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             Logger.Log("ResultList.GetExtendedClipboardVariant");
             throw new NotImplementedException();
         }
+
+        //protected object GetPropertyVal(_VSOBJLISTELEMPROPID propid)
+        //{
+        //    switch (propid)
+        //    {
+        //        case _VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME:
+        //            return this.symbolText;                    
+        //        case _VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FIRST:
+        //        case _VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_LAST:
+        //            return string.Empty;
+        //        default:
+        //            throw new NotImplementedException();
+        //    }
+        //}
         /// <summary>
         /// Returns the specified property for the specified list item.
         /// </summary>
@@ -642,9 +684,13 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetProperty(uint index, int propid, out object pvar)
         {
-            Logger.Log(string.Format("ResultList.GetProperty index:{0} propid:{1}, out:null, returning VSConstants.E_NOTIMPL", 
-                index, 
+            Logger.Log(string.Format("ResultList.GetProperty index:{0} propid:{1}, out:null, returning VSConstants.E_NOTIMPL",
+                index,
                 Enum.GetName(typeof(_VSOBJLISTELEMPROPID), propid)));
+
+            //pvar = children[(int)index].GetPropertyVal((_VSOBJLISTELEMPROPID)propid);
+            //return VSConstants.S_OK;
+
             pvar = null;
             return VSConstants.E_NOTIMPL;
         }

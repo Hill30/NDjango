@@ -29,7 +29,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         protected override bool CanDelete { get { return true; } }
 
         protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
-        {
+        {   
             // We do not support the "Goto Reference"
             if (VSOBJGOTOSRCTYPE.GS_REFERENCE == gotoType)
             {

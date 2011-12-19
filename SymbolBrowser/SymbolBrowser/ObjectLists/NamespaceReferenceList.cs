@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
@@ -25,6 +26,24 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             }
         }
         protected override bool CanDelete { get { return false; } }
+
+        protected override VSTREEDISPLAYDATA DisplayData
+        {
+            get
+            {
+                return new VSTREEDISPLAYDATA
+                {
+                    ForceSelectLength = 5,
+                    ForceSelectStart = 0,
+                    hImageList = IntPtr.Zero,
+                    Image = 1,
+                    SelectedImage = 0,
+                    Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
+                    State = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK,
+                    StateMask = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK
+                };
+            }
+        }
 
         protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
         {

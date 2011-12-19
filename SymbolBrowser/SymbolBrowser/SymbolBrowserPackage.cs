@@ -89,6 +89,7 @@ namespace Microsoft.SymbolBrowser
         /// </summary>
         protected override void Initialize()
         {
+            Logger.DeleteLogFile();
             Trace.WriteLine (string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             base.Initialize();
 

@@ -27,6 +27,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         
         protected override void GotoSource(VSOBJGOTOSRCTYPE gotoType)
         {
+
            // We do not support the "Goto Reference"
             if (VSOBJGOTOSRCTYPE.GS_REFERENCE == gotoType)
             {

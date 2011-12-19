@@ -33,10 +33,15 @@ namespace Microsoft.SymbolBrowser
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             var objectManager = SymbolBrowserPackage.GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
+            if (library == null)
+            {
+                library = new Library();
+                objectManager.RegisterSimpleLibrary(library, out libCookie);
+            }
 
             // ToDo:
             // OBTAIN A LIST OF MODELS
-            string[] typeNames = new string[] { "ClassLibrary1.Class1", "ClassLibrary1.Class2" };
+            string[] typeNames = new string[] { "ClassLibrary1.Class1" };
             // creating storage fo rfound results
             Dictionary<string, IVsSimpleObjectList2> foundLists = new Dictionary<string, IVsSimpleObjectList2>();
             foreach (string s in typeNames)
@@ -65,30 +70,11 @@ namespace Microsoft.SymbolBrowser
                     }, out list));
                 if (success && list != null)
                 {
-                    uint count;
-                    list.GetItemCount(out count);
-                    if (count != 1)
-                        throw new Exception(string.Format(
-                            "Wrong number of classes returned by the search - {0}! Search algorithm needs revision.",
-                            count));
-                    
-                    object propVal = null;
-                    ErrorHandler.Succeeded(list.GetProperty(
-                        0,
-                        (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME,
-                        out propVal));
-                    
+                    // Merge our symbols with the ones obtained from native lib
+                    library.AddExternalReference(s, list);
                 }
             }//foreach
-            // Merge our symbols with the ones obtained from native lib
-
-
-
-            if (library == null)
-            {
-                library = new Library();
-                objectManager.RegisterSimpleLibrary(library, out libCookie);
-            }
+            
 
             IVsCombinedBrowseComponentSet extras;
             ErrorHandler.Succeeded(objectManager.CreateCombinedBrowseComponentSet(out extras));
@@ -123,29 +109,6 @@ namespace Microsoft.SymbolBrowser
             {
                 if (lib == null)
                     continue;
-
-                // tried to add symbol to C# library
-                //Guid g;
-                //((IVsSimpleLibrary2)lib).GetGuid(out g);
-                //if (g.CompareTo(new Guid("58F1BAD0-2288-45b9-AC3A-D56398F7781D")) == 0)
-                //{
-                    
-                //    string projRef = string.Empty;
-                //    solution.GetProjrefOfProject(projects[0], out projRef);
-
-                //    VSCOMPONENTSELECTORDATA[] data = new VSCOMPONENTSELECTORDATA[]{
-                //        new VSCOMPONENTSELECTORDATA{
-                //            bstrFile = @"C:\Users\sivanov\documents\visual studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
-                //            bstrTitle = "ClassLibrary1.Class1",                    
-                //            dwSize = 16,
-                //            bstrProjRef = projRef
-                //        }
-                //    };
-
-                //    uint pgfrOptions = (uint)_LIB_ADDREMOVEOPTIONS.LARO_NONE;
-                //    lib.AddBrowseContainer(data, ref pgfrOptions);
-                //}
-
 
                 AddLibrary(lib, extras);
             }

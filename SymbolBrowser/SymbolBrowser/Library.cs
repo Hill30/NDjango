@@ -31,6 +31,31 @@ namespace Microsoft.SymbolBrowser
             //GetSupportedFileList();
         }
 
+        public void AddExternalReference(string symbol, IVsObjectList2 listToUse)
+        {
+            bool found = false;
+            foreach (var c in root.Children)
+            {
+                if (string.Compare(symbol, c.SymbolText, false) == 0)
+                {
+                    //c.AddListToReference(symbol, listToUse);
+                    c.ListToReference = listToUse;
+                    found = true;
+                    break;
+                }
+                foreach (var c2 in c.Children)
+                    if (string.Compare(symbol, c2.SymbolText, false) == 0)
+                    {
+                        c2.ListToReference = listToUse;
+                        found = true;
+                        break;
+                    }
+            }
+            if(!found)
+                
+                throw new IndexOutOfRangeException(String.Format("Could not find symbol with text {0}", symbol));
+        }
+
         //SI: This should be performed using NDjango means
         //private ProjectItems GetSupportedFileList()
         //{
@@ -188,6 +213,47 @@ namespace Microsoft.SymbolBrowser
                 Enum.GetName(typeof(_LIB_LISTFLAGS), flags)));
             if (pobSrch != null)
             {
+                /*
+                if (pobSrch != null)
+                {
+                //var txt = pobSrch[0].szName;
+                //string temp = string.Empty;                
+
+                //root.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+                //if (string.Compare(temp, txt, true) == 0)
+                //    ppIVsSimpleObjectList2 = root;
+                //else
+                //{
+                //    namespaceNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+                //    if (string.Compare(temp, txt, true) == 0)
+                //        ppIVsSimpleObjectList2 = namespaceNode;
+                //    else
+                //    {
+                //        classNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+                //        if (string.Compare(temp, txt, true) == 0)
+                //            ppIVsSimpleObjectList2 = classNode;
+                //        else
+                //        {
+                //            ppIVsSimpleObjectList2 = null;
+                //            return VSConstants.E_FAIL;
+                //        }
+                //    }
+                //}             
+                for (uint i = 0; i < (uint)root.Children.Count; i++)
+                { 
+                    if (string.Compare(root.Children[(int)i].SymbolText, pobSrch[0].szName, true) == 0)
+                    {
+                        IVsSimpleObjectList2 list;
+                        root.GetList2(i, ListType, flags, null, out list);
+                        ppIVsSimpleObjectList2 = list;
+                        return VSConstants.S_OK;
+                    }
+                }
+                
+                ppIVsSimpleObjectList2 = null;
+                return VSConstants.E_FAIL;
+            }
+                 * */
                 var txt = pobSrch[0].szName;
                 string temp = string.Empty;                
 
