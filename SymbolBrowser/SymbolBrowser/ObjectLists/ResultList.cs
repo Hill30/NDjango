@@ -47,50 +47,56 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         protected readonly int
             lineNumber = 0,
             columnNumber = 0;
-        
-        private readonly string 
+
+        private readonly string
             symbolText,
-            //symbolPrefix = string.Empty,
+            symbolPrefix = string.Empty,
             fName;
 
-        private uint 
+        private uint
             updateCount = 0;
         private Dictionary<LibraryNodeType, ResultList> filteredView = new Dictionary<LibraryNodeType, ResultList>();
         private readonly List<ResultList> children = new List<ResultList>();
         private readonly LibraryNodeType nodeType;
 
-        public ResultList(string text/*, string prefix*/, string fName, int lineNumber, int columnNumber, LibraryNodeType type)
+        public ResultList(string text, string prefix, string fName, int lineNumber, int columnNumber, LibraryNodeType type)
         {
-            symbolText = text;
-            //symbolPrefix = prefix;
+            this.symbolText = text;
+            this.symbolPrefix = prefix;
             this.fName = fName;
             this.lineNumber = lineNumber;
             this.columnNumber = columnNumber;
-            nodeType = type;
+            this.nodeType = type;
         }
 
         private ResultList(ResultList node)
         {
-            symbolText = node.symbolText;
+            this.symbolText = node.symbolText;
+            this.symbolPrefix = node.symbolPrefix;
             this.fName = node.fName;
             this.lineNumber = node.lineNumber;
             this.columnNumber = node.columnNumber;
-            nodeType = node.nodeType;
+            this.nodeType = node.nodeType;
             node.children.ForEach(c => AddChild(c));
         }
 
-        protected virtual VSTREEDISPLAYDATA DisplayData {
-            get{
+        protected virtual VSTREEDISPLAYDATA DisplayData
+        {
+            get
+            {
+                // SI: checked out icon indexes, there's 236 of them
+                // In case of you need it check \\spb-dev\Upload\SIvanov\VSGlyphs.bmp 
+
                 return new VSTREEDISPLAYDATA
                 {
                     ForceSelectLength = 5,
                     ForceSelectStart = 0,
                     hImageList = IntPtr.Zero,
-                    Image = 0,
-                    SelectedImage = 0,
+                    Image = (ushort)0,
+                    SelectedImage = (ushort)0,
                     Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
-                    State = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK,
-                    StateMask = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK
+                    State = (uint)0, //display as normal text
+                    StateMask = (uint)0
                 };
             }
         }
@@ -98,8 +104,11 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public LibraryNodeType NodeType
         {
             get { return nodeType; }
-        } 
+        }
 
+        /// <summary>
+        /// What native C# IVsObjectLibrary2 object should be referenced
+        /// </summary>
         public IVsObjectList2 ListToReference { get; set; }
 
         public void AddChild(ResultList child)
@@ -113,17 +122,21 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             updateCount++;
         }
 
+        /// <summary>
+        /// preffix + name. Used in IVsNavInfo.get_Name
+        /// </summary>
         public virtual string UniqueName
         {
-            get { return symbolText; }
-        }
-        
-        public virtual bool CanGoToSource
-        {
-            get { return false; } // Root can not go to source
+            get { return symbolPrefix + symbolText; }
         }
 
-        public string SymbolText { get { return symbolText; } }
+        /// <summary>
+        /// True if node has file name defined
+        /// </summary>
+        public virtual bool CanGoToSource
+        {
+            get { return (fName != string.Empty); } // Root can not go to source
+        }
         public string FileName { get { return fName; } }
 
         protected virtual bool IsExpandable
@@ -144,8 +157,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         internal IVsSimpleObjectList2 FilterView(LibraryNodeType filterType, VSOBSEARCHCRITERIA2[] pobSrch)
         {
-            ResultList filtered = null;
-            ResultList temp;
+            ResultList
+                filtered = null,
+                temp = null;
+
             if (!filteredView.TryGetValue(filterType, out temp))
             {   // Filling filtered view
                 filtered = this.Clone();
@@ -166,20 +181,20 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                 switch (pobSrch[0].eSrchType)
                 {
                     case VSOBSEARCHTYPE.SO_ENTIREWORD:
-                        reg = new Regex(string.Format("^{0}$", pobSrch[0].szName.ToLower()));                        
+                        reg = new Regex(string.Format("^{0}$", pobSrch[0].szName.ToLower()));
                         break;
                     case VSOBSEARCHTYPE.SO_PRESTRING:
-                        reg = new Regex(string.Format("^{0}.*", pobSrch[0].szName.ToLower()));      
+                        reg = new Regex(string.Format("^{0}.*", pobSrch[0].szName.ToLower()));
                         break;
                     case VSOBSEARCHTYPE.SO_SUBSTRING:
-                        reg = new Regex(string.Format(".*{0}.*", pobSrch[0].szName.ToLower()));      
+                        reg = new Regex(string.Format(".*{0}.*", pobSrch[0].szName.ToLower()));
                         break;
                     default:
                         throw new NotImplementedException();
                 }
-                
+
                 for (int i = 0; i < filtered.children.Count; )
-                    if(!reg.Match(filtered.children[i].SymbolText.ToLower()).Success)
+                    if (!reg.Match(filtered.children[i].UniqueName.ToLower()).Success)
                         filtered.children.RemoveAt(i);
                     else
                         i += 1;
@@ -193,9 +208,11 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             return new ResultList(this);
         }
 
-        protected virtual void OpenSourceFile() 
+        protected virtual void OpenSourceFile()
         {
             throw new NotImplementedException("This implementation should not be used");
+            #region commented out code
+
             //var fName = @"c:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs";
             //var solution = SymbolBrowserPackage.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
 
@@ -270,11 +287,12 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             //visibleSpan.iEndLine = lineNumber;
             //visibleSpan.iEndIndex = columnNumber + 1;
             //ErrorHandler.ThrowOnFailure(textView.EnsureSpanVisible(visibleSpan));
+            #endregion
         }
 
         public List<ResultList> Children { get { return children; } }
 
-        #region Iron Python had some search for document pointer using RDT. 
+        #region Iron Python had some search for document pointer using RDT.
         // To me it seems that VS does the same thing itself
 
         //private IntPtr FindDocDataFromRDT(string fName)
@@ -354,7 +372,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             //_LIB_LISTCAPABILITIES.LLC_ALLOWRENAME | 
             //_LIB_LISTCAPABILITIES.LLC_ALLOWDRAGDROP | 
             //_LIB_LISTCAPABILITIES.LLC_ALLOWDELETE
-            
+
             //throw new NotImplementedException();
         }
         /// <summary>
@@ -386,7 +404,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetDisplayData(uint index, VSTREEDISPLAYDATA[] pData)
         {
-            // ToDo: Find out where the displayData takes from in IronPython and supply it here
+            //ToDo: Find out where the displayData takes from in IronPython and supply it here
             Logger.Log("ResultList.GetDisplayData index:" + index);
             if (index >= (uint)children.Count)
             {
@@ -519,7 +537,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         int IVsSimpleObjectList2.CanGoToSource(uint index, VSOBJGOTOSRCTYPE SrcType, out int pfOK)
         {
             //if (ListToReference != null && index == ) {
-                
+
             //    ListToReference.CanGoToSource(index, SrcType, out pfOK);
             //    return VSConstants.S_OK;
             //}
@@ -544,7 +562,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             {
                 throw new ArgumentOutOfRangeException("index");
             }
-            if(children[(int)index].ListToReference != null)
+            if (children[(int)index].ListToReference != null)
                 children[(int)index].ListToReference.GoToSource(0, SrcType);
             else
                 children[(int)index].GotoSource(SrcType);
@@ -769,7 +787,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                 Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
 
             ppIVsSimpleObjectList2 = children[(int)index].FilterView((LibraryNodeType)ListType, pobSrch);
-            
+
             return VSConstants.S_OK;
         }
         /// <summary>
@@ -789,20 +807,20 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         int IVsNavInfoNode.get_Name(out string pbstrName)
         {
-            Logger.Log("ResultList.IVsNavInfoNode.get_Name");
+            //Logger.Log("ResultList.IVsNavInfoNode.get_Name");
             pbstrName = UniqueName;
             return VSConstants.S_OK;
         }
 
         int IVsNavInfoNode.get_Type(out uint pllt)
         {
-            Logger.Log("ResultList.IVsNavInfoNode.get_Type");
+            //Logger.Log("ResultList.IVsNavInfoNode.get_Type");
             pllt = (uint)nodeType;
             return VSConstants.S_OK;
         }
 
         #endregion
 
-        
+
     }
 }

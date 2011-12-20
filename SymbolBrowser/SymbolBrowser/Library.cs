@@ -12,28 +12,30 @@ namespace Microsoft.SymbolBrowser
     {
         private const string SUPPORTED_EXT = ".django";
         private ResultList root;
-        NamespaceReferenceList namespaceNode;
-        ModelReferenceList classNode;
-        MemberReferenceList memberNode;
+        ResultList namespaceNode;
+        ResultList classNode;
+        ResultList memberNode;
 
         public Library()
         {
-            root = new ResultList("Test template", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.PhysicalContainer);
+            root = new ResultList("Test template", "", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.PhysicalContainer);
 
-            namespaceNode = new NamespaceReferenceList("ClassLibrary1", "Class1.cs");
-            classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs", 7, 17);
-            memberNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla", "Class1.cs", 9, 22);
+            namespaceNode = new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Namespaces);
+            classNode = new ResultList("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, ResultList.LibraryNodeType.Members);
+            memberNode = new ResultList("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22, ResultList.LibraryNodeType.Members);
 
-            ResultList classReferenceNode = new ResultList(@"C:\temp\c1.cs", "test class reference", 5, 4, ResultList.LibraryNodeType.Classes);
+
+
+            ModelReferenceList classReferenceNode = new ModelReferenceList(@"C:\temp\c1.cs", "test.", "test class reference", 5, 4);
             classNode.AddChild(classReferenceNode);
 
-            ResultList methodReferenceNode = new ResultList(@"C:\temp\c22.cs", "test member reference", 5, 4, ResultList.LibraryNodeType.Members);
+            MemberReferenceList methodReferenceNode = new MemberReferenceList(@"C:\temp\c22.cs", "test2.", "test member reference", 5, 4);
             memberNode.AddChild(methodReferenceNode);
 
             root.AddChild(memberNode);
             root.AddChild(classNode);
             root.AddChild(namespaceNode);
-            
+
             //GetSupportedFileList();
         }
 
@@ -42,7 +44,7 @@ namespace Microsoft.SymbolBrowser
             bool found = false;
             foreach (var c in root.Children)
             {
-                if (string.Compare(symbol, c.SymbolText, false) == 0)
+                if (string.Compare(symbol, c.UniqueName, false) == 0)
                 {
                     c.ListToReference = listToUse;
                     found = true;
@@ -50,7 +52,7 @@ namespace Microsoft.SymbolBrowser
                 }
                 foreach (var c2 in c.Children)
                 {
-                    if (string.Compare(symbol, c2.SymbolText, false) == 0)
+                    if (string.Compare(symbol, c2.UniqueName, false) == 0)
                     {
                         c2.ListToReference = listToUse;
                         found = true;

@@ -8,8 +8,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 {
     class NamespaceReferenceList : ResultList
     {
-        public NamespaceReferenceList(string text, string fName)
-            : base(text, fName, 0, 0, LibraryNodeType.Namespaces)
+        public NamespaceReferenceList(string text, string preffix, string fName)
+            : base(text, fName, preffix, 0, 0, LibraryNodeType.Namespaces)
         {
             // class list
         }
@@ -36,11 +36,11 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                     ForceSelectLength = 5,
                     ForceSelectStart = 0,
                     hImageList = IntPtr.Zero,
-                    Image = 1,
-                    SelectedImage = 0,
+                    Image = 90,
+                    SelectedImage = 90,
                     Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
-                    State = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK,
-                    StateMask = (uint)_VSTREEDISPLAYSTATE.TDS_DISPLAYLINK
+                    State = (uint)0,
+                    StateMask = (uint)0
                 };
             }
         }

@@ -9,8 +9,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 {
     public class ModelReferenceList : ResultList
     {
-        public ModelReferenceList(string text, string fName, int lineNumber, int columnNumber)
-            : base(text, fName, lineNumber, columnNumber, LibraryNodeType.Members)
+        public ModelReferenceList(string text, string fName, string preffix, int lineNumber, int columnNumber)
+            : base(text, fName, preffix, lineNumber, columnNumber, LibraryNodeType.Hierarchy)
         {
             // class list
         }
@@ -27,6 +27,24 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             }
         }
         protected override bool CanDelete { get { return true; } }
+
+        protected override VSTREEDISPLAYDATA DisplayData
+        {
+            get
+            {
+                return new VSTREEDISPLAYDATA
+                {
+                    ForceSelectLength = 0,
+                    ForceSelectStart = 0,
+                    hImageList = IntPtr.Zero,
+                    Image = 0,
+                    SelectedImage = 0,
+                    Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
+                    State = 0,
+                    StateMask = 0
+                };
+            }
+        }
 
         protected override void GotoSource(VisualStudio.Shell.Interop.VSOBJGOTOSRCTYPE gotoType)
         {   
