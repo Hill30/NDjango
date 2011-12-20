@@ -10,7 +10,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
     public class ModelReferenceList : ResultList
     {
         public ModelReferenceList(string text, string fName, int lineNumber, int columnNumber)
-            : base(text, fName, lineNumber, columnNumber, LibraryNodeType.Classes)
+            : base(text, fName, lineNumber, columnNumber, LibraryNodeType.Members)
         {
             // class list
         }

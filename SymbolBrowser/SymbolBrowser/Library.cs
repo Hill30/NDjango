@@ -23,9 +23,9 @@ namespace Microsoft.SymbolBrowser
             namespaceNode = new NamespaceReferenceList("ClassLibrary1", "Class1.cs");
             classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs", 7, 17);
             memberNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla", "Class1.cs", 9, 22);
-            
-            classNode.AddChild(memberNode);
-            namespaceNode.AddChild(classNode);
+
+            root.AddChild(memberNode);
+            root.AddChild(classNode);
             root.AddChild(namespaceNode);
             
             //GetSupportedFileList();
@@ -221,79 +221,93 @@ namespace Microsoft.SymbolBrowser
                 Enum.GetName(typeof(_LIB_LISTTYPE), ListType),
                 Enum.GetName(typeof(_LIB_LISTFLAGS), flags)));
             if (pobSrch != null)
-            {
-                /*
-                if (pobSrch != null)
-                {
-                //var txt = pobSrch[0].szName;
-                //string temp = string.Empty;                
-
-                //root.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
-                //if (string.Compare(temp, txt, true) == 0)
-                //    ppIVsSimpleObjectList2 = root;
-                //else
-                //{
-                //    namespaceNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
-                //    if (string.Compare(temp, txt, true) == 0)
-                //        ppIVsSimpleObjectList2 = namespaceNode;
-                //    else
-                //    {
-                //        classNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
-                //        if (string.Compare(temp, txt, true) == 0)
-                //            ppIVsSimpleObjectList2 = classNode;
-                //        else
-                //        {
-                //            ppIVsSimpleObjectList2 = null;
-                //            return VSConstants.E_FAIL;
-                //        }
-                //    }
-                //}             
-                for (uint i = 0; i < (uint)root.Children.Count; i++)
-                { 
-                    if (string.Compare(root.Children[(int)i].SymbolText, pobSrch[0].szName, true) == 0)
-                    {
-                        IVsSimpleObjectList2 list;
-                        root.GetList2(i, ListType, flags, null, out list);
-                        ppIVsSimpleObjectList2 = list;
-                        return VSConstants.S_OK;
-                    }
-                }
-                
-                ppIVsSimpleObjectList2 = null;
-                return VSConstants.E_FAIL;
-            }
-                 * */
-                var txt = pobSrch[0].szName;
-                string temp = string.Empty;                
-
-                root.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
-                if (string.Compare(temp, txt, true) == 0)
-                    ppIVsSimpleObjectList2 = root;
-                else
-                {
-                    namespaceNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
-                    if (string.Compare(temp, txt, true) == 0)
-                        ppIVsSimpleObjectList2 = namespaceNode;
-                    else
-                    {
-                        classNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
-                        if (string.Compare(temp, txt, true) == 0)
-                            ppIVsSimpleObjectList2 = classNode;
-                        else
-                        {
-                            ppIVsSimpleObjectList2 = null;
-                            return VSConstants.E_FAIL;
-                        }
-                    }
-                }
-
-                return VSConstants.S_OK;
-            }
+                ppIVsSimpleObjectList2 = root.FilterView((ResultList.LibraryNodeType)ListType, pobSrch);
             else
-            {
                 ppIVsSimpleObjectList2 = root;
-                return VSConstants.S_OK;
-            }
+            return VSConstants.S_OK;
+
+
+            //for (var i = 0; i < root.Children.Count; i++) {
+            //    if (root.Children[i].NodeType == (ResultList.LibraryNodeType)ListType)
+            //      root.GetList2(i, ListType, flags, pobSrch, out ppIVsSimpleObjectList2);
+            //}
+
+
+            //if (pobSrch != null)
+            //{
+            //    /*
+            //    if (pobSrch != null)
+            //    {
+            //    //var txt = pobSrch[0].szName;
+            //    //string temp = string.Empty;                
+
+            //    //root.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+            //    //if (string.Compare(temp, txt, true) == 0)
+            //    //    ppIVsSimpleObjectList2 = root;
+            //    //else
+            //    //{
+            //    //    namespaceNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+            //    //    if (string.Compare(temp, txt, true) == 0)
+            //    //        ppIVsSimpleObjectList2 = namespaceNode;
+            //    //    else
+            //    //    {
+            //    //        classNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+            //    //        if (string.Compare(temp, txt, true) == 0)
+            //    //            ppIVsSimpleObjectList2 = classNode;
+            //    //        else
+            //    //        {
+            //    //            ppIVsSimpleObjectList2 = null;
+            //    //            return VSConstants.E_FAIL;
+            //    //        }
+            //    //    }
+            //    //}             
+            //    for (uint i = 0; i < (uint)root.Children.Count; i++)
+            //    { 
+            //        if (string.Compare(root.Children[(int)i].SymbolText, pobSrch[0].szName, true) == 0)
+            //        {
+            //            IVsSimpleObjectList2 list;
+            //            root.GetList2(i, ListType, flags, null, out list);
+            //            ppIVsSimpleObjectList2 = list;
+            //            return VSConstants.S_OK;
+            //        }
+            //    }
+                
+            //    ppIVsSimpleObjectList2 = null;
+            //    return VSConstants.E_FAIL;
+            //}
+            //     * */
+            //    var txt = pobSrch[0].szName;
+            //    string temp = string.Empty;                
+
+            //    root.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+            //    if (string.Compare(temp, txt, true) == 0)
+            //        ppIVsSimpleObjectList2 = root;
+            //    else
+            //    {
+            //        namespaceNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+            //        if (string.Compare(temp, txt, true) == 0)
+            //            ppIVsSimpleObjectList2 = namespaceNode;
+            //        else
+            //        {
+            //            classNode.GetTextWithOwnership(0, VSTREETEXTOPTIONS.TTO_DEFAULT, out temp);
+            //            if (string.Compare(temp, txt, true) == 0)
+            //                ppIVsSimpleObjectList2 = classNode;
+            //            else
+            //            {
+            //                ppIVsSimpleObjectList2 = null;
+            //                return VSConstants.E_FAIL;
+            //            }
+            //        }
+            //    }
+
+            //    return VSConstants.S_OK;
+            //}
+            //else
+            //{
+            //    ppIVsSimpleObjectList2 = root;
+            //    return VSConstants.S_OK;
+            //}
+
             //switch (ListType)
             //{
             //    case (uint)_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS: //16

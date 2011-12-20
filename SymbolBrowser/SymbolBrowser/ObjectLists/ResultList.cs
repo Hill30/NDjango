@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -55,9 +56,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         private uint 
             updateCount = 0;
         private Dictionary<LibraryNodeType, ResultList> filteredView = new Dictionary<LibraryNodeType, ResultList>();
-        private readonly List<ResultList> children = new List<ResultList>();        
+        private readonly List<ResultList> children = new List<ResultList>();
         private readonly LibraryNodeType nodeType;
-        
 
         public ResultList(string text/*, string prefix*/, string fName, int lineNumber, int columnNumber, LibraryNodeType type)
         {
@@ -76,6 +76,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             this.lineNumber = node.lineNumber;
             this.columnNumber = node.columnNumber;
             nodeType = node.nodeType;
+            node.children.ForEach(c => AddChild(c));
         }
 
         protected virtual VSTREEDISPLAYDATA DisplayData {
@@ -94,25 +95,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             }
         }
 
-        ///// <summary>
-        ///// IVsObjectList2 object that is to be used for going to source and, possibly, retrieving some properties
-        ///// </summary>
-        ///// <param name="symbol">Symbol that should use the list</param>
-        ///// <param name="list">IVsObjectList2 object from C# library</param>
-        //public void AddListToReference(string symbol, IVsObjectList2 list)
-        //{
-        //    bool found = false;
-        //    if(children.Count > 0)
-        //        for(int i=0;i<children.Count;i++)
-        //            if (String.Compare(children[i].SymbolText, symbol, true) == 0)
-        //            {
-        //                symbolReferenceList.Add(i, list);
-        //                found = true;
-        //                break;
-        //            }
-        //    if(!found)
-        //        throw new IndexOutOfRangeException(string.Format("Symbol '{0}' was not found", symbol));
-        //}
+        public LibraryNodeType NodeType
+        {
+            get { return nodeType; }
+        } 
 
         public IVsObjectList2 ListToReference { get; set; }
 
@@ -156,26 +142,46 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             description.AddDescriptionText3(symbolText, VSOBDESCRIPTIONSECTION.OBDS_NAME, null);
         }
 
-        protected IVsSimpleObjectList2 FilterView(LibraryNodeType filterType)
+        internal IVsSimpleObjectList2 FilterView(LibraryNodeType filterType, VSOBSEARCHCRITERIA2[] pobSrch)
         {
             ResultList filtered = null;
-            if (filteredView.TryGetValue(filterType, out filtered))
-            {
-                return filtered as IVsSimpleObjectList2;
+            if (!filteredView.TryGetValue(filterType, out filtered))            
+            {   // Filling filtered view
+                filtered = this.Clone();
+                for (int i = 0; i < filtered.children.Count; )
+                    if (0 == (filtered.children[i].nodeType & filterType))
+                        filtered.children.RemoveAt(i);
+                    else
+                        i += 1;
+                filteredView.Add(filterType, filtered);
             }
-            filtered = this.Clone();
-            for (int i = 0; i < filtered.children.Count; )
+
+            // Checking if we need to perform search
+            if (pobSrch != null)
             {
-                if (0 == (filtered.children[i].nodeType & filterType))
+                Regex reg;
+                switch (pobSrch[0].eSrchType)
                 {
-                    filtered.children.RemoveAt(i);
+                    case VSOBSEARCHTYPE.SO_ENTIREWORD:
+                        reg = new Regex(string.Format("^{0}$", pobSrch[0].szName.ToLower()));                        
+                        break;
+                    case VSOBSEARCHTYPE.SO_PRESTRING:
+                        reg = new Regex(string.Format("^{0}.*", pobSrch[0].szName.ToLower()));      
+                        break;
+                    case VSOBSEARCHTYPE.SO_SUBSTRING:
+                        reg = new Regex(string.Format(".*{0}.*", pobSrch[0].szName.ToLower()));      
+                        break;
+                    default:
+                        throw new NotImplementedException();
                 }
-                else
-                {
-                    i += 1;
-                }
+                
+                for (int i = 0; i < filtered.children.Count; )
+                    if(!reg.Match(filtered.children[i].SymbolText.ToLower()).Success)
+                        filtered.children.RemoveAt(i);
+                    else
+                        i += 1;
             }
-            filteredView.Add(filterType, filtered);
+
             return filtered as IVsSimpleObjectList2;
         }
 
@@ -758,8 +764,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                 index,
                 Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
 
-            //ppIVsSimpleObjectList2 = children[(int)index].FilterView((LibraryNodeType)ListType);
-            ppIVsSimpleObjectList2 = children[(int)index];
+            ppIVsSimpleObjectList2 = children[(int)index].FilterView((LibraryNodeType)ListType, pobSrch);
+            
             return VSConstants.S_OK;
         }
         /// <summary>
@@ -792,5 +798,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         }
 
         #endregion
+
+        
     }
 }
