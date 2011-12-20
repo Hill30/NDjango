@@ -24,6 +24,12 @@ namespace Microsoft.SymbolBrowser
             classNode = new ModelReferenceList("ClassLibrary1.Class1", "Class1.cs", 7, 17);
             memberNode = new MemberReferenceList("ClassLibrary1.Class1.GetBlaBlaBla", "Class1.cs", 9, 22);
 
+            ResultList classReferenceNode = new ResultList(@"C:\temp\c1.cs", "test class reference", 5, 4, ResultList.LibraryNodeType.Classes);
+            classNode.AddChild(classReferenceNode);
+
+            ResultList methodReferenceNode = new ResultList(@"C:\temp\c22.cs", "test member reference", 5, 4, ResultList.LibraryNodeType.Members);
+            memberNode.AddChild(methodReferenceNode);
+
             root.AddChild(memberNode);
             root.AddChild(classNode);
             root.AddChild(namespaceNode);
@@ -38,7 +44,6 @@ namespace Microsoft.SymbolBrowser
             {
                 if (string.Compare(symbol, c.SymbolText, false) == 0)
                 {
-                    //c.AddListToReference(symbol, listToUse);
                     c.ListToReference = listToUse;
                     found = true;
                     break;
@@ -51,13 +56,13 @@ namespace Microsoft.SymbolBrowser
                         found = true;
                         break;
                     }
-                    foreach (var c3 in c2.Children)
-                        if (string.Compare(symbol, c3.SymbolText, false) == 0)
-                        {
-                            c3.ListToReference = listToUse;
-                            found = true;
-                            break;
-                        }
+                    //foreach (var c3 in c2.Children)
+                    //    if (string.Compare(symbol, c3.SymbolText, false) == 0)
+                    //    {
+                    //        c3.ListToReference = listToUse;
+                    //        found = true;
+                    //        break;
+                    //    }
                 }
             }
             if(!found)

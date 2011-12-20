@@ -145,7 +145,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         internal IVsSimpleObjectList2 FilterView(LibraryNodeType filterType, VSOBSEARCHCRITERIA2[] pobSrch)
         {
             ResultList filtered = null;
-            if (!filteredView.TryGetValue(filterType, out filtered))            
+            ResultList temp;
+            if (!filteredView.TryGetValue(filterType, out temp))
             {   // Filling filtered view
                 filtered = this.Clone();
                 for (int i = 0; i < filtered.children.Count; )
@@ -153,8 +154,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                         filtered.children.RemoveAt(i);
                     else
                         i += 1;
-                filteredView.Add(filterType, filtered);
+                filteredView.Add(filterType, filtered.Clone());
             }
+            else
+                filtered = temp.Clone(); // making sure we filter a new node
 
             // Checking if we need to perform search
             if (pobSrch != null)
@@ -192,80 +195,81 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         protected virtual void OpenSourceFile() 
         {
-            var fName = @"c:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs";
-            var solution = SymbolBrowserPackage.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
+            throw new NotImplementedException("This implementation should not be used");
+            //var fName = @"c:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs";
+            //var solution = SymbolBrowserPackage.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
 
-            IEnumHierarchies hiers;
-            ErrorHandler.Succeeded(solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, Guid.Empty, out hiers));
-            var projects = new IVsHierarchy[20];
-            uint actualCount;
-            ErrorHandler.Succeeded(hiers.Next((uint)projects.Length, projects, out actualCount));
+            //IEnumHierarchies hiers;
+            //ErrorHandler.Succeeded(solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, Guid.Empty, out hiers));
+            //var projects = new IVsHierarchy[20];
+            //uint actualCount;
+            //ErrorHandler.Succeeded(hiers.Next((uint)projects.Length, projects, out actualCount));
 
-            uint pitemId = 0;
-            IVsProject3 containingProject = null;
-            foreach (IVsProject3 project in projects)
-            {
-                int pfFound = 0;
-                var docPriority = new VSDOCUMENTPRIORITY[0];
-                ErrorHandler.Succeeded(project.IsDocumentInProject(fName, out pfFound, docPriority, out pitemId));
+            //uint pitemId = 0;
+            //IVsProject3 containingProject = null;
+            //foreach (IVsProject3 project in projects)
+            //{
+            //    int pfFound = 0;
+            //    var docPriority = new VSDOCUMENTPRIORITY[0];
+            //    ErrorHandler.Succeeded(project.IsDocumentInProject(fName, out pfFound, docPriority, out pitemId));
 
-                if (pfFound > 0)
-                {
-                    containingProject = project;
-                    break;
-                }
-            }
+            //    if (pfFound > 0)
+            //    {
+            //        containingProject = project;
+            //        break;
+            //    }
+            //}
 
-            if (null == containingProject) { return; }
+            //if (null == containingProject) { return; }
 
-            IVsWindowFrame frame = null;
-            IntPtr documentData = IntPtr.Zero;
-            try
-            {
-                Guid viewGuid = VSConstants.LOGVIEWID_Code;
-                //SI: кажется не надо искать открыт ли этот документ или нет - Visual Studio сама это разруливает...
-                ErrorHandler.ThrowOnFailure(containingProject.OpenItem(pitemId, ref viewGuid, documentData, out frame));
-            }
-            finally
-            {
-                if (IntPtr.Zero != documentData)
-                {
-                    Marshal.Release(documentData);
-                    documentData = IntPtr.Zero;
-                }
-            }
-            // Make sure that the document window is visible.
-            ErrorHandler.ThrowOnFailure(frame.Show());
+            //IVsWindowFrame frame = null;
+            //IntPtr documentData = IntPtr.Zero;
+            //try
+            //{
+            //    Guid viewGuid = VSConstants.LOGVIEWID_Code;
+            //    //SI: кажется не надо искать открыт ли этот документ или нет - Visual Studio сама это разруливает...
+            //    ErrorHandler.ThrowOnFailure(containingProject.OpenItem(pitemId, ref viewGuid, documentData, out frame));
+            //}
+            //finally
+            //{
+            //    if (IntPtr.Zero != documentData)
+            //    {
+            //        Marshal.Release(documentData);
+            //        documentData = IntPtr.Zero;
+            //    }
+            //}
+            //// Make sure that the document window is visible.
+            //ErrorHandler.ThrowOnFailure(frame.Show());
 
-            // Get the code window from the window frame.
-            object docView;
-            ErrorHandler.ThrowOnFailure(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docView));
-            IVsCodeWindow codeWindow = docView as IVsCodeWindow;
-            if (null == codeWindow)
-            {
-                object docData;
-                ErrorHandler.ThrowOnFailure(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out docData));
-                codeWindow = docData as IVsCodeWindow;
-                if (null == codeWindow)
-                {
-                    return;
-                }
-            }
+            //// Get the code window from the window frame.
+            //object docView;
+            //ErrorHandler.ThrowOnFailure(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docView));
+            //IVsCodeWindow codeWindow = docView as IVsCodeWindow;
+            //if (null == codeWindow)
+            //{
+            //    object docData;
+            //    ErrorHandler.ThrowOnFailure(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out docData));
+            //    codeWindow = docData as IVsCodeWindow;
+            //    if (null == codeWindow)
+            //    {
+            //        return;
+            //    }
+            //}
 
-            // Get the primary view from the code window.
-            IVsTextView textView;
-            ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out textView));
+            //// Get the primary view from the code window.
+            //IVsTextView textView;
+            //ErrorHandler.ThrowOnFailure(codeWindow.GetPrimaryView(out textView));
 
-            // Set the cursor at the beginning of the declaration.
-            ErrorHandler.ThrowOnFailure(textView.SetCaretPos((int)lineNumber, (int)columnNumber));
+            //// Set the cursor at the beginning of the declaration.
+            //ErrorHandler.ThrowOnFailure(textView.SetCaretPos((int)lineNumber, (int)columnNumber));
 
-            // Make sure that the text is visible.
-            TextSpan visibleSpan = new TextSpan();
-            visibleSpan.iStartLine = lineNumber;
-            visibleSpan.iStartIndex = columnNumber;
-            visibleSpan.iEndLine = lineNumber;
-            visibleSpan.iEndIndex = columnNumber + 1;
-            ErrorHandler.ThrowOnFailure(textView.EnsureSpanVisible(visibleSpan));
+            //// Make sure that the text is visible.
+            //TextSpan visibleSpan = new TextSpan();
+            //visibleSpan.iStartLine = lineNumber;
+            //visibleSpan.iStartIndex = columnNumber;
+            //visibleSpan.iEndLine = lineNumber;
+            //visibleSpan.iEndIndex = columnNumber + 1;
+            //ErrorHandler.ThrowOnFailure(textView.EnsureSpanVisible(visibleSpan));
         }
 
         public List<ResultList> Children { get { return children; } }
