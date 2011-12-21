@@ -51,7 +51,11 @@ namespace Microsoft.SymbolBrowser
             Guid csLibGuid = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
 
             IVsLibrary2 csLib;
-            ErrorHandler.Succeeded(objectManager.FindLibrary(ref csLibGuid, out csLib));
+            if (!ErrorHandler.Succeeded(objectManager.FindLibrary(ref csLibGuid, out csLib)))
+            {
+                MessageBox.Show("Could not load native C# library");
+                return;
+            }
 
             // Obtain a list of corresponding symbols from native C# library
             foreach (var s in typeNames)
@@ -127,9 +131,10 @@ namespace Microsoft.SymbolBrowser
                 uint count = 0;
                 list.GetItemCount(out count);
                 if (count == 0)
-                    throw new Exception(String.Format("Error obtaining native symbol for class '{0}'", symbolText));
-                // Merge our symbols with the ones obtained from native lib
-                library.AddExternalReference(symbolText, list);
+                    MessageBox.Show(String.Format("Error obtaining native symbol for class '{0}'", symbolText));
+                else
+                    // Merge our symbols with the ones obtained from native lib
+                    library.AddExternalReference(symbolText, list);
             }
         }
 
