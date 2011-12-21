@@ -18,9 +18,18 @@ namespace NDjango.Designer.Parsing.TypeLibrary
             this.fullName = fullName;
         }
 
-        public void AddMember(Type type, string memberName)
+        public void AddMember(Type type, string memberName, MemberTypes memberType)
         {
-            members.Add(new NDjangoFieldInfo(this, type, memberName));
+            switch (memberType)
+            {
+                case MemberTypes.Property:
+                    members.Add(new NDjangoPropertyInfo(this, type, memberName));
+                    break;
+                default:
+                    members.Add(new NDjangoFieldInfo(this, type, memberName));
+                    break;
+            }
+            
         }
 
         #region Type members implementations

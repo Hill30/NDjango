@@ -80,6 +80,7 @@ namespace Microsoft.SymbolBrowser
 
             foreach (var project in projects)
             {
+                if (project == null) continue; 
                 IVsSimpleBrowseComponentSet subset;
                 ErrorHandler.Succeeded(objectManager.CreateSimpleBrowseComponentSet(
                     (uint)_BROWSE_COMPONENT_SET_TYPE.BCST_EXCLUDE_LIBRARIES,

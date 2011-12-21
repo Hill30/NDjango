@@ -87,6 +87,7 @@ namespace NDjango.Designer.Parsing
             var type = new NDjangoType(classname);
             foreach (var library in GetIVsLibraries())
             {
+                
                 IVsSimpleObjectList2 list;
                 if (!ErrorHandler.Succeeded(library.GetList2((uint)(_LIB_LISTTYPE.LLT_MEMBERS),
                                     (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
@@ -114,13 +115,36 @@ namespace NDjango.Designer.Parsing
                         string sSym = symbol.ToString();
                         if (sSym.StartsWith(classname))
                         {
-                            type.AddMember(typeof(string), sSym.Split('.').Last());
+                            uint memberType; // _LIBCAT_MEMBERTYPE
+                            uint memberAccess; //_LIBCAT_MEMBERACCESS
+                            list.GetCategoryField2(i, (int) LIB_CATEGORY.LC_MEMBERTYPE, out memberType);
+                            list.GetCategoryField2(i, (int) LIB_CATEGORY.LC_MEMBERACCESS, out memberAccess);
+                            type.AddMember(typeof(string), sSym.Split('.').Last(), GetMemberType(memberType));
                         }
                     }
 
                 }
             }
             return type;
+        }
+
+        private static MemberTypes GetMemberType(uint memberType)
+        {
+            switch (memberType)
+            {
+
+                case (uint)_LIBCAT_MEMBERTYPE.LCMT_METHOD:
+                    return MemberTypes.Method;
+
+                case (uint)_LIBCAT_MEMBERTYPE.LCMT_PROPERTY:
+                    return MemberTypes.Property;
+
+                case (uint)_LIBCAT_MEMBERTYPE.LCMT_EVENT:
+                    return MemberTypes.Event;
+
+                default:
+                    return MemberTypes.Field;
+            }
         }
 
         public static readonly Guid CSharpLibrary = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
