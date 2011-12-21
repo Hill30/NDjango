@@ -69,7 +69,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             this.nodeType = type;
         }
 
-        private ResultList(ResultList node)
+        internal ResultList(ResultList node)
         {
             this.symbolText = node.symbolText;
             this.symbolPrefix = node.symbolPrefix;
@@ -210,7 +210,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         protected virtual void OpenSourceFile()
         {
-            throw new NotImplementedException("This implementation should not be used");
+            System.Windows.Forms.MessageBox.Show("This implementation should not have been used - list to reference is not defined for this symbol and no valid path is probably defined.\r\n It is planned to be used for opening Django templates.");
+            //throw new NotImplementedException("This implementation should not be used");
             #region commented out code
 
             //var fName = @"c:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs";
@@ -363,8 +364,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetCapabilities2(out uint pgrfCapabilities)
         {
-            pgrfCapabilities = /*(uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT |*/ (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH;
-            return VSConstants.S_OK;
+            pgrfCapabilities = /*(uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT |*/ 
+                (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH
+                | (uint)_LIB_LISTCAPABILITIES.LLC_HASDESCPANE;
+            
             //_LIB_LISTCAPABILITIES.LLC_HASDESCPANE |
             //_LIB_LISTCAPABILITIES.LLC_HASCOMMANDS | 
             //_LIB_LISTCAPABILITIES.LLC_HASBROWSEOBJ | 
@@ -373,7 +376,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             //_LIB_LISTCAPABILITIES.LLC_ALLOWDRAGDROP | 
             //_LIB_LISTCAPABILITIES.LLC_ALLOWDELETE
 
-            //throw new NotImplementedException();
+            return VSConstants.S_OK;
         }
         /// <summary>
         /// Returns the current change counter for the tree list, and is used to indicate that the list contents have changed
@@ -742,7 +745,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int GetNavInfoNode(uint index, out IVsNavInfoNode ppNavInfoNode)
         {
             Logger.Log("ResultList.GetNavInfoNode");
-            ppNavInfoNode = this;
+            ppNavInfoNode = children[(int)index];
             return VSConstants.S_OK;
             throw new NotImplementedException();
         }
@@ -755,7 +758,23 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int LocateNavInfoNode(IVsNavInfoNode pNavInfoNode, out uint pulIndex)
         {
             Logger.Log("ResultList.LocateNavInfoNode   ");
-            throw new NotImplementedException();
+            
+            string needleName = string.Empty;
+            pNavInfoNode.get_Name(out needleName);
+            var index = 0;
+            foreach(var c in children)
+            {
+                string nodeName = string.Empty;
+                ((IVsNavInfoNode)c).get_Name(out nodeName);
+                if (string.Compare(needleName, nodeName) == 0)
+                {
+                    pulIndex = (uint)index;
+                    return VSConstants.S_OK;
+                }
+                index++;
+            }
+            pulIndex = 0;
+            return VSConstants.E_FAIL;
         }
         /// <summary>
         /// Returns a flag indicating whether the given list item is expandable.

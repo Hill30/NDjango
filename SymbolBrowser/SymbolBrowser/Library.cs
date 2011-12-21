@@ -11,20 +11,20 @@ namespace Microsoft.SymbolBrowser
     public class Library : IVsSimpleLibrary2
     {
         private const string SUPPORTED_EXT = ".django";
-        private ResultList root;
+        private ResultList 
+            root,
+            objRoot;
         ResultList namespaceNode;
         ResultList classNode;
         ResultList memberNode;
 
         public Library()
         {
-            root = new ResultList("Test template", "", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.PhysicalContainer);
+            root = new ResultList("Test template", "", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.Package);
 
             namespaceNode = new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Namespaces);
             classNode = new ResultList("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, ResultList.LibraryNodeType.Members);
             memberNode = new ResultList("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22, ResultList.LibraryNodeType.Members);
-
-
 
             ModelReferenceList classReferenceNode = new ModelReferenceList(@"C:\temp\c1.cs", "test.", "test class reference", 5, 4);
             classNode.AddChild(classReferenceNode);
@@ -36,6 +36,13 @@ namespace Microsoft.SymbolBrowser
             root.AddChild(classNode);
             root.AddChild(namespaceNode);
 
+            objRoot = new ResultList(root);
+            objRoot.Children.Clear();
+            objRoot.Children.Add(new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Namespaces));
+            objRoot.Children[0].Children.Add(new ResultList("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, ResultList.LibraryNodeType.Classes));
+            objRoot.Children[0].Children[0].Children.Add(new ResultList("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22, ResultList.LibraryNodeType.Members));
+
+            
             //GetSupportedFileList();
         }
 
@@ -230,7 +237,7 @@ namespace Microsoft.SymbolBrowser
             if (pobSrch != null)
                 ppIVsSimpleObjectList2 = root.FilterView((ResultList.LibraryNodeType)ListType, pobSrch);
             else
-                ppIVsSimpleObjectList2 = root;
+                ppIVsSimpleObjectList2 = objRoot;
             return VSConstants.S_OK;
 
 
