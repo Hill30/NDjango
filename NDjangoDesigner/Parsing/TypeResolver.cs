@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using Microsoft.VisualStudio;
 using System.Reflection;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -79,19 +81,23 @@ namespace NDjango.Designer.Parsing
 
         public Type Resolve(string typeName)
         {
+            var type = ((ITypeResolutionService)typeResolver).GetType(typeName);
             return SearchLibaries(typeName);
         }
 
+        [HandleProcessCorruptedStateExceptions] 
         public static NDjangoType SearchLibaries(string classname)
         {
-            var type = new NDjangoType(classname);
-            foreach (var library in GetIVsLibraries())
+            try
             {
-                
-                IVsSimpleObjectList2 list;
-                if (!ErrorHandler.Succeeded(library.GetList2((uint)(_LIB_LISTTYPE.LLT_MEMBERS),
-                                    (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                                    new[]
+                var type = new NDjangoType(classname);
+                foreach (var library in GetIVsLibraries())
+                {
+
+                    IVsSimpleObjectList2 list;
+                    if (!ErrorHandler.Succeeded(library.GetList2((uint)(_LIB_LISTTYPE.LLT_MEMBERS),
+                                        (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                                        new[]
                                 {
                                     new VSOBSEARCHCRITERIA2
                                         {
@@ -100,32 +106,38 @@ namespace NDjango.Designer.Parsing
                                             szName = "*"
                                         }
                                 }, out list)))
-                    continue;
-                if (list == null) continue;
+                        continue;
+                    if (list == null) continue;
 
-                uint count;
-                ErrorHandler.ThrowOnFailure(list.GetItemCount(out count));
-                for (var i = (uint)0; i < count; i++)
-                {
-                    object symbol;
-                    ErrorHandler.ThrowOnFailure(list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out symbol));
-
-                    if (symbol != null)
+                    uint count;
+                    ErrorHandler.ThrowOnFailure(list.GetItemCount(out count));
+                    for (var i = (uint)0; i < count; i++)
                     {
-                        string sSym = symbol.ToString();
-                        if (sSym.StartsWith(classname))
-                        {
-                            uint memberType; // _LIBCAT_MEMBERTYPE
-                            uint memberAccess; //_LIBCAT_MEMBERACCESS
-                            list.GetCategoryField2(i, (int) LIB_CATEGORY.LC_MEMBERTYPE, out memberType);
-                            list.GetCategoryField2(i, (int) LIB_CATEGORY.LC_MEMBERACCESS, out memberAccess);
-                            type.AddMember(typeof(string), sSym.Split('.').Last(), GetMemberType(memberType));
-                        }
-                    }
+                        object symbol;
+                        ErrorHandler.ThrowOnFailure(list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out symbol));
 
+                        if (symbol != null)
+                        {
+                            string sSym = symbol.ToString();
+                            if (sSym.StartsWith(classname))
+                            {
+                                uint memberType; // _LIBCAT_MEMBERTYPE
+                                uint memberAccess; //_LIBCAT_MEMBERACCESS
+                                list.GetCategoryField2(i, (int)LIB_CATEGORY.LC_MEMBERTYPE, out memberType);
+                                list.GetCategoryField2(i, (int)LIB_CATEGORY.LC_MEMBERACCESS, out memberAccess);
+                                type.AddMember(typeof(string), sSym.Split('.').Last(), GetMemberType(memberType));
+                            }
+                        }
+
+                    }
                 }
+                return type;
             }
-            return type;
+            catch (AccessViolationException e)
+            {
+                
+            }
+            return null;
         }
 
         private static MemberTypes GetMemberType(uint memberType)
@@ -152,13 +164,15 @@ namespace NDjango.Designer.Parsing
 
         public static IEnumerable<IVsSimpleLibrary2> GetIVsLibraries()
         {
-            return new [] {CSharpLibrary /*, VisualBasicLibrary */}.Select(GetIVsLibrary).Where(lib => lib != null);
+
+            return new [] {CSharpLibrary , VisualBasicLibrary}.Select(GetIVsLibrary).Where(lib => lib != null);
         }
 
 
         public static IVsSimpleLibrary2 GetIVsLibrary(Guid guid)
         {
             IVsLibrary2 library;
+            
             if (!ErrorHandler.Succeeded(GlobalServices.ObjectManager.FindLibrary(ref guid, out library)))
                 return null;
             return library as IVsSimpleLibrary2;
