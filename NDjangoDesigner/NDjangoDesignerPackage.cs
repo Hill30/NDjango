@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using NDjango.Designer.Commands;
+using NDjango.Designer.SymbolLibrary;
 
 namespace NDjangoDesigner
 {
@@ -37,13 +38,9 @@ namespace NDjangoDesigner
     [Guid(NDjango.Designer.Constants.guidNDjangoDesignerPkgString)]
     public sealed class NDjangoDesignerPackage : Package
     {
-        private static DTE2 dteObj;
-        public static DTE2 DTE2Obj
-        {
-            get { return dteObj; }
-        }
-
         private AddViewDlg viewDialog;
+        private NDjangoSymbolLibrary library;
+        private uint libCookie = 0;
         /// <summary>
         /// Default constructor of the package.
         /// Inside this method you can place any initialization code that does not require 
@@ -67,7 +64,16 @@ namespace NDjangoDesigner
             viewDialog.ShowDialog();
         }
 
-
+        private void RegisterSymbolLibrary()
+        {
+            
+            if (library == null)
+            {
+                var objectManager2 = GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
+                library = new NDjangoSymbolLibrary();
+                objectManager2.RegisterSimpleLibrary(library, out libCookie);
+            }
+        }
         /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
         #region Package Members
@@ -89,8 +95,8 @@ namespace NDjangoDesigner
             }
             viewDialog = new AddViewDlg();
 
-            // Obtain a reference to DTE2 type object.
-            dteObj = GetService(typeof(DTE)) as DTE2;
+            // SI: Uncomment this call to register our symbol library
+            //RegisterSymbolLibrary();
         }
         #endregion
 
