@@ -81,63 +81,63 @@ namespace NDjango.Designer.Parsing
 
         public Type Resolve(string typeName)
         {
-            var type = ((ITypeResolutionService)typeResolver).GetType(typeName);
-            return SearchLibaries(typeName);
+            var ndjangoType = SearchLibaries(typeName);
+            ndjangoType.MergeType(((ITypeResolutionService)typeResolver).GetType(typeName));
+            return ndjangoType;
         }
 
         [HandleProcessCorruptedStateExceptions] 
         public static NDjangoType SearchLibaries(string classname)
         {
-            try
-            {
+            
                 var type = new NDjangoType(classname);
                 foreach (var library in GetIVsLibraries())
                 {
-
-                    IVsSimpleObjectList2 list;
-                    if (!ErrorHandler.Succeeded(library.GetList2((uint)(_LIB_LISTTYPE.LLT_MEMBERS),
-                                        (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
-                                        new[]
-                                {
-                                    new VSOBSEARCHCRITERIA2
-                                        {
-                                            eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
-                                            grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_NONE,
-                                            szName = "*"
-                                        }
-                                }, out list)))
-                        continue;
-                    if (list == null) continue;
-
-                    uint count;
-                    ErrorHandler.ThrowOnFailure(list.GetItemCount(out count));
-                    for (var i = (uint)0; i < count; i++)
+                    try
                     {
-                        object symbol;
-                        ErrorHandler.ThrowOnFailure(list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out symbol));
+                        IVsSimpleObjectList2 list;
+                        if (!ErrorHandler.Succeeded(library.GetList2((uint)(_LIB_LISTTYPE.LLT_MEMBERS),
+                                            (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                                            new[]
+                                    {
+                                        new VSOBSEARCHCRITERIA2
+                                            {
+                                                eSrchType = VSOBSEARCHTYPE.SO_PRESTRING,
+                                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_NONE,
+                                                szName = "*"
+                                            }
+                                    }, out list)))
+                            continue;
+                        if (list == null) continue;
 
-                        if (symbol != null)
+                        uint count;
+                        ErrorHandler.ThrowOnFailure(list.GetItemCount(out count));
+                        for (var i = (uint)0; i < count; i++)
                         {
-                            string sSym = symbol.ToString();
-                            if (sSym.StartsWith(classname))
+                            object symbol;
+                            ErrorHandler.ThrowOnFailure(list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out symbol));
+
+                            if (symbol != null)
                             {
-                                uint memberType; // _LIBCAT_MEMBERTYPE
-                                uint memberAccess; //_LIBCAT_MEMBERACCESS
-                                list.GetCategoryField2(i, (int)LIB_CATEGORY.LC_MEMBERTYPE, out memberType);
-                                list.GetCategoryField2(i, (int)LIB_CATEGORY.LC_MEMBERACCESS, out memberAccess);
-                                type.AddMember(typeof(string), sSym.Split('.').Last(), GetMemberType(memberType));
+                                string sSym = symbol.ToString();
+                                if (sSym.StartsWith(classname))
+                                {
+                                    uint memberType; // _LIBCAT_MEMBERTYPE
+                                    uint memberAccess; //_LIBCAT_MEMBERACCESS
+                                    list.GetCategoryField2(i, (int)LIB_CATEGORY.LC_MEMBERTYPE, out memberType);
+                                    list.GetCategoryField2(i, (int)LIB_CATEGORY.LC_MEMBERACCESS, out memberAccess);
+                                    type.AddMember(typeof(string), sSym.Split('.').Last(), GetMemberType(memberType));
+                                }
                             }
+
                         }
+                    }
+                    catch (AccessViolationException e)
+                    {
 
                     }
                 }
                 return type;
-            }
-            catch (AccessViolationException e)
-            {
-                
-            }
-            return null;
         }
 
         private static MemberTypes GetMemberType(uint memberType)

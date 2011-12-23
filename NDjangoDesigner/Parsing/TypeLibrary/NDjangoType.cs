@@ -18,12 +18,60 @@ namespace NDjango.Designer.Parsing.TypeLibrary
             this.fullName = fullName;
         }
 
+        public void MergeType(Type typeToMergeWith)
+        {
+            var methods = typeToMergeWith.GetMethods();
+            var properties = typeToMergeWith.GetProperties();
+            var fields = typeToMergeWith.GetFields();
+
+
+            for (var i = 0; i < methods.Count(); i++)
+            {
+                var method = methods[i];
+                var memberIndex = members.FindIndex(m => m.Name == method.Name);
+                if (memberIndex != -1)
+                {
+                    members[memberIndex] = method;
+                    continue;
+                }
+                members.Add(method);
+            }
+
+            for (var i = 0; i < properties.Count(); i++)
+            {
+                var property = properties[i];
+                var memberIndex = members.FindIndex(m => m.Name == property.Name);
+                if (memberIndex != -1)
+                {
+                    members[memberIndex] = property;
+                    continue;
+                }
+                members.Add(property);
+            }
+
+            for (var i = 0; i < fields.Count(); i++)
+            {
+                var field = fields[i];
+                var memberIndex = members.FindIndex(m => m.Name == field.Name);
+                if (memberIndex != -1)
+                {
+                    members[memberIndex] = field;
+                    continue;
+                }
+                members.Add(field);
+            }
+
+        }
+
         public void AddMember(Type type, string memberName, MemberTypes memberType)
         {
             switch (memberType)
             {
                 case MemberTypes.Property:
                     members.Add(new NDjangoPropertyInfo(this, type, memberName));
+                    break;
+                case MemberTypes.Method:
+                    members.Add(new NDjangoMethodInfo(this, type, memberName));
                     break;
                 default:
                     members.Add(new NDjangoFieldInfo(this, type, memberName));
@@ -96,7 +144,7 @@ namespace NDjango.Designer.Parsing.TypeLibrary
 
         public override PropertyInfo[] GetProperties(BindingFlags bindingAttr)
         {
-            throw new NotImplementedException();
+            return members.Where(m => m.MemberType == MemberTypes.Property).Select(m => m as PropertyInfo).ToArray();
         }
 
         protected override MethodInfo GetMethodImpl(string name, BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers)
@@ -106,7 +154,7 @@ namespace NDjango.Designer.Parsing.TypeLibrary
 
         public override MethodInfo[] GetMethods(BindingFlags bindingAttr)
         {
-            throw new NotImplementedException();
+            return members.Where(m => m.MemberType == MemberTypes.Method).Select(m => m as MethodInfo).ToArray();
         }
 
         public override FieldInfo GetField(string name, BindingFlags bindingAttr)
@@ -116,7 +164,7 @@ namespace NDjango.Designer.Parsing.TypeLibrary
 
         public override FieldInfo[] GetFields(BindingFlags bindingAttr)
         {
-            throw new NotImplementedException();
+            return members.Where(m => m.MemberType == MemberTypes.Field).Select(m => m as FieldInfo).ToArray();
         }
 
         public override MemberInfo[] GetMembers(BindingFlags bindingAttr)
