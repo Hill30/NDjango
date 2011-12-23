@@ -57,6 +57,30 @@ namespace Microsoft.SymbolBrowser
                 return;
             }
 
+            LogLibrarySupportedCategories(csLib);
+
+            // SI: Uncomment one of the blocks to make logger log the data for the corresponding list
+
+            //IVsObjectList2 simpleList;
+            //csLib.GetList2((uint)_LIB_LISTTYPE.LLT_PACKAGE, 0, null, out simpleList);
+            //ExploreListStructure(simpleList, "Simple list", 2);
+
+            //IVsObjectList2 searchList;
+            //csLib.GetList2(
+            //    (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
+            //    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
+            //    new[]
+            //        {
+            //            new VSOBSEARCHCRITERIA2
+            //                {
+            //                    eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
+            //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
+            //                    szName = "ClassLibrary1.Class1"
+            //                }
+            //        },
+            //        out searchList);
+            //ExploreListStructure(searchList, "Search result list", 2);
+
             // Obtain a list of corresponding symbols from native C# library
             foreach (var s in typeNames)
             {
@@ -67,24 +91,22 @@ namespace Microsoft.SymbolBrowser
             foreach (var s in methodNames)
             {
                 AddSymbolToLibrary(_LIB_LISTTYPE.LLT_MEMBERS, s, ref csLib);
-                
             }//foreach
-            
 
             IVsCombinedBrowseComponentSet extras;
             ErrorHandler.Succeeded(objectManager.CreateCombinedBrowseComponentSet(out extras));
 
-            var solution = SymbolBrowserPackage.GetGlobalService(typeof (SVsSolution)) as IVsSolution;
+            var solution = SymbolBrowserPackage.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
 
             IEnumHierarchies hiers;
-            ErrorHandler.Succeeded(solution.GetProjectEnum((uint) __VSENUMPROJFLAGS.EPF_ALLPROJECTS, Guid.Empty, out hiers));
+            ErrorHandler.Succeeded(solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, Guid.Empty, out hiers));
             var projects = new IVsHierarchy[20];
             uint actualCount;
-            ErrorHandler.Succeeded(hiers.Next((uint) projects.Length, projects, out actualCount));
+            ErrorHandler.Succeeded(hiers.Next((uint)projects.Length, projects, out actualCount));
 
             foreach (var project in projects)
             {
-                if (project == null) continue; 
+                if (project == null) continue;
                 IVsSimpleBrowseComponentSet subset;
                 ErrorHandler.Succeeded(objectManager.CreateSimpleBrowseComponentSet(
                     (uint)_BROWSE_COMPONENT_SET_TYPE.BCST_EXCLUDE_LIBRARIES,
@@ -108,10 +130,9 @@ namespace Microsoft.SymbolBrowser
 
                 AddLibrary(lib, extras);
             }
-
         }
 
-        private void AddSymbolToLibrary(_LIB_LISTTYPE symbolType, string symbolText, ref IVsLibrary2 csLib) 
+        private void AddSymbolToLibrary(_LIB_LISTTYPE symbolType, string symbolText, ref IVsLibrary2 csLib)
         {
             IVsObjectList2 list;
             var success = ErrorHandler.Succeeded(csLib.GetList2(
@@ -240,12 +261,13 @@ namespace Microsoft.SymbolBrowser
                 navInfoRoot.Items.Add("Guid=" + symbolGuid);
                 uint symbolType;
                 ErrorHandler.Succeeded(navInfo.GetSymbolType(out symbolType));
-                var symbolTypeString = Enum.GetName(typeof (_LIB_LISTTYPE), symbolType);
+                var symbolTypeString = Enum.GetName(typeof(_LIB_LISTTYPE), symbolType);
                 if (symbolTypeString != null)
                 {
                     navInfoRoot.Items.Add("Type = _LIB_LISTTYPE." + symbolTypeString);
                 }
-                else{
+                else
+                {
                     symbolTypeString = Enum.GetName(typeof(_LIB_LISTTYPE2), symbolType);
                     if (symbolTypeString != null)
                     {
@@ -261,10 +283,10 @@ namespace Microsoft.SymbolBrowser
                 ErrorHandler.Succeeded(navInfo.EnumCanonicalNodes(out infoNodes));
                 var navInfoNodesArray = new IVsNavInfoNode[20];
                 uint fetched;
-                ErrorHandler.Succeeded(infoNodes.Next((uint) navInfoNodesArray.Length, navInfoNodesArray, out fetched));
+                ErrorHandler.Succeeded(infoNodes.Next((uint)navInfoNodesArray.Length, navInfoNodesArray, out fetched));
                 if (fetched > 0)
                 {
-                    var navNodes = new TreeViewItem {Header = "Nodes"};
+                    var navNodes = new TreeViewItem { Header = "Nodes" };
                     foreach (var node in navInfoNodesArray)
                     {
                         if (node == null)
@@ -278,7 +300,8 @@ namespace Microsoft.SymbolBrowser
                         {
                             navNodes.Items.Add(nodeName + "(_LIB_LISTTYPE." + nodeTypeString + ")");
                         }
-                        else {
+                        else
+                        {
                             nodeTypeString = Enum.GetName(typeof(_LIB_LISTTYPE2), symbolType);
                             if (symbolTypeString != null)
                             {
@@ -337,7 +360,7 @@ namespace Microsoft.SymbolBrowser
             if (objects == null)
                 return;
 
-            var root = new TreeViewItem {Header = listType};
+            var root = new TreeViewItem { Header = listType };
             uint libFlags;
             ErrorHandler.Succeeded(objects.GetCapabilities2(out libFlags));
 
@@ -379,15 +402,15 @@ namespace Microsoft.SymbolBrowser
                 objType = objects.GetType();
 
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_LEAFNAME, out propValue));
-                var item = new TreeViewItem {Header = (string)propValue};
+                var item = new TreeViewItem { Header = (string)propValue };
                 //var item = new TreeViewItem { Header = "TExt" };
                 item.Items.Add("Type: " + objType);
-                
+
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out propValue));
                 item.Items.Add("Full Name " + (string)propValue);
                 ErrorHandler.Succeeded(objects.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out propValue));
                 item.Items.Add("Path " + (string)propValue);
-                
+
                 IVsObjectList2 nestedObjects;
                 ErrorHandler.Succeeded(objects.GetList2(
                     i,
@@ -563,7 +586,7 @@ namespace Microsoft.SymbolBrowser
                 return;
             uint count;
             ErrorHandler.Succeeded(theList.GetItemCount(out count));
-            var root = new TreeViewItem {Header = header + " count = " + count};
+            var root = new TreeViewItem { Header = header + " count = " + count };
             parent.Items.Add(root);
             //for (var i = 0; i< count; i++)
             //{
@@ -572,5 +595,325 @@ namespace Microsoft.SymbolBrowser
             //    root.Items.Add(item);
             //}
         }
+
+        #region List structure exploration
+
+        private void LogLibrarySupportedCategories(IVsLibrary2 csLib)
+        {
+            uint outVal = 0;
+            /*
+                LC_MEMBERTYPE = 1,
+                LC_MEMBERACCESS = 2,
+                LC_CLASSTYPE = 3,
+                LC_CLASSACCESS = 4,
+                LC_ACTIVEPROJECT = 5,
+                LC_LISTTYPE = 6,
+                LC_VISIBILITY = 7,
+                LC_MODIFIER = 8,
+                LC_NODETYPE = 9,
+             */
+            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_ACTIVEPROJECT, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_ACTIVEPROJECT", Enum.GetName(typeof(_LIBCAT_ACTIVEPROJECT), outVal), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_CLASSACCESS, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_CLASSACCESS", Enum.GetName(typeof(_LIBCAT_CLASSACCESS), outVal), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_CLASSTYPE, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_CLASSTYPE", Enum.GetName(typeof(_LIBCAT_CLASSTYPE), outVal), outVal));
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_CLASSTYPE as _LIBCAT_CLASSTYPE2", Enum.GetName(typeof(_LIBCAT_CLASSTYPE2), outVal), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_LISTTYPE, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_LISTTYPE", Enum.GetName(typeof(_LIB_LISTTYPE), outVal), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_MEMBERACCESS, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_MEMBERACCESS", Enum.GetName(typeof(_LIBCAT_MEMBERACCESS), outVal), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_MEMBERTYPE, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_MEMBERTYPE", Enum.GetName(typeof(_LIBCAT_MEMBERTYPE), outVal), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_MODIFIER, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_MODIFIER", Enum.GetName(typeof(_LIBCAT_MODIFIERTYPE), outVal), outVal));
+
+            //            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_NODETYPE, out outVal);
+            //Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_NODETYPE", Enum.GetName(typeof()), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_VISIBILITY, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_VISIBILITY", Enum.GetName(typeof(_LIBCAT_VISIBILITY), outVal), outVal));
+
+
+
+            csLib.GetSupportedCategoryFields2((int)_LIB_CATEGORY2.LC_HIERARCHYTYPE, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_HIERARCHYTYPE", Enum.GetName(typeof(_LIBCAT_HIERARCHYTYPE), outVal), outVal));
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_HIERARCHYTYPE as _LIBCAT_HIERARCHYTYPE2",
+                Enum.GetName(typeof(_LIBCAT_HIERARCHYTYPE2), outVal), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)_LIB_CATEGORY2.LC_Last2, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_Last2", outVal, outVal));
+
+            csLib.GetSupportedCategoryFields2((int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_MEMBERINHERITANCE", Enum.GetName(typeof(_LIBCAT_MEMBERINHERITANCE), outVal), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)_LIB_CATEGORY2.LC_NIL, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_NIL", outVal, outVal));
+
+            csLib.GetSupportedCategoryFields2((int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_PHYSICALCONTAINERTYPE", Enum.GetName(typeof(_LIBCAT_PHYSICALCONTAINERTYPE), outVal), outVal));
+
+            csLib.GetSupportedCategoryFields2((int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_SEARCHMATCHTYPE", Enum.GetName(typeof(_LIBCAT_SEARCHMATCHTYPE), outVal), outVal));
+        }
+
+        private void LogListSupportedCategories(uint childIndex, IVsObjectList2 csLib)
+        {
+            uint outVal = 0;
+            string tempStr = string.Empty;
+            /*
+             * LIB_CATEGORY : 
+             * 
+                LC_MEMBERTYPE = 1,
+                LC_MEMBERACCESS = 2,
+                LC_CLASSTYPE = 3,
+                LC_CLASSACCESS = 4,
+                LC_ACTIVEPROJECT = 5,
+                LC_LISTTYPE = 6,
+                LC_VISIBILITY = 7,
+                LC_MODIFIER = 8,
+                LC_NODETYPE = 9,
+             */
+            Logger.Log("** GetCategoryField2");
+
+            csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_ACTIVEPROJECT, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIBCAT_ACTIVEPROJECT e in Enum.GetValues(typeof(_LIBCAT_ACTIVEPROJECT)))
+                if (((_LIBCAT_ACTIVEPROJECT)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_ACTIVEPROJECT), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_ACTIVEPROJECT: (_LIBCAT_ACTIVEPROJECT)({0}){1}", outVal, tempStr));
+
+            csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_LISTTYPE, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIB_LISTTYPE e in Enum.GetValues(typeof(_LIB_LISTTYPE)))
+                if (((_LIB_LISTTYPE)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIB_LISTTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_LISTTYPE: (_LIB_LISTTYPE)({0}){1}", outVal, tempStr));
+
+            // crashed VS
+            //csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_CLASSACCESS, out outVal);
+            //Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_CLASSACCESS", Enum.GetName(typeof(_LIBCAT_CLASSACCESS), outVal), outVal));
+
+            tempStr = string.Empty;
+            csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_CLASSTYPE, out outVal);
+            foreach (_LIBCAT_CLASSTYPE2 e in Enum.GetValues(typeof(_LIBCAT_CLASSTYPE2)))
+                if (((_LIBCAT_CLASSTYPE2)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_CLASSTYPE: (_LIBCAT_CLASSTYPE2)({0}){1}", outVal, tempStr));
+
+            tempStr = string.Empty;
+            foreach (_LIBCAT_CLASSTYPE e in Enum.GetValues(typeof(_LIBCAT_CLASSTYPE)))
+                if (((_LIBCAT_CLASSTYPE)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_CLASSTYPE: (_LIBCAT_CLASSTYPE)({0}){1}", outVal, tempStr));
+
+            csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_MEMBERACCESS, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIBCAT_MEMBERACCESS e in Enum.GetValues(typeof(_LIBCAT_MEMBERACCESS)))
+                if (((_LIBCAT_MEMBERACCESS)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_MEMBERACCESS: (_LIBCAT_MEMBERACCESS)({0}){1}", outVal, tempStr));
+
+            csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_MEMBERTYPE, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIBCAT_MEMBERTYPE e in Enum.GetValues(typeof(_LIBCAT_MEMBERTYPE)))
+                if (((_LIBCAT_MEMBERTYPE)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_MEMBERTYPE: (_LIBCAT_MEMBERTYPE)({0}){1}", outVal, tempStr));
+
+            csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_MODIFIER, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIBCAT_MODIFIERTYPE e in Enum.GetValues(typeof(_LIBCAT_MODIFIERTYPE)))
+                if (((_LIBCAT_MODIFIERTYPE)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_MODIFIER: (_LIBCAT_MODIFIERTYPE)({0}){1}", outVal, tempStr));
+
+            //            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_NODETYPE, out outVal);
+            //Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_NODETYPE", Enum.GetName(typeof()), outVal));
+
+            csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_VISIBILITY, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIBCAT_VISIBILITY e in Enum.GetValues(typeof(_LIBCAT_VISIBILITY)))
+                if (((_LIBCAT_VISIBILITY)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_VISIBILITY: (_LIBCAT_VISIBILITY)({0}){1}", outVal, tempStr));
+
+
+
+            csLib.GetCategoryField2(childIndex, (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIBCAT_HIERARCHYTYPE2 e in Enum.GetValues(typeof(_LIBCAT_HIERARCHYTYPE2)))
+                if (((_LIBCAT_HIERARCHYTYPE2)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_HIERARCHYTYPE2), e);
+            Logger.Log(string.Format("LIB_CATEGORY._LIBCAT_HIERARCHYTYPE2: (_LIBCAT_HIERARCHYTYPE2)({0}){1}", outVal, tempStr));
+
+            tempStr = string.Empty;
+            foreach (_LIBCAT_HIERARCHYTYPE e in Enum.GetValues(typeof(_LIBCAT_HIERARCHYTYPE)))
+                if (((_LIBCAT_HIERARCHYTYPE)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY._LIBCAT_HIERARCHYTYPE: (_LIBCAT_HIERARCHYTYPE)({0}){1}", outVal, tempStr));
+
+
+            csLib.GetCategoryField2(childIndex, (int)_LIB_CATEGORY2.LC_Last2, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_Last2", outVal, outVal));
+
+            csLib.GetCategoryField2(childIndex, (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIBCAT_MEMBERINHERITANCE e in Enum.GetValues(typeof(_LIBCAT_MEMBERINHERITANCE)))
+                if (((_LIBCAT_MEMBERINHERITANCE)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_MEMBERINHERITANCE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_MEMBERINHERITANCE: (_LIBCAT_MEMBERINHERITANCE)({0}){1}", outVal, tempStr));
+
+
+            csLib.GetCategoryField2(childIndex, (int)_LIB_CATEGORY2.LC_NIL, out outVal);
+            Logger.Log(string.Format("C# LIB_CATEGORY {0} - {1}({2})", "LC_NIL", outVal, outVal));
+
+            csLib.GetCategoryField2(childIndex, (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIBCAT_PHYSICALCONTAINERTYPE e in Enum.GetValues(typeof(_LIBCAT_PHYSICALCONTAINERTYPE)))
+                if (((_LIBCAT_PHYSICALCONTAINERTYPE)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_PHYSICALCONTAINERTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_PHYSICALCONTAINERTYPE: (_LIBCAT_PHYSICALCONTAINERTYPE)({0}){1}", outVal, tempStr));
+
+
+            csLib.GetCategoryField2(childIndex, (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE, out outVal);
+            tempStr = string.Empty;
+            foreach (_LIBCAT_SEARCHMATCHTYPE e in Enum.GetValues(typeof(_LIBCAT_SEARCHMATCHTYPE)))
+                if (((_LIBCAT_SEARCHMATCHTYPE)outVal & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_SEARCHMATCHTYPE), e);
+            Logger.Log(string.Format("LIB_CATEGORY.LC_SEARCHMATCHTYPE: (_LIBCAT_SEARCHMATCHTYPE)({0}){1}", outVal, tempStr));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="title"></param>
+        /// <param name="itemsToDo">number of items to explore, set -1 to explore all (this would take a LOT of time and space),</param>
+        private void ExploreListStructure(IVsObjectList2 list, string title, int itemsToDo)
+        {
+            Logger.Log("\r\n-------------------------------\r\nDetails for list '" + title + "'\r\n------------------------------- ");
+
+            string tempStr = string.Empty;
+            uint
+                temp = 0,
+                itemCount = 0;
+
+
+            list.GetItemCount(out itemCount);
+            Logger.Log(string.Format("* Child item count: {0}", itemCount));
+
+            Logger.Log(string.Format("* GetCapabilities2", itemCount));
+            list.GetCapabilities2(out temp);
+
+
+            tempStr = string.Empty;
+            foreach (_LIB_LISTCAPABILITIES2 e in Enum.GetValues(typeof(_LIB_LISTCAPABILITIES2)))
+                if (((_LIB_LISTCAPABILITIES2)temp & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIB_LISTCAPABILITIES2), e);
+            Logger.Log(string.Format("_LIB_LISTCAPABILITIES2: ({0}){1}", temp, tempStr));
+
+            tempStr = string.Empty;
+            foreach (_LIB_LISTCAPABILITIES e in Enum.GetValues(typeof(_LIB_LISTCAPABILITIES)))
+                if (((_LIB_LISTCAPABILITIES)temp & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_LIB_LISTCAPABILITIES), e);
+            Logger.Log(string.Format("_LIB_LISTCAPABILITIES: ({0}){1}", temp, tempStr));
+
+            Logger.Log(string.Format("* GetFlags", itemCount));
+            temp = 0;
+            list.GetFlags(out temp);
+
+            tempStr = string.Empty;
+            foreach (_VSTREEFLAGS2 e in Enum.GetValues(typeof(_VSTREEFLAGS2)))
+                if (((_VSTREEFLAGS2)temp & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_VSTREEFLAGS2), e);
+            Logger.Log(string.Format("_VSTREEFLAGS2: ({0}){1}", temp, tempStr));
+
+            tempStr = string.Empty;
+            foreach (_VSTREEFLAGS e in Enum.GetValues(typeof(_VSTREEFLAGS)))
+                if (((_VSTREEFLAGS)temp & e) == e)
+                    tempStr += "|" + Enum.GetName(typeof(_VSTREEFLAGS), e);
+            Logger.Log(string.Format("_VSTREEFLAGS: ({0}){1}", temp, tempStr));
+
+            // children items
+            if (itemCount > 0)
+                
+                if (itemsToDo > -1 && itemsToDo < itemCount)
+                    itemCount = (uint)itemsToDo;
+
+                for (uint i = 0; i < itemCount; i++)
+                {
+                    Logger.Log(string.Format("* Details of child item {0}", i));
+                    object prop;
+                    string listName = string.Empty;
+
+
+                    list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME, out prop);
+                    Logger.Log(string.Format("VSOBJLISTELEMPROPID_FULLNAME: {0}", prop));
+                    listName = prop.ToString();
+
+                    list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_HELPKEYWORD, out prop);
+                    Logger.Log(string.Format("VSOBJLISTELEMPROPID_HELPKEYWORD: {0}", prop));
+
+                    list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_LEAFNAME, out prop);
+                    Logger.Log(string.Format("VSOBJLISTELEMPROPID_LEAFNAME: {0}", prop));
+
+                    list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_SUPPORTSCALLSFROM, out prop);
+                    Logger.Log(string.Format("VSOBJLISTELEMPROPID_SUPPORTSCALLSFROM: {0}", prop));
+
+                    list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_SUPPORTSCALLSTO, out prop);
+                    Logger.Log(string.Format("VSOBJLISTELEMPROPID_SUPPORTSCALLSTO: {0}", prop));
+
+                    list.GetProperty(i, (int)_VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_COMPONENTPATH, out prop);
+                    Logger.Log(string.Format("VSOBJLISTELEMPROPID_COMPONENTPATH: {0}", prop));
+
+                    //SI: Crashes VS
+                    //list.GetText(i, VSTREETEXTOPTIONS.TTO_BASETEXT, out tempStr);
+                    //Logger.Log(string.Format("Base text: {0}", tempStr));
+
+                    LogListSupportedCategories(i, list);
+
+                    IVsObjectList2 childList = null;
+                    uint childItemCount = 0;
+
+                    //list.GetList2(
+                    //    i,
+                    //    (uint)_LIB_LISTTYPE.LLT_MEMBERS,
+                    //    16,
+                    //    new[]
+                    //        {
+                    //            new VSOBSEARCHCRITERIA2
+                    //                {
+                    //                    eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
+                    //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
+                    //                    szName = "*"
+                    //                }
+                    //        },
+                    //        out chldList);
+                    foreach (_LIB_LISTTYPE en in Enum.GetValues(typeof(_LIB_LISTTYPE)))
+                    {
+                        list.GetList2(i, (uint)en, 0, null, out childList);
+                        if (childList == null)
+                            continue;
+                        
+                        ExploreListStructure(
+                            childList,
+                            string.Format("Child {0} of list {1}", i, title),
+                            -1);
+                    }
+
+                    
+                }
+
+            Logger.Log(string.Format("End of list {0}\r\n-------------------------------\r\n", title));
+
+        }
+        #endregion
     }
 }

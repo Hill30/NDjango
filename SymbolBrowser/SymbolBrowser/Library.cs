@@ -32,7 +32,7 @@ namespace Microsoft.SymbolBrowser
             MemberReferenceList methodReferenceNode = new MemberReferenceList(@"C:\temp\c22.cs", "test2.", "test member reference", 5, 4);
             memberNode.AddChild(methodReferenceNode);
 
-            root.AddChild(memberNode);
+            root.AddChild(memberNode); 
             root.AddChild(classNode);
             root.AddChild(namespaceNode);
 
@@ -354,7 +354,7 @@ namespace Microsoft.SymbolBrowser
 
         public int GetSupportedCategoryFields2(int Category, out uint pgrfCatField)
         {
-            Logger.Log("GetSupportedCategoryFields2 with Category " + Enum.GetName(typeof(LIB_CATEGORY), Category));
+            Logger.Log("GetSupportedCategoryFields2 with Category " + Enum.GetName(typeof(_LIB_CATEGORY2), Category));
             switch (Category)
             {
                 case (int)LIB_CATEGORY.LC_MEMBERTYPE:
