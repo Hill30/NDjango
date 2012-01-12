@@ -58,6 +58,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         private Dictionary<LibraryNodeType, ResultList> filteredView = new Dictionary<LibraryNodeType, ResultList>();
         private readonly List<ResultList> children = new List<ResultList>();
         private readonly LibraryNodeType nodeType;
+        
 
         public ResultList(string text, string prefix, string fName, int lineNumber, int columnNumber, LibraryNodeType type)
         {
@@ -362,7 +363,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// </summary>
         /// <param name="pgrfCapabilities"></param>
         /// <returns></returns>
-        public int GetCapabilities2(out uint pgrfCapabilities)
+        public virtual int GetCapabilities2(out uint pgrfCapabilities)
         {
             pgrfCapabilities = /*(uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT |*/ 
                 (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH
@@ -449,9 +450,79 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public virtual int GetCategoryField2(uint index, int Category, out uint pfCatField)
         {
-            Logger.Log("ResultList.GetCategoryField2, setting to E_NOTIMPL");
-            pfCatField = (int)LIB_CATEGORY.LC_ACTIVEPROJECT;
-            return VSConstants.E_NOTIMPL;
+            if (index < NullIndex)
+            {
+                switch(Category)
+                {
+                    //case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
+                    //case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
+                    //case (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE:
+                    //    pfCatField = 0;
+                    //    break;
+                    case (int)LIB_CATEGORY.LC_LISTTYPE:
+                    case (int)LIB_CATEGORY.LC_VISIBILITY:
+                    case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
+                    case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
+                        pfCatField = 1;
+                        break;
+                    case (int)LIB_CATEGORY.LC_CLASSTYPE:
+                    case (int)LIB_CATEGORY.LC_MEMBERTYPE:
+                    case (int)LIB_CATEGORY.LC_MEMBERACCESS:
+                        pfCatField = 2;
+                        break;
+                    default:
+                        pfCatField = 0;
+                        break;
+                    
+                }
+                return VSConstants.S_OK;
+            }
+            else
+            {
+                switch (Category)
+                {
+                    case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
+                        pfCatField = 0;
+                        break;
+                    case (int)LIB_CATEGORY.LC_LISTTYPE:
+                        pfCatField = 1;
+                        break;
+                    case (int)LIB_CATEGORY.LC_CLASSTYPE:
+                        pfCatField = 2;
+                        break;
+                    case (int)LIB_CATEGORY.LC_MEMBERACCESS:
+                        pfCatField = 2;
+                        break;
+                    case (int)LIB_CATEGORY.LC_MEMBERTYPE:
+                        pfCatField = 2;
+                        break;
+                    case (int)LIB_CATEGORY.LC_MODIFIER:
+                        pfCatField = 2;
+                        break;
+                    case (int)LIB_CATEGORY.LC_VISIBILITY:
+                        pfCatField = 1;
+                        break;
+                    case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
+                        pfCatField = 1;
+                        break;
+                    case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
+                        pfCatField = 1;
+                        break;
+                    case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
+                        pfCatField = 0;
+                        break;
+                    case (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE:
+                        pfCatField = 0;
+                        break;
+                    default:
+                        pfCatField = 0;
+                        break;
+                }
+
+                return VSConstants.S_OK;
+            }
+            //pfCatField = (int)LIB_CATEGORY.LC_ACTIVEPROJECT;
+            //return VSConstants.E_NOTIMPL;
         }
         /// <summary>
         /// Returns a pointer to the property browse IDispatch for the given list item.
@@ -614,12 +685,13 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int CanRename(uint index, string pszNewName, out int pfOK)
         {
-            throw new NotImplementedException();
+            pfOK = 0;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int DoRename(uint index, string pszNewName, uint grfFlags)
         {
-            throw new NotImplementedException();
+            return VSConstants.E_NOTIMPL;
         }
         /// <summary>
         /// Returns a flag indicating if the given list item can be deleted.

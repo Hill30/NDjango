@@ -24,7 +24,7 @@ namespace Microsoft.SymbolBrowser
 
             namespaceNode = new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Namespaces);
             classNode = new ResultList("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, ResultList.LibraryNodeType.Members);
-            memberNode = new ResultList("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22, ResultList.LibraryNodeType.Members);
+            memberNode = new MemberNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22);
 
             ModelReferenceList classReferenceNode = new ModelReferenceList(@"C:\temp\c1.cs", "test.", "test class reference", 5, 4);
             classNode.AddChild(classReferenceNode);
@@ -354,60 +354,53 @@ namespace Microsoft.SymbolBrowser
 
         public int GetSupportedCategoryFields2(int Category, out uint pgrfCatField)
         {
-            Logger.Log("GetSupportedCategoryFields2 with Category " + Enum.GetName(typeof(_LIB_CATEGORY2), Category));
+            //Logger.Log("GetSupportedCategoryFields2 with Category " + Enum.GetName(typeof(_LIB_CATEGORY2), Category));
             switch (Category)
             {
                 case (int)LIB_CATEGORY.LC_MEMBERTYPE:
-                    pgrfCatField = (uint)_LIBCAT_MEMBERTYPE.LCMT_METHOD;
+                    //pgrfCatField = (uint)_LIBCAT_MEMBERTYPE.LCMT_METHOD;
+                    pgrfCatField = 25;
                     break;
 
                 case (int)LIB_CATEGORY.LC_MEMBERACCESS:
-                    pgrfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PUBLIC |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_PRIVATE |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_PACKAGE |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_FRIEND |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_SEALED;
+                    //pgrfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PUBLIC |
+                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_PRIVATE |
+                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED |
+                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_PACKAGE |
+                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_FRIEND |
+                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_SEALED;
+                    pgrfCatField = 47;
                     break;
 
                 case (int)LIB_CATEGORY.LC_LISTTYPE:
-                    pgrfCatField = (uint)_LIB_LISTTYPE.LLT_MEMBERS;
+                    //pgrfCatField = (uint)_LIB_LISTTYPE.LLT_MEMBERS;
+                    pgrfCatField = 31;
                     break;
 
                 case (int)LIB_CATEGORY.LC_VISIBILITY:
-                    pgrfCatField = (uint)(_LIBCAT_VISIBILITY.LCV_VISIBLE |
-                                        _LIBCAT_VISIBILITY.LCV_HIDDEN);
+                    //pgrfCatField = (uint)(_LIBCAT_VISIBILITY.LCV_VISIBLE |_LIBCAT_VISIBILITY.LCV_HIDDEN);
+                    pgrfCatField = 3;
                     break;
-
+                case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
+                    pgrfCatField = (uint)(_LIBCAT_HIERARCHYTYPE.LCHT_PROJECTREFERENCES | _LIBCAT_HIERARCHYTYPE.LCHT_BASESANDINTERFACES);
+                    break;
+                case (int)LIB_CATEGORY.LC_CLASSTYPE:
+                    pgrfCatField = (uint)574; // _LIBCAT_CLASSTYPE.LCCT_DELEGATE | _LIBCAT_CLASSTYPE.LCCT_ENUM |  _LIBCAT_CLASSTYPE.LCCT_UNION | _LIBCAT_CLASSTYPE.LCCT_STRUCT | _LIBCAT_CLASSTYPE.LCCT_INTERFACE | _LIBCAT_CLASSTYPE.LCCT_CLASS
+                    break;
+                case (int)LIB_CATEGORY.LC_CLASSACCESS:
+                    pgrfCatField = (uint)47; //_LIBCAT_CLASSACCESS.LCCA_SEALED | _LIBCAT_CLASSACCESS.LCCA_PUBLIC | _LIBCAT_CLASSACCESS.LCCA_PROTECTED | _LIBCAT_CLASSACCESS.LCCA_PRIVATE | _LIBCAT_CLASSACCESS.LCCA_PACKAGE;
+                    break;
+                case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
+                    pgrfCatField = (uint)33; //_LIBCAT_MEMBERINHERITANCE.LCMI_INHERITED | _LIBCAT_MEMBERINHERITANCE.LCMI_IMMEDIATE;
+                    break;
+                case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
+                    pgrfCatField = (uint)7; //_LIBCAT_PHYSICALCONTAINERTYPE.LCPT_GLOBAL | _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECTREFERENCE | _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECT;
+                    break;
                 default:
                     pgrfCatField = 0;
                     return VSConstants.E_FAIL;
             }
             return VSConstants.S_OK;
-
-            /*
-            switch (Category)
-            {
-                case (int)LIB_CATEGORY.LC_LISTTYPE:
-                    pgrfCatField = (uint)_LIB_LISTTYPE.LLT_REFERENCES;
-                    return VSConstants.S_OK;
-                case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
-                case (int)LIB_CATEGORY.LC_CLASSACCESS:
-                case (int)LIB_CATEGORY.LC_CLASSTYPE:
-                case (int)LIB_CATEGORY.LC_MEMBERACCESS:
-                case (int)LIB_CATEGORY.LC_MEMBERTYPE:
-                case (int)LIB_CATEGORY.LC_MODIFIER:
-                case (int)LIB_CATEGORY.LC_NODETYPE:
-                case (int)LIB_CATEGORY.LC_VISIBILITY:
-                case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
-                case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
-                case (int)_LIB_CATEGORY2.LC_NIL:
-                case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
-                case (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE:
-                default:
-                    pgrfCatField = 0;
-                    return VSConstants.E_FAIL;
-            }*/
         }
 
         public int LoadState(VisualStudio.OLE.Interop.IStream pIStream, LIB_PERSISTTYPE lptType)
