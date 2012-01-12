@@ -37,8 +37,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                     ForceSelectLength = 5,
                     ForceSelectStart = 0,
                     hImageList = IntPtr.Zero,
-                    Image = 72,
-                    SelectedImage = 72,
+                    Image = 208,
+                    SelectedImage = 208,
                     Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
                     State = 0,
                     StateMask = 0

@@ -26,11 +26,34 @@ namespace Microsoft.SymbolBrowser
             classNode = new ResultList("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, ResultList.LibraryNodeType.Members);
             memberNode = new MemberNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22);
 
-            ModelReferenceList classReferenceNode = new ModelReferenceList(@"C:\temp\c1.cs", "test.", "test class reference", 5, 4);
+            ModelReferenceList 
+                classReferenceNode = new ModelReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (8, 18) : public class Class1(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 8, 18),
+                classReferenceNode1 = new ModelReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class2.cs - (7, 13) : Class1 c1 = new Class1();(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class2.cs",
+                    "", 7, 13);
             classNode.AddChild(classReferenceNode);
+            classNode.AddChild(classReferenceNode1);
 
-            MemberReferenceList methodReferenceNode = new MemberReferenceList(@"C:\temp\c22.cs", "test2.", "test member reference", 5, 4);
+            MemberReferenceList
+                methodReferenceNode = new MemberReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (10, 23) : public Class1 GetBlaBlaBla()(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 10, 23),
+                methodReferenceNode1 = new MemberReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (0, 0) : public Class1 GetBlaBlaBla()(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 0, 0),
+                methodReferenceNode2 = new MemberReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (0, 0) : public Class1 GetBlaBlaBla()(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 0, 0);
             memberNode.AddChild(methodReferenceNode);
+            memberNode.AddChild(methodReferenceNode1);
+            memberNode.AddChild(methodReferenceNode2);
 
             root.AddChild(memberNode); 
             root.AddChild(classNode);
@@ -65,13 +88,6 @@ namespace Microsoft.SymbolBrowser
                         found = true;
                         break;
                     }
-                    //foreach (var c3 in c2.Children)
-                    //    if (string.Compare(symbol, c3.SymbolText, false) == 0)
-                    //    {
-                    //        c3.ListToReference = listToUse;
-                    //        found = true;
-                    //        break;
-                    //    }
                 }
             }
             if(!found)
@@ -79,6 +95,7 @@ namespace Microsoft.SymbolBrowser
                 throw new IndexOutOfRangeException(String.Format("Could not find symbol with text {0}", symbol));
         }
 
+        #region ...
         //SI: This should be performed using NDjango means
         //private ProjectItems GetSupportedFileList()
         //{
@@ -117,7 +134,8 @@ namespace Microsoft.SymbolBrowser
         //         * */
         //    }
         //    return null;
-        //}
+        //} 
+        #endregion
 
         #region IVsSimpleLibrary2 Members
 
