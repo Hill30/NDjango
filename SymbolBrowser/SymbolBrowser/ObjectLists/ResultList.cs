@@ -355,6 +355,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetFlags(out uint pFlags)
         {
+            //Logger.Log("ResultList GetFlags");
             pFlags = (uint)_VSTREEFLAGS.TF_NORELOCATE;
             return VSConstants.S_OK;
         }
@@ -365,9 +366,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public virtual int GetCapabilities2(out uint pgrfCapabilities)
         {
-            pgrfCapabilities = /*(uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT |*/ 
-                (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH
-                | (uint)_LIB_LISTCAPABILITIES.LLC_HASDESCPANE;
+            //Logger.Log("ResultList GetCapabilities2");
+            pgrfCapabilities = /*(uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT |*/
+                (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH;
             
             //_LIB_LISTCAPABILITIES.LLC_HASDESCPANE |
             //_LIB_LISTCAPABILITIES.LLC_HASCOMMANDS | 
@@ -386,8 +387,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int UpdateCounter(out uint pCurUpdate)
         {
+            //Logger.Log("ResultList UpdateCounter");
             pCurUpdate = 0;
-            Logger.Log("ResultList.UpdateCounter count:" + pCurUpdate);
+            //Logger.Log("ResultList.UpdateCounter count:" + pCurUpdate);
             return VSConstants.S_OK;
         }
         /// <summary>
@@ -397,6 +399,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetItemCount(out uint pCount)
         {
+            //Logger.Log("ResultList GetItemCount");
             pCount = (uint)children.Count;
             return VSConstants.S_OK;
         }
@@ -409,7 +412,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public int GetDisplayData(uint index, VSTREEDISPLAYDATA[] pData)
         {
             //ToDo: Find out where the displayData takes from in IronPython and supply it here
-            Logger.Log("ResultList.GetDisplayData index:" + index);
+            //Logger.Log("ResultList.GetDisplayData index:" + index);
             if (index >= (uint)children.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
@@ -426,6 +429,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetTextWithOwnership(uint index, VSTREETEXTOPTIONS tto, out string pbstrText)
         {
+            //Logger.Log("ResultList GetTextWithOwnership");
             pbstrText = children[(int)index].symbolText;
             return VSConstants.S_OK;
         }
@@ -438,6 +442,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetTipTextWithOwnership(uint index, VSTREETOOLTIPTYPE eTipType, out string pbstrText)
         {
+            //Logger.Log("ResultList GetTipTextWithOwnership");
             pbstrText = children[(int)index].symbolText;
             return VSConstants.S_OK;
         }
@@ -450,6 +455,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public virtual int GetCategoryField2(uint index, int Category, out uint pfCatField)
         {
+            //Logger.Log("ResultList GetCategoryField2");
             if (index < NullIndex)
             {
                 switch(Category)
@@ -532,7 +538,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetBrowseObject(uint index, out object ppdispBrowseObj)
         {
-            Logger.Log("ResultList.GetBrowseObject");
+            //Logger.Log("ResultList.GetBrowseObject");
             ppdispBrowseObj = null;
             return VSConstants.E_NOTIMPL;
             //throw new NotImplementedException();
@@ -545,6 +551,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetUserContext(uint index, out object ppunkUserCtx)
         {
+            //Logger.Log("ResultList GetUserContext");
             // is used for IntelliSence?... (uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT
             // Got called on saving and closing the application using these symbols, WTF?!
             ppunkUserCtx = null;
@@ -568,6 +575,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetSourceContextWithOwnership(uint index, out string pbstrFilename, out uint pulLineNum)
         {
+            //Logger.Log("ResultList GetSourceContextWithOwnership");
             pbstrFilename = fName;
             pulLineNum = (uint)lineNumber;
             return VSConstants.S_OK;
@@ -582,7 +590,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int CountSourceItems(uint index, out IVsHierarchy ppHier, out uint pItemid, out uint pcItems)
         {
-            Logger.Log("ResultList.CountSourceItems");
+            //Logger.Log("ResultList.CountSourceItems");
             ppHier = null;
             pItemid = 0;
             pcItems = 0;
@@ -616,7 +624,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             //    return VSConstants.S_OK;
             //}
 
-            Logger.Log("ResultList.CanGoToSource");
+            //Logger.Log("ResultList.CanGoToSource");
             if (index >= (uint)children.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
@@ -653,7 +661,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetContextMenu(uint index, out Guid pclsidActive, out int pnMenuId, out IOleCommandTarget ppCmdTrgtActive)
         {
-            Logger.Log("ResultList.GetContextMenu, returning E_NOTIMPL");
+            //Logger.Log("ResultList.GetContextMenu, returning E_NOTIMPL");
             ppCmdTrgtActive = null;
             pnMenuId = 0;
             pclsidActive = new Guid();
@@ -701,7 +709,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         int IVsSimpleObjectList2.CanDelete(uint index, out int pfOK)
         {
-            Logger.Log("ResultList.CanDelete");
+            //Logger.Log("ResultList.CanDelete");
             if (index >= (uint)children.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
@@ -761,7 +769,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetExtendedClipboardVariant(uint index, uint grfFlags, VSOBJCLIPFORMAT[] pcfFormat, out object pvarFormat)
         {
-            Logger.Log("ResultList.GetExtendedClipboardVariant");
+            //Logger.Log("ResultList.GetExtendedClipboardVariant");
             throw new NotImplementedException();
         }
 
@@ -787,9 +795,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetProperty(uint index, int propid, out object pvar)
         {
-            Logger.Log(string.Format("ResultList.GetProperty index:{0} propid:{1}, out:null, returning VSConstants.E_NOTIMPL",
-                index,
-                Enum.GetName(typeof(_VSOBJLISTELEMPROPID), propid)));
+            //Logger.Log(string.Format("ResultList.GetProperty index:{0} propid:{1}, out:null, returning VSConstants.E_NOTIMPL",
+            //    index,
+            //    Enum.GetName(typeof(_VSOBJLISTELEMPROPID), propid)));
 
             //pvar = children[(int)index].GetPropertyVal((_VSOBJLISTELEMPROPID)propid);
             //return VSConstants.S_OK;
@@ -816,7 +824,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetNavInfoNode(uint index, out IVsNavInfoNode ppNavInfoNode)
         {
-            Logger.Log("ResultList.GetNavInfoNode");
+            //Logger.Log("ResultList.GetNavInfoNode");
             ppNavInfoNode = children[(int)index];
             return VSConstants.S_OK;
             throw new NotImplementedException();
@@ -829,7 +837,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int LocateNavInfoNode(IVsNavInfoNode pNavInfoNode, out uint pulIndex)
         {
-            Logger.Log("ResultList.LocateNavInfoNode   ");
+            //Logger.Log("ResultList.LocateNavInfoNode   ");
             
             string needleName = string.Empty;
             pNavInfoNode.get_Name(out needleName);
@@ -857,7 +865,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetExpandable3(uint index, uint ListTypeExcluded, out int pfExpandable)
         {
-            Logger.Log("ResultList.GetExpandable3");
+            //Logger.Log("ResultList.GetExpandable3");
             pfExpandable = children[(int)index].IsExpandable ? 1 : 0;
             return VSConstants.S_OK;
         }
@@ -872,10 +880,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetList2(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
         {
-            Logger.Log(string.Format(
-                "ResultList.GetList2 index:{0} ListType: {1}",
-                index,
-                Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
+                //Logger.Log(string.Format(
+                //"ResultList.GetList2 index:{0} ListType: {1}",
+                //index,
+                //Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
 
             ppIVsSimpleObjectList2 = children[(int)index].FilterView((LibraryNodeType)ListType, pobSrch);
 
@@ -888,7 +896,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int OnClose(VSTREECLOSEACTIONS[] ptca)
         {
-            Logger.Log("ResultList.OnClose");
+            //Logger.Log("ResultList.OnClose");
             return VSConstants.E_NOTIMPL;
         }
 
