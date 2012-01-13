@@ -15,18 +15,18 @@ namespace Microsoft.SymbolBrowser
             root,
             objRoot;
         ResultList namespaceNode;
-        ResultList classNode;
-        ResultList memberNode;
+        ModelNode classNode;
+        MemberNode memberNode;
 
         public Library()
         {
-            root = new ResultList("Test template", "", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.Package);
+            root = new ResultList("Test template", "", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.Hierarchy);
 
-            namespaceNode = new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Namespaces);
-            classNode = new ResultList("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, ResultList.LibraryNodeType.Members);
+            namespaceNode = new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Hierarchy);
+            classNode = new ModelNode("Class1", "ClassLibrary1.", "Class1.cs", 7, 17);
             memberNode = new MemberNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22);
 
-            ModelReferenceList 
+            ModelReferenceList
                 classReferenceNode = new ModelReferenceList(
                     @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (8, 18) : public class Class1(NDjango symbol)",
                     @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",

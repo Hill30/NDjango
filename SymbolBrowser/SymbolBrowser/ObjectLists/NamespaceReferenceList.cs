@@ -6,12 +6,11 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
-    class NamespaceReferenceList : ResultList
+    class NamespaceReferenceList : ResultReferenceList
     {
         public NamespaceReferenceList(string text, string preffix, string fName)
-            : base(text, fName, preffix, 0, 0, LibraryNodeType.Namespaces)
+            : base(text, fName, preffix, 0, 0)
         {
-            // class list
         }
 
         protected override bool IsExpandable

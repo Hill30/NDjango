@@ -121,12 +121,17 @@
     </Compile>
     <Compile Include="MyToolWindow.cs" />
     <Compile Include="Guids.cs" />
+    <Compile Include="ObjectLists\NamespaceNode.cs" />
+    <Compile Include="ObjectLists\ModelNode.cs" />
     <Compile Include="ObjectLists\MemberNode.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ObjectLists\MemberReferenceList.cs" />
     <Compile Include="ObjectLists\ModelReferenceList.cs" />
     <Compile Include="ObjectLists\NamespaceReferenceList.cs" />
+    <Compile Include="ObjectLists\ResultReferenceList.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -3,12 +3,11 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
-    public class MemberReferenceList : ResultList
+    public class MemberReferenceList : ResultReferenceList
     {
         public MemberReferenceList(string text, string fName, string preffix, int lineNumber, int columnNumber)
-            : base(text, fName, preffix, lineNumber, columnNumber, LibraryNodeType.Hierarchy)
+            : base(text, fName, preffix, lineNumber, columnNumber)
         {
-            // class list
         }
 
         /// <summary>

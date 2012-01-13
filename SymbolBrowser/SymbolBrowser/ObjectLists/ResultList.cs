@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
     /// <summary>
-    /// Root of our object list model
+    /// Root of our object list model. All nodes should inherit form this class
     /// </summary>
     public class ResultList : IVsSimpleObjectList2, IVsNavInfoNode
     {
@@ -57,8 +57,18 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             updateCount = 0;
         private Dictionary<LibraryNodeType, ResultList> filteredView = new Dictionary<LibraryNodeType, ResultList>();
         private readonly List<ResultList> children = new List<ResultList>();
-        private readonly LibraryNodeType nodeType;
-        
+        readonly LibraryNodeType nodeType;
+
+        // Supported categories list set for ObjectManager
+        protected _LIBCAT_CLASSTYPE classType = _LIBCAT_CLASSTYPE.LCCT_CLASS | _LIBCAT_CLASSTYPE.LCCT_INTERFACE; // 6
+        protected _LIBCAT_MEMBERACCESS memberAccess = _LIBCAT_MEMBERACCESS.LCMA_PRIVATE | _LIBCAT_MEMBERACCESS.LCMA_PROTECTED; // 6
+        protected _LIBCAT_MEMBERTYPE memberType = _LIBCAT_MEMBERTYPE.LCMT_FUNCTION | _LIBCAT_MEMBERTYPE.LCMT_OPERATOR; // 6
+        protected _LIBCAT_MODIFIERTYPE modifierType = _LIBCAT_MODIFIERTYPE.LCMDT_PUREVIRTUAL | _LIBCAT_MODIFIERTYPE.LCMDT_NONVIRTUAL; // 6
+        protected _LIBCAT_VISIBILITY visibility = _LIBCAT_VISIBILITY.LCV_VISIBLE; // 1
+        protected _LIBCAT_HIERARCHYTYPE hierarchyType = _LIBCAT_HIERARCHYTYPE.LCHT_UNKNOWN; // 1 
+        protected _LIBCAT_MEMBERINHERITANCE memberInheritance = _LIBCAT_MEMBERINHERITANCE.LCMI_IMMEDIATE; // 1
+        protected _LIBCAT_PHYSICALCONTAINERTYPE phisContainerType = _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECT; // 4
+        protected _LIBCAT_SEARCHMATCHTYPE srchMatchType = _LIBCAT_SEARCHMATCHTYPE.LSMT_LEAF_WHOLEWORD; // 4
 
         public ResultList(string text, string prefix, string fName, int lineNumber, int columnNumber, LibraryNodeType type)
         {
@@ -90,7 +100,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
                 return new VSTREEDISPLAYDATA
                 {
-                    ForceSelectLength = 5,
+                    ForceSelectLength = 0,
                     ForceSelectStart = 0,
                     hImageList = IntPtr.Zero,
                     Image = (ushort)0,
@@ -369,14 +379,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             //Logger.Log("ResultList GetCapabilities2");
             pgrfCapabilities = /*(uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT |*/
                 (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH;
-            
-            //_LIB_LISTCAPABILITIES.LLC_HASDESCPANE |
-            //_LIB_LISTCAPABILITIES.LLC_HASCOMMANDS | 
-            //_LIB_LISTCAPABILITIES.LLC_HASBROWSEOBJ | 
-            //_LIB_LISTCAPABILITIES.LLC_ALLOWSCCOPS | 
-            //_LIB_LISTCAPABILITIES.LLC_ALLOWRENAME | 
-            //_LIB_LISTCAPABILITIES.LLC_ALLOWDRAGDROP | 
-            //_LIB_LISTCAPABILITIES.LLC_ALLOWDELETE
 
             return VSConstants.S_OK;
         }
@@ -387,9 +389,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int UpdateCounter(out uint pCurUpdate)
         {
-            //Logger.Log("ResultList UpdateCounter");
-            pCurUpdate = 0;
             //Logger.Log("ResultList.UpdateCounter count:" + pCurUpdate);
+            pCurUpdate = 0;
             return VSConstants.S_OK;
         }
         /// <summary>
@@ -446,6 +447,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             pbstrText = children[(int)index].symbolText;
             return VSConstants.S_OK;
         }
+
         /// <summary>
         /// Returns the value for the specified category for the given list item. (LIB_CATEGORY enumeration)
         /// </summary>
@@ -456,79 +458,40 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public virtual int GetCategoryField2(uint index, int Category, out uint pfCatField)
         {
             //Logger.Log("ResultList GetCategoryField2");
-            if (index < NullIndex)
-            {
-                switch(Category)
-                {
-                    //case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
-                    //case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
-                    //case (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE:
-                    //    pfCatField = 0;
-                    //    break;
-                    case (int)LIB_CATEGORY.LC_LISTTYPE:
-                    case (int)LIB_CATEGORY.LC_VISIBILITY:
-                    case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
-                    case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
-                        pfCatField = 1;
-                        break;
-                    case (int)LIB_CATEGORY.LC_CLASSTYPE:
-                    case (int)LIB_CATEGORY.LC_MEMBERTYPE:
-                    case (int)LIB_CATEGORY.LC_MEMBERACCESS:
-                        pfCatField = 2;
-                        break;
-                    default:
-                        pfCatField = 0;
-                        break;
-                    
-                }
-                return VSConstants.S_OK;
-            }
-            else
-            {
-                switch (Category)
-                {
-                    case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
-                        pfCatField = 0;
-                        break;
-                    case (int)LIB_CATEGORY.LC_LISTTYPE:
-                        pfCatField = 1;
-                        break;
-                    case (int)LIB_CATEGORY.LC_CLASSTYPE:
-                        pfCatField = 2;
-                        break;
-                    case (int)LIB_CATEGORY.LC_MEMBERACCESS:
-                        pfCatField = 2;
-                        break;
-                    case (int)LIB_CATEGORY.LC_MEMBERTYPE:
-                        pfCatField = 2;
-                        break;
-                    case (int)LIB_CATEGORY.LC_MODIFIER:
-                        pfCatField = 2;
-                        break;
-                    case (int)LIB_CATEGORY.LC_VISIBILITY:
-                        pfCatField = 1;
-                        break;
-                    case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
-                        pfCatField = 1;
-                        break;
-                    case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
-                        pfCatField = 1;
-                        break;
-                    case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
-                        pfCatField = 0;
-                        break;
-                    case (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE:
-                        pfCatField = 0;
-                        break;
-                    default:
-                        pfCatField = 0;
-                        break;
-                }
 
-                return VSConstants.S_OK;
+            switch (Category)
+            {
+                case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
+                    pfCatField = 0;
+                    break; // always 0
+
+                case (int)LIB_CATEGORY.LC_LISTTYPE:
+                    pfCatField = (uint)nodeType;
+                    break;
+                case (int)LIB_CATEGORY.LC_VISIBILITY:
+                    pfCatField = (uint)visibility;
+                    break;
+                case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
+                    pfCatField = (uint)hierarchyType;
+                    break;
+                case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
+                    pfCatField = (uint)memberInheritance;
+                    break;
+                case (int)LIB_CATEGORY.LC_CLASSTYPE:
+                    pfCatField = (uint)classType;
+                    break;
+                case (int)LIB_CATEGORY.LC_MEMBERTYPE:
+                    pfCatField = (uint)memberType;
+                    break;
+                case (int)LIB_CATEGORY.LC_MEMBERACCESS:
+                    pfCatField = (uint)memberAccess;
+                    break;
+                default:
+                    pfCatField = 0;
+                    break;
             }
-            //pfCatField = (int)LIB_CATEGORY.LC_ACTIVEPROJECT;
-            //return VSConstants.E_NOTIMPL;
+
+            return VSConstants.S_OK;
         }
         /// <summary>
         /// Returns a pointer to the property browse IDispatch for the given list item.

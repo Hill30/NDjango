@@ -7,17 +7,16 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
-    public class ModelReferenceList : ResultList
+    public class ModelReferenceList : ResultReferenceList
     {
         public ModelReferenceList(string text, string fName, string preffix, int lineNumber, int columnNumber)
-            : base(text, fName, preffix, lineNumber, columnNumber, LibraryNodeType.Hierarchy)
+            : base(text, fName, preffix, lineNumber, columnNumber)
         {
-            // class list
         }
 
         protected override bool IsExpandable
         {
-            get { return true; }
+            get { return false; }
         }
         public override bool CanGoToSource
         {
@@ -37,8 +36,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                     ForceSelectLength = 0,
                     ForceSelectStart = 0,
                     hImageList = IntPtr.Zero,
-                    Image = 0,
-                    SelectedImage = 0,
+                    Image = 208,
+                    SelectedImage = 208,
                     Mask = (uint)_VSTREEDISPLAYMASK.TDM_IMAGE, //?!
                     State = 0,
                     StateMask = 0

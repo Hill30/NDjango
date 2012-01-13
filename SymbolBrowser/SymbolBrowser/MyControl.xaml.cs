@@ -59,6 +59,7 @@ namespace Microsoft.SymbolBrowser
 
             LogLibrarySupportedCategories(csLib);
 
+            #region Forming logs with symbol list structure
             // SI: Uncomment one of the blocks to make logger log the data for the corresponding list
 
             //IVsObjectList2 simpleList;
@@ -69,36 +70,37 @@ namespace Microsoft.SymbolBrowser
             //    ExploreListStructure(simpleList, "Simple list (" + eVal.ToString() + ")");
             //}
 
-            IVsObjectList2 searchList;
-            csLib.GetList2(
-                (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
-                (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
-                new[]
-                    {
-                        new VSOBSEARCHCRITERIA2
-                            {
-                                eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
-                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
-                                szName = "ClassLibrary1.Class1"
-                            }
-                    },
-                    out searchList);
-            ExploreListStructure(searchList, "Search for ClassLibrary1.Class1 result list");
+            //IVsObjectList2 searchList;
+            //csLib.GetList2(
+            //    (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
+            //    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
+            //    new[]
+            //        {
+            //            new VSOBSEARCHCRITERIA2
+            //                {
+            //                    eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
+            //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
+            //                    szName = "ClassLibrary1.Class1"
+            //                }
+            //        },
+            //        out searchList);
+            //ExploreListStructure(searchList, "Search for ClassLibrary1.Class1 result list");
 
-            csLib.GetList2(
-                (uint)_LIB_LISTTYPE.LLT_MEMBERS, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
-                (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
-                new[]
-                    {
-                        new VSOBSEARCHCRITERIA2
-                            {
-                                eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
-                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
-                                szName = "ClassLibrary1.Class1.GetBlaBlaBla"
-                            }
-                    },
-                    out searchList);
-            ExploreListStructure(searchList, "Search for ClassLibrary1.Class1.GetBlaBlaBla result list");
+            //csLib.GetList2(
+            //    (uint)_LIB_LISTTYPE.LLT_MEMBERS, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
+            //    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
+            //    new[]
+            //        {
+            //            new VSOBSEARCHCRITERIA2
+            //                {
+            //                    eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
+            //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
+            //                    szName = "ClassLibrary1.Class1.GetBlaBlaBla"
+            //                }
+            //        },
+            //        out searchList);
+            //ExploreListStructure(searchList, "Search for ClassLibrary1.Class1.GetBlaBlaBla result list"); 
+            #endregion
 
             // Obtain a list of corresponding symbols from native C# library
             foreach (var s in typeNames)
@@ -111,6 +113,8 @@ namespace Microsoft.SymbolBrowser
             {
                 AddSymbolToLibrary(_LIB_LISTTYPE.LLT_MEMBERS, s, ref csLib);
             }//foreach
+
+            
 
             IVsCombinedBrowseComponentSet extras;
             ErrorHandler.Succeeded(objectManager.CreateCombinedBrowseComponentSet(out extras));
@@ -738,21 +742,21 @@ namespace Microsoft.SymbolBrowser
             tempStr = string.Empty;
             foreach (_LIBCAT_MEMBERACCESS e in Enum.GetValues(typeof(_LIBCAT_MEMBERACCESS)))
                 if (((_LIBCAT_MEMBERACCESS)outVal & e) == e)
-                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_MEMBERACCESS), e);
             Logger.Log(string.Format("LIB_CATEGORY.LC_MEMBERACCESS: (_LIBCAT_MEMBERACCESS)({0}){1}", outVal, tempStr));
 
             csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_MEMBERTYPE, out outVal);
             tempStr = string.Empty;
             foreach (_LIBCAT_MEMBERTYPE e in Enum.GetValues(typeof(_LIBCAT_MEMBERTYPE)))
                 if (((_LIBCAT_MEMBERTYPE)outVal & e) == e)
-                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_MEMBERTYPE), e);
             Logger.Log(string.Format("LIB_CATEGORY.LC_MEMBERTYPE: (_LIBCAT_MEMBERTYPE)({0}){1}", outVal, tempStr));
 
             csLib.GetCategoryField2(childIndex, (int)LIB_CATEGORY.LC_MODIFIER, out outVal);
             tempStr = string.Empty;
             foreach (_LIBCAT_MODIFIERTYPE e in Enum.GetValues(typeof(_LIBCAT_MODIFIERTYPE)))
                 if (((_LIBCAT_MODIFIERTYPE)outVal & e) == e)
-                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_MODIFIERTYPE), e);
             Logger.Log(string.Format("LIB_CATEGORY.LC_MODIFIER: (_LIBCAT_MODIFIERTYPE)({0}){1}", outVal, tempStr));
 
             //            csLib.GetSupportedCategoryFields2((int)LIB_CATEGORY.LC_NODETYPE, out outVal);
@@ -762,7 +766,7 @@ namespace Microsoft.SymbolBrowser
             tempStr = string.Empty;
             foreach (_LIBCAT_VISIBILITY e in Enum.GetValues(typeof(_LIBCAT_VISIBILITY)))
                 if (((_LIBCAT_VISIBILITY)outVal & e) == e)
-                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_VISIBILITY), e);
             Logger.Log(string.Format("LIB_CATEGORY.LC_VISIBILITY: (_LIBCAT_VISIBILITY)({0}){1}", outVal, tempStr));
 
 
@@ -777,7 +781,7 @@ namespace Microsoft.SymbolBrowser
             tempStr = string.Empty;
             foreach (_LIBCAT_HIERARCHYTYPE e in Enum.GetValues(typeof(_LIBCAT_HIERARCHYTYPE)))
                 if (((_LIBCAT_HIERARCHYTYPE)outVal & e) == e)
-                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_CLASSTYPE), e);
+                    tempStr += "|" + Enum.GetName(typeof(_LIBCAT_HIERARCHYTYPE), e);
             Logger.Log(string.Format("LIB_CATEGORY._LIBCAT_HIERARCHYTYPE: (_LIBCAT_HIERARCHYTYPE)({0}){1}", outVal, tempStr));
 
 
