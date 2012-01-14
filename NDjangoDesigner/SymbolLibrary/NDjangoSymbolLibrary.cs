@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 namespace NDjango.Designer.SymbolLibrary
 {
     [Guid("D918B9AC-1574-47BC-8CE8-3CFFD4073E88")]
-    public class NDjangoSymbolLibrary : IVsSimpleLibrary2
+    public class NDjangoSymbolLibrary : IVsSimpleLibrary2, IVsLibrary
     {
         private const string SUPPORTED_EXT = ".django";
         private ResultList
@@ -432,6 +432,70 @@ namespace NDjango.Designer.SymbolLibrary
         {
             pCurUpdate = updateCounter;
             return VSConstants.S_OK;
+        }
+
+        #endregion
+
+        #region IVsLibrary Members
+
+        int IVsLibrary.AddBrowseContainer(VSCOMPONENTSELECTORDATA[] pcdComponent, ref uint pgrfOptions, out string pbstrComponentAdded)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLibrary.GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLibrary.GetGuid(out Guid ppguidLib)
+        {
+            return GetGuid(out ppguidLib);
+        }
+
+        int IVsLibrary.GetLibFlags(out uint pfFlags)
+        {
+            return GetLibFlags2(out pfFlags);
+        }
+
+        int IVsLibrary.GetLibList(LIB_PERSISTTYPE lptType, out IVsLiteTreeList pplist)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLibrary.GetList(uint listType, uint flags, VSOBSEARCHCRITERIA[] pobSrch, out IVsObjectList pplist)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLibrary.GetSeparatorString(string[] pszSeparator)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLibrary.GetSupportedCategoryFields(LIB_CATEGORY Category, out uint pCatField)
+        {
+            return GetSupportedCategoryFields2((int)Category, out pCatField);
+        }
+
+        int IVsLibrary.LoadState(IStream pIStream, LIB_PERSISTTYPE lptType)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLibrary.RemoveBrowseContainer(uint dwReserved, string pszLibName)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLibrary.SaveState(IStream pIStream, LIB_PERSISTTYPE lptType)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLibrary.UpdateCounter(out uint pCurUpdate)
+        {
+            return UpdateCounter(out pCurUpdate);
         }
 
         #endregion

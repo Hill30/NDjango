@@ -13,9 +13,6 @@ namespace NDjango.Designer
     [Export]
     public class GlobalServices
     {
-
-        private static GlobalServices handler = new GlobalServices();
-
         public static readonly IVsRunningDocumentTable RDT = (IVsRunningDocumentTable)Package.GetGlobalService(typeof(SVsRunningDocumentTable)); 
 
         public static TaskProvider TaskList {get; private set;}
@@ -44,6 +41,11 @@ namespace NDjango.Designer
         public T GetService<T>()
         {
             return (T)ServiceProvider.GetService(typeof(T));
+        }
+
+        public T1 GetService<T1, T2>()
+        {
+            return (T1)ServiceProvider.GetService(typeof(T2));
         }
 
         public T GetService<T>(Type serviceType)

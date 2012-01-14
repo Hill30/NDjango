@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Globalization;
+using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.Win32;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using NDjango.Designer.Commands;
 using NDjango.Designer.SymbolLibrary;
 
-namespace NDjangoDesigner
+namespace NDjango.Designer
 {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
@@ -35,23 +29,13 @@ namespace NDjangoDesigner
     [ProvideMenuResource("Menus.ctmenu", 1)]
     //auto load package if UICONTEXT_SolutionExists
     [ProvideAutoLoad("f1536ef8-92ec-443c-9ed7-fdadf150da82")]
-    [Guid(NDjango.Designer.Constants.guidNDjangoDesignerPkgString)]
+    [Guid(Constants.guidNDjangoDesignerPkgString)]
     public sealed class NDjangoDesignerPackage : Package
     {
         private AddViewDlg viewDialog;
-        private NDjangoSymbolLibrary library;
-        private uint libCookie = 0;
-        /// <summary>
-        /// Default constructor of the package.
-        /// Inside this method you can place any initialization code that does not require 
-        /// any Visual Studio service because at this point the package object is created but 
-        /// not sited yet inside Visual Studio environment. The place to do all the other 
-        /// initialization is the Initialize method.
-        /// </summary>
-        public NDjangoDesignerPackage()
-        {
-            Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
-        }
+
+        [Import]
+        public ILibraryMgr libraryMgr;
 
         /// <summary>
         /// This function is called when the user clicks the menu item that shows the 
@@ -64,17 +48,6 @@ namespace NDjangoDesigner
             viewDialog.ShowDialog();
         }
 
-        private void RegisterSymbolLibrary()
-        {
-            
-            if (library == null)
-            {
-                var objectManager2 = GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
-                library = new NDjangoSymbolLibrary();
-                objectManager2.RegisterSimpleLibrary(library, out libCookie);
-            }
-        }
-        /////////////////////////////////////////////////////////////////////////////
         // Overriden Package Implementation
         #region Package Members
 
@@ -84,9 +57,8 @@ namespace NDjangoDesigner
         /// </summary>
         protected override void Initialize()
         {
-            Trace.WriteLine (string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             base.Initialize();
-            OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null != mcs)
             {
                 //CommandID addViewCommandID = new CommandID(GuidList.guidNDjangoDesignerCmdSet, (int)GuidList.cmdidNDjangoDesigner);
@@ -95,8 +67,20 @@ namespace NDjangoDesigner
             }
             viewDialog = new AddViewDlg();
 
+            ((IComponentModel)Package.GetGlobalService(typeof(SComponentModel))).DefaultCompositionService.SatisfyImportsOnce(this);
+
             // SI: Uncomment this call to register our symbol library
             //RegisterSymbolLibrary();
+            libraryMgr.Initialize();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                libraryMgr.Dispose();
+            }
+            base.Dispose(disposing);
         }
         #endregion
 
