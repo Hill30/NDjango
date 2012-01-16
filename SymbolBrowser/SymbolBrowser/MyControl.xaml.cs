@@ -388,6 +388,40 @@ namespace Microsoft.SymbolBrowser
 
                 contentRoot.Items.Add(fileNode);
             }
+
+            contentRoot.Items.Add("Search results list");
+
+            simpleLib.GetList2(
+                (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
+                (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
+                new[]
+                    {
+                        new VSOBSEARCHCRITERIA2
+                            {
+                                eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
+                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
+                                szName = "ClassLibrary1.Class1"
+                            }
+                    },
+                    out list);
+
+            list.GetItemCount(out c);
+
+            for (uint i = 0; i < c; i++)
+            {
+                string text;
+                list.GetTextWithOwnership(i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
+                var fileNode = new TreeViewItem { Header = text };
+
+                fileNode.Items.Add(buildCapabilities(list, i));
+
+                fileNode.Items.Add(buildProperties(list, i));
+
+                foreach (var childList in buildNestedLists(list, i))
+                    fileNode.Items.Add(childList);
+
+                contentRoot.Items.Add(fileNode);
+            }
             return contentRoot;
         }
 
@@ -605,6 +639,12 @@ namespace Microsoft.SymbolBrowser
             IVsSimpleObjectList2 list;
             parent.GetList2(index, (uint)type, (uint) _LIB_LISTFLAGS.LLF_PROJECTONLY, null, out list);
             var contentRoot = new TreeViewItem{Header=Enum.GetName(typeof(_LIB_LISTTYPE), type)};
+
+            if (list == null)
+            {
+                contentRoot.Items.Add("Child list is null");
+                return contentRoot;
+            }
             uint c;
             list.GetItemCount(out c);
 
