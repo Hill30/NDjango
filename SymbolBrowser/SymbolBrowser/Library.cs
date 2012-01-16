@@ -20,7 +20,7 @@ namespace Microsoft.SymbolBrowser
 
         public Library()
         {
-            root = new ResultList("Test template", "", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.Hierarchy);
+            root = new ResultList("Test template", "", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.PhysicalContainer);
 
             namespaceNode = new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Hierarchy);
             classNode = new ModelNode("Class1", "ClassLibrary1.", "Class1.cs", 7, 17);
