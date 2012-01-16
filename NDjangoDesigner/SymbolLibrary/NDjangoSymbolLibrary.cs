@@ -48,38 +48,38 @@ namespace NDjango.Designer.SymbolLibrary
             //GetSupportedFileList();
         }
 
-        public void AddExternalReference(string symbol, IVsObjectList2 listToUse)
-        {
-            bool found = false;
-            foreach (var c in root.Children)
-            {
-                if (string.Compare(symbol, c.UniqueName, false) == 0)
-                {
-                    c.ListToReference = listToUse;
-                    found = true;
-                    break;
-                }
-                foreach (var c2 in c.Children)
-                {
-                    if (string.Compare(symbol, c2.UniqueName, false) == 0)
-                    {
-                        c2.ListToReference = listToUse;
-                        found = true;
-                        break;
-                    }
-                    //foreach (var c3 in c2.Children)
-                    //    if (string.Compare(symbol, c3.SymbolText, false) == 0)
-                    //    {
-                    //        c3.ListToReference = listToUse;
-                    //        found = true;
-                    //        break;
-                    //    }
-                }
-            }
-            if (!found)
+        //public void AddExternalReference(string symbol, IVsObjectList2 listToUse)
+        //{
+        //    bool found = false;
+        //    foreach (var c in root.Children)
+        //    {
+        //        if (string.Compare(symbol, c.UniqueName, false) == 0)
+        //        {
+        //            c.ListToReference = listToUse;
+        //            found = true;
+        //            break;
+        //        }
+        //        foreach (var c2 in c.Children)
+        //        {
+        //            if (string.Compare(symbol, c2.UniqueName, false) == 0)
+        //            {
+        //                c2.ListToReference = listToUse;
+        //                found = true;
+        //                break;
+        //            }
+        //            //foreach (var c3 in c2.Children)
+        //            //    if (string.Compare(symbol, c3.SymbolText, false) == 0)
+        //            //    {
+        //            //        c3.ListToReference = listToUse;
+        //            //        found = true;
+        //            //        break;
+        //            //    }
+        //        }
+        //    }
+        //    if (!found)
 
-                throw new IndexOutOfRangeException(String.Format("Could not find symbol with text {0}", symbol));
-        }
+        //        throw new IndexOutOfRangeException(String.Format("Could not find symbol with text {0}", symbol));
+        //}
 
         //SI: This should be performed using NDjango means
         //private ProjectItems GetSupportedFileList()
@@ -151,7 +151,7 @@ namespace NDjango.Designer.SymbolLibrary
                 (uint)_LIB_FLAGS.LF_EXPANDABLE
                 | (uint)_LIB_FLAGS.LF_PROJECT
                 | (uint)_LIB_FLAGS2.LF_SUPPORTSBASETYPES
-                | (uint)_LIB_FLAGS2.LF_SUPPORTSCLASSDESIGNER
+                //| (uint)_LIB_FLAGS2.LF_SUPPORTSCLASSDESIGNER
                 | (uint)_LIB_FLAGS2.LF_SUPPORTSFILTERING
                 | (uint)_LIB_FLAGS2.LF_SUPPORTSINHERITEDMEMBERS
                 | (uint)_LIB_FLAGS2.LF_SUPPORTSLISTREFERENCES
@@ -356,29 +356,75 @@ namespace NDjango.Designer.SymbolLibrary
 
         public int GetSupportedCategoryFields2(int Category, out uint pgrfCatField)
         {
-            //Logger.Log("GetSupportedCategoryFields2 with Category " + Enum.GetName(typeof(_LIB_CATEGORY2), Category));
             switch (Category)
             {
                 case (int)LIB_CATEGORY.LC_MEMBERTYPE:
-                    pgrfCatField = (uint)_LIBCAT_MEMBERTYPE.LCMT_METHOD;
+                    pgrfCatField = 
+                        (uint)_LIBCAT_MEMBERTYPE.LCMT_METHOD | 
+                        (uint)_LIBCAT_MEMBERTYPE.LCMT_PROPERTY | 
+                        (uint)_LIBCAT_MEMBERTYPE.LCMT_FIELD;
                     break;
 
                 case (int)LIB_CATEGORY.LC_MEMBERACCESS:
-                    pgrfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PUBLIC |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_PRIVATE |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_PACKAGE |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_FRIEND |
-                                (uint)_LIBCAT_MEMBERACCESS.LCMA_SEALED;
+                    pgrfCatField =
+                        (uint) _LIBCAT_MEMBERACCESS.LCMA_PUBLIC |
+                        (uint) _LIBCAT_MEMBERACCESS.LCMA_PRIVATE |
+                        (uint) _LIBCAT_MEMBERACCESS.LCMA_PROTECTED |
+                        (uint) _LIBCAT_MEMBERACCESS.LCMA_PACKAGE |
+                        (uint) _LIBCAT_MEMBERACCESS.LCMA_SEALED;
+                    break;
+
+                case (int)LIB_CATEGORY.LC_CLASSTYPE:
+                    pgrfCatField =
+                        (uint)_LIBCAT_CLASSTYPE.LCCT_CLASS |
+                        (uint)_LIBCAT_CLASSTYPE.LCCT_INTERFACE |
+                        (uint)_LIBCAT_CLASSTYPE.LCCT_STRUCT |
+                        (uint)_LIBCAT_CLASSTYPE.LCCT_UNION |
+                        (uint) _LIBCAT_CLASSTYPE.LCCT_ENUM |
+                        (uint) _LIBCAT_CLASSTYPE.LCCT_DELEGATE;
+                    break;
+
+                case (int)LIB_CATEGORY.LC_CLASSACCESS:
+                    pgrfCatField =
+                        (uint)_LIBCAT_CLASSACCESS.LCCA_PUBLIC |
+                        (uint)_LIBCAT_CLASSACCESS.LCCA_PRIVATE |
+                        (uint)_LIBCAT_CLASSACCESS.LCCA_PROTECTED |
+                        (uint)_LIBCAT_CLASSACCESS.LCCA_PACKAGE |
+                        (uint)_LIBCAT_CLASSACCESS.LCCA_SEALED;
                     break;
 
                 case (int)LIB_CATEGORY.LC_LISTTYPE:
-                    pgrfCatField = (uint)_LIB_LISTTYPE.LLT_MEMBERS;
+                    pgrfCatField =
+                        (uint) _LIB_LISTTYPE.LLT_HIERARCHY |
+                        (uint) _LIB_LISTTYPE.LLT_NAMESPACES |
+                        (uint) _LIB_LISTTYPE.LLT_CLASSES |
+                        (uint) _LIB_LISTTYPE.LLT_MEMBERS |
+                        (uint) _LIB_LISTTYPE.LLT_PHYSICALCONTAINERS;
                     break;
 
                 case (int)LIB_CATEGORY.LC_VISIBILITY:
-                    pgrfCatField = (uint)(_LIBCAT_VISIBILITY.LCV_VISIBLE |
-                                        _LIBCAT_VISIBILITY.LCV_HIDDEN);
+                    pgrfCatField =
+                        (uint) _LIBCAT_VISIBILITY.LCV_VISIBLE |
+                        (uint) _LIBCAT_VISIBILITY.LCV_HIDDEN;
+                    break;
+
+                case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
+                    pgrfCatField = 
+                        (uint) _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_GLOBAL |
+                        (uint) _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECTREFERENCE |
+                        (uint) _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECT;
+                    break;
+
+                case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
+                    pgrfCatField =
+                        (uint) _LIBCAT_HIERARCHYTYPE.LCHT_BASESANDINTERFACES |
+                        (uint) _LIBCAT_HIERARCHYTYPE.LCHT_PROJECTREFERENCES;
+                    break;
+
+                case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
+                    pgrfCatField =
+                        (uint) _LIBCAT_MEMBERINHERITANCE.LCMI_IMMEDIATE |
+                        (uint) _LIBCAT_MEMBERINHERITANCE.LCMI_INHERITED;
                     break;
 
                 default:

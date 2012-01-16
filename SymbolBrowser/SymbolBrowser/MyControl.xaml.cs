@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -343,23 +344,292 @@ namespace Microsoft.SymbolBrowser
 
             libRoot.Items.Add("Flags=" + flags);
 
-            IVsLiteTreeList globalLibs;
-            ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
-            AddLibList(libRoot, "Global", globalLibs);
+            //IVsLiteTreeList globalLibs;
+            //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
+            //AddLibList(libRoot, "Global", globalLibs);
 
-            IVsLiteTreeList projectLibs;
-            ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
-            AddLibList(libRoot, "Project", globalLibs);
+            //IVsLiteTreeList projectLibs;
+            //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
+            //AddLibList(libRoot, "Project", globalLibs);
 
-            AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_NAMESPACES);
+            libRoot.Items.Add(ExpandLibrary(simpleLib));
 
-            AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_CLASSES);
+            //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_NAMESPACES);
 
-            AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_MEMBERS);
+            //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_CLASSES);
 
-            AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_REFERENCES);
+            //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_MEMBERS);
+
+            //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_REFERENCES);
             //expander.Items.Add(libRoot);
         }
+
+        TreeViewItem ExpandLibrary(IVsSimpleLibrary2 simpleLib)
+        {
+            var contentRoot = new TreeViewItem {Header = "Content"};
+            IVsSimpleObjectList2 list;
+            simpleLib.GetList2((uint)_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS, 0, null, out list);
+
+            uint c;
+            list.GetItemCount(out c);
+
+            for (uint i = 0; i < c; i++)
+            {
+                string text;
+                list.GetTextWithOwnership(i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
+                var fileNode = new TreeViewItem {Header = text};
+
+                fileNode.Items.Add(buildCapabilities(list, i));
+
+                fileNode.Items.Add(buildProperties(list, i));
+
+                foreach (var childList in buildNestedLists(list, i))
+                    fileNode.Items.Add(childList);
+
+                contentRoot.Items.Add(fileNode);
+            }
+            return contentRoot;
+        }
+
+        [HandleProcessCorruptedStateExceptions]
+        TreeViewItem buildCapabilities(IVsSimpleObjectList2 list, uint index)
+        {
+            var capabilities = new TreeViewItem { Header = "Capabilities" };
+            int expandable;
+            var rc = list.GetExpandable3(index, 0, out expandable);
+            capabilities.Items.Add(String.Format("Expandable rc={0}, flag={1}",
+                rc == VSConstants.S_OK ? "S_OK"
+                : rc == VSConstants.E_NOTIMPL ? "E_NOTIMPL"
+                : rc.ToString(),
+                expandable
+                ));
+            foreach (int category in Enum.GetValues(typeof(LIB_CATEGORY)))
+            {
+                //if (category == (int)LIB_CATEGORY.LC_CLASSACCESS)
+                //    continue;
+                uint categories;
+                try
+                {
+                    list.GetCategoryField2(index, category, out categories);
+                }
+                catch (AccessViolationException)
+                {
+                    categories = uint.MaxValue;
+                }
+                var categoryString = Enum.GetName(typeof(LIB_CATEGORY), category) + " = ";
+                switch (category)
+                {
+                    case (int)LIB_CATEGORY.LC_MEMBERTYPE:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_MEMBERTYPE), typeof(_LIBCAT_MEMBERTYPE2));
+                        break;
+                    case (int)LIB_CATEGORY.LC_MEMBERACCESS:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_MEMBERACCESS));
+                        break;
+                    case (int)LIB_CATEGORY.LC_CLASSTYPE:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_CLASSTYPE), typeof(_LIBCAT_CLASSTYPE2));
+                        break;
+                    case (int)LIB_CATEGORY.LC_CLASSACCESS:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_CLASSACCESS));
+                        break;
+                    case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_ACTIVEPROJECT));
+                        break;
+                    case (int)LIB_CATEGORY.LC_LISTTYPE:
+                        categoryString += parseFlags(categories, typeof(_LIB_LISTTYPE), typeof(_LIB_LISTTYPE2));
+                        break;
+                    case (int)LIB_CATEGORY.LC_VISIBILITY:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_VISIBILITY));
+                        break;
+                    case (int)LIB_CATEGORY.LC_NODETYPE:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_NODETYPE));
+                        break;
+                    case (int)LIB_CATEGORY.LC_MODIFIER:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_MODIFIERTYPE));
+                        break;
+                    default:
+                        categoryString += categories;
+                        break;
+                }
+                capabilities.Items.Add(categoryString);
+            }
+            foreach (var category in Enum.GetNames(typeof(_LIB_CATEGORY2)))
+            {
+                if (category == "LC_NIL" || category == "LC_Last2")
+                    continue;
+                uint categories;
+                try
+                {
+                    list.GetCategoryField2(index, (int) Enum.Parse(typeof(_LIB_CATEGORY2), category), out categories);
+                }
+                catch (AccessViolationException)
+                {
+                    categories = uint.MaxValue;
+                }
+                var categoryString = category + " = ";
+                switch ((int)Enum.Parse(typeof(_LIB_CATEGORY2), category))
+                {
+                    case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_HIERARCHYTYPE), typeof(_LIBCAT_HIERARCHYTYPE2));
+                        break;
+                    case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_MEMBERINHERITANCE));
+                        break;
+                    case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_PHYSICALCONTAINERTYPE));
+                        break;
+                    case (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE:
+                        categoryString += parseFlags(categories, typeof(_LIBCAT_SEARCHMATCHTYPE));
+                        break;
+                    default:
+                        categoryString += categories;
+                        break;
+                }
+                capabilities.Items.Add(categoryString);
+            }
+            return capabilities;
+        }
+
+        string parseFlags(uint flags, params Type[] enums)
+        {
+            if (flags == uint.MaxValue)
+                return "***KABOOM";
+            var result = "";
+            foreach(var @enum in enums)
+                foreach (int value in Enum.GetValues(@enum))
+                {
+                    if ((value & flags) == value)
+                    {
+                        if (result != "")
+                            result += '|';
+                        result += Enum.GetName(@enum, value);
+                    }
+                }
+            return result;
+        }
+
+        private TreeViewItem buildProperties(IVsSimpleObjectList2 list, uint index)
+        {
+            var properties = new TreeViewItem {Header = "Properties"};
+            foreach (int propid in Enum.GetValues(typeof(_VSOBJLISTELEMPROPID)))
+            {
+                object value;
+                if (ErrorHandler.Succeeded(list.GetProperty(index, propid, out value)))
+                {
+                    properties.Items.Add(Enum.GetName(typeof(_VSOBJLISTELEMPROPID), propid) + " = " + value);
+                }
+            }
+            return properties;
+        }
+
+        private IEnumerable<TreeViewItem> buildNestedLists(IVsSimpleObjectList2 list, uint index)
+        {
+            uint listTypes;
+            list.GetCategoryField2(uint.MaxValue, (int) LIB_CATEGORY.LC_LISTTYPE, out listTypes);
+        //LLT_HIERARCHY = 1,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_HIERARCHY) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_HIERARCHY);
+            }
+        //LLT_NAMESPACES = 2,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_NAMESPACES) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_NAMESPACES);
+            }
+        //LLT_CLASSES = 4,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_CLASSES) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_CLASSES);
+            }
+        //LLT_MEMBERS = 8,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_MEMBERS) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_MEMBERS);
+            }
+        //LLT_PACKAGE = 16,
+        //LLT_PHYSICALCONTAINERS = 16,
+            // I do not think we need Package/Physical containers here - I suspect it will cause stack overflow because of inifinite recursion
+        //LLT_CONTAINMENT = 32,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_CONTAINMENT) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_CONTAINMENT);
+            }
+        //LLT_CONTAINEDBY = 64,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_CONTAINEDBY) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_CONTAINEDBY);
+            }
+        //LLT_USESCLASSES = 128,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_USESCLASSES) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_USESCLASSES);
+            }
+        //LLT_USEDBYCLASSES = 256,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_USEDBYCLASSES) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_USEDBYCLASSES);
+            }
+        //LLT_NESTEDCLASSES = 512,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_NESTEDCLASSES) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_NESTEDCLASSES);
+            }
+        //LLT_INHERITEDINTERFACES = 1024,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_INHERITEDINTERFACES) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_INHERITEDINTERFACES);
+            }
+        //LLT_INTERFACEUSEDBYCLASSES = 2048,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_INTERFACEUSEDBYCLASSES) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_INTERFACEUSEDBYCLASSES);
+            }
+        //LLT_DEFINITIONS = 4096,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_DEFINITIONS) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_DEFINITIONS);
+            }
+        //LLT_REFERENCES = 8192,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_REFERENCES) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_REFERENCES);
+            }
+        //LLT_DEFEREXPANSION = 1048576,
+            if ((listTypes & (uint)_LIB_LISTTYPE.LLT_DEFEREXPANSION) != 0)
+            {
+                yield return buildNestedList(list, index, _LIB_LISTTYPE.LLT_DEFEREXPANSION);
+            }
+        }
+
+        TreeViewItem buildNestedList(IVsSimpleObjectList2 parent, uint index, _LIB_LISTTYPE type)
+        {
+            IVsSimpleObjectList2 list;
+            parent.GetList2(index, (uint)type, (uint) _LIB_LISTFLAGS.LLF_PROJECTONLY, null, out list);
+            var contentRoot = new TreeViewItem{Header=Enum.GetName(typeof(_LIB_LISTTYPE), type)};
+            uint c;
+            list.GetItemCount(out c);
+
+            for (uint i = 0; i < c; i++)
+            {
+                string text;
+                list.GetTextWithOwnership(i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
+                var node = new TreeViewItem { Header = text };
+
+                node.Items.Add(buildCapabilities(list, i));
+
+                node.Items.Add(buildProperties(list, i));
+                
+                var currentI = i;
+                node.Expanded += (sender, args) =>
+                                     {
+                                         if (node.Items.Count <= 2)
+                                             foreach (var childList in buildNestedLists(list, currentI))
+                                                 node.Items.Add(childList);
+                                     };
+                contentRoot.Items.Add(node);
+            }
+            return contentRoot;
+        }
+
 
         private void AddNested(IVsLibrary2 lib, TreeViewItem libRoot, _LIB_LISTTYPE listType)
         {

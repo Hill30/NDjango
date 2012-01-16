@@ -12,7 +12,7 @@ namespace NDjango.Designer.SymbolLibrary
     /// <summary>
     /// Root of our object list model
     /// </summary>
-    public class ResultList : IVsSimpleObjectList2, IVsNavInfoNode
+    public class ResultList : IVsSimpleObjectList2, IVsNavInfoNode, IVsObjectList
     {
         /// <summary>
         /// Enumeration of the possible types of node. The type of a node can be the combination
@@ -365,8 +365,8 @@ namespace NDjango.Designer.SymbolLibrary
         public int GetCapabilities2(out uint pgrfCapabilities)
         {
             pgrfCapabilities = /*(uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT |*/ 
-                (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH
-                | (uint)_LIB_LISTCAPABILITIES.LLC_HASDESCPANE;
+                (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH;
+//                | (uint)_LIB_LISTCAPABILITIES.LLC_HASDESCPANE;
             
             //_LIB_LISTCAPABILITIES.LLC_HASDESCPANE |
             //_LIB_LISTCAPABILITIES.LLC_HASCOMMANDS | 
@@ -839,5 +839,258 @@ namespace NDjango.Designer.SymbolLibrary
         #endregion
 
 
+
+        #region IVsObjectList Members
+
+        int IVsObjectList.CanDelete(uint index, out int pfOK)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.CanGoToSource(uint index, VSOBJGOTOSRCTYPE SrcType, out int pfOK)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.CanRename(uint index, string pszNewName, out int pfOK)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.CountSourceItems(uint index, out IVsHierarchy ppHier, out uint pitemid, out uint pcItems)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.DoDelete(uint index, uint grfFlags)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.DoDragDrop(uint index, IDataObject pDataObject, uint grfKeyState, ref uint pdwEffect)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.DoRename(uint index, string pszNewName, uint grfFlags)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.EnumClipboardFormats(uint index, uint grfFlags, uint celt, VSOBJCLIPFORMAT[] rgcfFormats, uint[] pcActual)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.FillDescription(uint index, uint grfOptions, IVsObjectBrowserDescription2 pobDesc)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetBrowseObject(uint index, out object ppdispBrowseObj)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetCapabilities(out uint pCapabilities)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetCategoryField(uint index, LIB_CATEGORY Category, out uint pField)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetClipboardFormat(uint index, uint grfFlags, FORMATETC[] pFormatetc, STGMEDIUM[] pMedium)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetContextMenu(uint index, out Guid pclsidActive, out int pnMenuId, out IOleCommandTarget ppCmdTrgtActive)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetDisplayData(uint index, VSTREEDISPLAYDATA[] pData)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetExpandable(uint index, out int pfExpandable)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetExpandable2(uint index, uint ListTypeExcluded, out int pfExpandable)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetExpandedList(uint index, out int pfCanRecurse, out IVsLiteTreeList pptlNode)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetExtendedClipboardVariant(uint index, uint grfFlags, VSOBJCLIPFORMAT[] pcfFormat, out object pvarFormat)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetFlags(out uint pFlags)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetItemCount(out uint pCount)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetList(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA[] pobSrch, out IVsObjectList pplist)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetListChanges(ref uint pcChanges, VSTREELISTITEMCHANGE[] prgListChanges)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetMultipleSourceItems(uint index, uint grfGSI, uint cItems, VSITEMSELECTION[] rgItemSel)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetNavigationInfo(uint index, VSOBNAVIGATIONINFO2[] pobNav)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetSourceContext(uint index, IntPtr pszFilename, out uint pulLineNum)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetText(uint index, VSTREETEXTOPTIONS tto, out string ppszText)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetTipText(uint index, VSTREETOOLTIPTYPE eTipType, out string ppszText)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GetUserContext(uint index, out object ppunkUserCtx)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.GoToSource(uint index, VSOBJGOTOSRCTYPE SrcType)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.LocateExpandedList(IVsLiteTreeList ExpandedList, out uint iIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.LocateNavigationInfo(VSOBNAVIGATIONINFO2[] pobNav, VSOBNAVNAMEINFONODE[] pobName, int fDontUpdate, out int pfMatchedName, uint[] pIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.OnClose(VSTREECLOSEACTIONS[] ptca)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.QueryDragDrop(uint index, IDataObject pDataObject, uint grfKeyState, ref uint pdwEffect)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.ShowHelp(uint index)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.ToggleState(uint index, out uint ptscr)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList.UpdateCounter(out uint pCurUpdate, out uint pgrfChanges)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region IVsLiteTreeList Members
+
+        int IVsLiteTreeList.GetDisplayData(uint index, VSTREEDISPLAYDATA[] pData)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetExpandable(uint index, out int pfExpandable)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetExpandedList(uint index, out int pfCanRecurse, out IVsLiteTreeList pptlNode)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetFlags(out uint pFlags)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetItemCount(out uint pCount)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetListChanges(ref uint pcChanges, VSTREELISTITEMCHANGE[] prgListChanges)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetText(uint index, VSTREETEXTOPTIONS tto, out string ppszText)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetTipText(uint index, VSTREETOOLTIPTYPE eTipType, out string ppszText)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.LocateExpandedList(IVsLiteTreeList ExpandedList, out uint iIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.OnClose(VSTREECLOSEACTIONS[] ptca)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.ToggleState(uint index, out uint ptscr)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.UpdateCounter(out uint pCurUpdate, out uint pgrfChanges)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

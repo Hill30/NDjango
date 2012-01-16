@@ -45,7 +45,8 @@ namespace NDjango.Designer.SymbolLibrary
         {
             ppLibrary = null;
             if (nLibIndex != 0)
-                return VSConstants.E_INVALIDARG;
+                throw new Exception("How stupid");
+                //return VSConstants.E_INVALIDARG;
             ppLibrary = library;
             return VSConstants.S_OK;
         }
@@ -78,8 +79,8 @@ namespace NDjango.Designer.SymbolLibrary
             library = new NDjangoSymbolLibrary();
             objectManager = services.GetService<IVsObjectManager2, SVsObjectManager>();
             var mgrGuid = GetType().GUID;
-//            ErrorHandler.ThrowOnFailure(((IVsObjectManager) objectManager).RegisterLibMgr(mgrGuid, this, out mgrCookie));
-//            ErrorHandler.ThrowOnFailure(objectManager.RegisterSimpleLibrary(library, out libCookie));
+            ErrorHandler.ThrowOnFailure(objectManager.RegisterSimpleLibrary(library, out libCookie));
+//            ErrorHandler.ThrowOnFailure(((IVsObjectManager)objectManager).RegisterLibMgr(mgrGuid, this, out mgrCookie));
         }
 
         void ILibraryMgr.Dispose()

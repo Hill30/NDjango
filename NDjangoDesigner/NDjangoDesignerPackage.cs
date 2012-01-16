@@ -67,10 +67,8 @@ namespace NDjango.Designer
             }
             viewDialog = new AddViewDlg();
 
-            ((IComponentModel)Package.GetGlobalService(typeof(SComponentModel))).DefaultCompositionService.SatisfyImportsOnce(this);
+            ((IComponentModel)GetGlobalService(typeof(SComponentModel))).DefaultCompositionService.SatisfyImportsOnce(this);
 
-            // SI: Uncomment this call to register our symbol library
-            //RegisterSymbolLibrary();
             libraryMgr.Initialize();
         }
 
