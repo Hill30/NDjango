@@ -420,31 +420,31 @@ namespace Microsoft.SymbolBrowser
                 switch (category)
                 {
                     case (int)LIB_CATEGORY.LC_MEMBERTYPE:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_MEMBERTYPE), typeof(_LIBCAT_MEMBERTYPE2));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_MEMBERTYPE), typeof(_LIBCAT_MEMBERTYPE2));
                         break;
                     case (int)LIB_CATEGORY.LC_MEMBERACCESS:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_MEMBERACCESS));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_MEMBERACCESS));
                         break;
                     case (int)LIB_CATEGORY.LC_CLASSTYPE:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_CLASSTYPE), typeof(_LIBCAT_CLASSTYPE2));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_CLASSTYPE), typeof(_LIBCAT_CLASSTYPE2));
                         break;
                     case (int)LIB_CATEGORY.LC_CLASSACCESS:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_CLASSACCESS));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_CLASSACCESS));
                         break;
                     case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_ACTIVEPROJECT));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_ACTIVEPROJECT));
                         break;
                     case (int)LIB_CATEGORY.LC_LISTTYPE:
-                        categoryString += parseFlags(categories, typeof(_LIB_LISTTYPE), typeof(_LIB_LISTTYPE2));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIB_LISTTYPE), typeof(_LIB_LISTTYPE2));
                         break;
                     case (int)LIB_CATEGORY.LC_VISIBILITY:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_VISIBILITY));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_VISIBILITY));
                         break;
                     case (int)LIB_CATEGORY.LC_NODETYPE:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_NODETYPE));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_NODETYPE));
                         break;
                     case (int)LIB_CATEGORY.LC_MODIFIER:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_MODIFIERTYPE));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_MODIFIERTYPE));
                         break;
                     default:
                         categoryString += categories;
@@ -469,16 +469,16 @@ namespace Microsoft.SymbolBrowser
                 switch ((int)Enum.Parse(typeof(_LIB_CATEGORY2), category))
                 {
                     case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_HIERARCHYTYPE), typeof(_LIBCAT_HIERARCHYTYPE2));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_HIERARCHYTYPE), typeof(_LIBCAT_HIERARCHYTYPE2));
                         break;
                     case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_MEMBERINHERITANCE));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_MEMBERINHERITANCE));
                         break;
                     case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_PHYSICALCONTAINERTYPE));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_PHYSICALCONTAINERTYPE));
                         break;
                     case (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE:
-                        categoryString += parseFlags(categories, typeof(_LIBCAT_SEARCHMATCHTYPE));
+                        categoryString += "(" + categories + ")" + parseFlags(categories, typeof(_LIBCAT_SEARCHMATCHTYPE));
                         break;
                     default:
                         categoryString += categories;

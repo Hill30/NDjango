@@ -5,11 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.10.0"
              mc:Ignorable="d" 
-             d:DesignHeight="398" d:DesignWidth="300"
+             d:DesignHeight="398" d:DesignWidth="756"
              Name="MyToolWindow"
-             Background="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}" Height="430">
+             Background="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowBackgroundKey}}" Height="434">
         <StackPanel Orientation="Vertical" Margin="0,0,0,-83">
-            <TreeView Height="390" Name="treeView1" Width="280" />
+            <TreeView Height="394" Name="treeView1" Width="737" ClipToBounds="False" />
             <Button Content="_Click Me!" Width="80" Height="28" Name="button1" Click="button1_Click" />
         </StackPanel>
 </UserControl>
