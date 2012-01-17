@@ -68,6 +68,11 @@ namespace NDjango.Designer.Parsing
         {
             public string ModelClass { get; set; }
             public List<string> Members { get; set; }
+
+            public IEnumerable<string> GetSymbols()
+            {
+                return Members.Select(member => member.Replace("Model", ModelClass)).ToList();
+            }
         }
 
         /// <summary>
