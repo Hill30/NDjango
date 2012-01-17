@@ -64,6 +64,12 @@ namespace NDjango.Designer.Parsing
 
         public string Filename { get; private set; }
 
+        class ModelMeta
+        {
+            public string ModelClass { get; set; }
+            public List<string> Members { get; set; }
+        }
+
         /// <summary>
         /// Creates a new node provider
         /// </summary>
@@ -133,9 +139,43 @@ namespace NDjango.Designer.Parsing
                     oldNodes = this.nodes;
                     this.nodes = designer_nodes;
                 }
+
+                ModelMeta model = new ModelMeta();
+                IndexNodes(this.nodes, model);
+
                 oldNodes.ForEach(node => node.Dispose());
                 designer_nodes.ForEach(node => node.ShowDiagnostics());
                 RaiseNodesChanged(snapshot);
+            }
+        }
+
+
+
+        private static void IndexNodes(IEnumerable<DesignerNode> nodes, ModelMeta model)
+        {
+            foreach (var designerNode in nodes)
+            {
+
+                switch (designerNode.NodeType)
+                {
+                    case NodeType.TypeName:
+                        // got the model
+                        string modelText = designerNode.SnapshotSpan.GetText();
+                        model.ModelClass = modelText;
+                        break;
+                    case NodeType.Reference:
+                        // got the member
+                        string memberText = designerNode.SnapshotSpan.GetText();
+                        if(model.Members == null) model.Members = new List<string>();
+                        model.Members.Add(memberText);
+                        break;
+                }
+                
+
+                if (designerNode.Children.Count > 0)
+                {
+                    IndexNodes(designerNode.Children, model);
+                }
             }
         }
 
