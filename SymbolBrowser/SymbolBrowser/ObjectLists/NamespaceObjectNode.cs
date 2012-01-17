@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
     /// <summary>
-    /// Node for Object Browser
+    /// Node for use in Object Browser
     /// </summary>
     class NamespaceObjectNode : SymbolNode
     {
-        public NamespaceObjectNode(string text, string preffix, string fName)
-            : base(text, fName, preffix, 0, 0, LibraryNodeType.Classes)
+        public NamespaceObjectNode(string text, string preffix, string fName, int row, int column)
+            : base(text, fName, preffix, row, column, LibraryNodeType.Classes)
         {
             #region Log part for namespace node
             /*
@@ -82,14 +83,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             // do nothing - not supported for namespaces
         }
 
-        /// <summary>
-        /// Gets the supported category
-        /// </summary>
-        /// <param name="Category"></param>
-        /// <param name="pfCatField"></param>
-        public override void GetCategory(int Category, out uint pfCatField)
-        {
-            pfCatField = 0;
-        }
+        
     }
 }

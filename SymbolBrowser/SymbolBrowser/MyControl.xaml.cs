@@ -115,8 +115,6 @@ namespace Microsoft.SymbolBrowser
                 AddSymbolToLibrary(_LIB_LISTTYPE.LLT_MEMBERS, s, ref csLib);
             }//foreach
 
-            
-
             IVsCombinedBrowseComponentSet extras;
             ErrorHandler.Succeeded(objectManager.CreateCombinedBrowseComponentSet(out extras));
 
@@ -156,6 +154,13 @@ namespace Microsoft.SymbolBrowser
             }
         }
 
+
+        /// <summary>
+        ///  Used to add our symbols with references
+        /// </summary>
+        /// <param name="symbolType"></param>
+        /// <param name="symbolText"></param>
+        /// <param name="csLib"></param>
         private void AddSymbolToLibrary(_LIB_LISTTYPE symbolType, string symbolText, ref IVsLibrary2 csLib)
         {
             IVsObjectList2 list;

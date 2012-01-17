@@ -133,6 +133,7 @@
     <Compile Include="ObjectLists\NodeReferenceList.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ObjectLists\RootNode.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

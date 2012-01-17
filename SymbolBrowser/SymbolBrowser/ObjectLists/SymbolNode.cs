@@ -57,7 +57,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             updateCount = 0;
         private Dictionary<LibraryNodeType, SymbolNode> filteredView = new Dictionary<LibraryNodeType, SymbolNode>();
         private readonly List<SymbolNode> children = new List<SymbolNode>();
-        LibraryNodeType nodeType;
+        /// <summary>
+        /// Type of child items this list contains
+        /// </summary>
+        LibraryNodeType nodeListType;
 
         // Supported categories list set for ObjectManager
         // Copied from ClassLibrary1 (package) from C# library
@@ -78,7 +81,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             this.fName = fName;
             this.lineNumber = lineNumber;
             this.columnNumber = columnNumber;
-            this.nodeType = type;
+            this.nodeListType = type;
         }
 
         internal SymbolNode(SymbolNode node)
@@ -88,7 +91,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             this.fName = node.fName;
             this.lineNumber = node.lineNumber;
             this.columnNumber = node.columnNumber;
-            this.nodeType = node.nodeType;
+            this.nodeListType = node.nodeListType;
             node.children.ForEach(c => AddChild(c));
         }
 
@@ -113,10 +116,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             }
         }
 
-        public LibraryNodeType NodeType
+        public LibraryNodeType NodeListType
         {
-            get { return nodeType; }
-            set { nodeType = value; }
+            get { return nodeListType; }
+            set { nodeListType = value; }
         }
 
         /// <summary>
@@ -178,7 +181,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             {   // Filling filtered view
                 filtered = this.Clone();
                 for (int i = 0; i < filtered.children.Count; )
-                    if (0 == (filtered.children[i].nodeType & filterType))
+                    if (0 == (filtered.children[i].nodeListType & filterType))
                         filtered.children.RemoveAt(i);
                     else
                         i += 1;
@@ -309,7 +312,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// </summary>
         /// <param name="Category"></param>
         /// <param name="pfCatField"></param>
-        public virtual void GetCategory(int Category, out uint pfCatField)
+        public int GetCategory(int Category, out uint pfCatField)
         {
             switch (Category)
             {
@@ -318,7 +321,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                     break; // always 0
 
                 case (int)LIB_CATEGORY.LC_LISTTYPE:
-                    pfCatField = (uint)nodeType;
+                    pfCatField = (uint)nodeListType;
                     break;
                 case (int)LIB_CATEGORY.LC_VISIBILITY:
                     pfCatField = (uint)visibility;
@@ -342,6 +345,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                     pfCatField = 0;
                     break;
             }
+
+            return VSConstants.S_OK;
         }
 
         public List<SymbolNode> Children { get { return children; } }
@@ -500,12 +505,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         {
             if (index == NullIndex)
              // returning own categories
-                GetCategory(Category, out pfCatField);            
+                return GetCategory(Category, out pfCatField);            
             else
                 // Returning child node category
-                Children[(int)index].GetCategory(Category, out pfCatField);
-            
-            return VSConstants.S_OK;
+                return Children[(int)index].GetCategory(Category, out pfCatField);
         }
         /// <summary>
         /// Returns a pointer to the property browse IDispatch for the given list item.
@@ -871,7 +874,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         int IVsNavInfoNode.get_Type(out uint pllt)
         {
             //Logger.Log("ResultList.IVsNavInfoNode.get_Type");
-            pllt = (uint)nodeType;
+            pllt = (uint)nodeListType;
             return VSConstants.S_OK;
         }
 

@@ -1,9 +1,10 @@
 ﻿using System;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
-    public class MemberReferenceList : ResultReferenceList
+    public class MemberReferenceList : NodeReferenceList
     {
         public MemberReferenceList(string text, string fName, string preffix, int lineNumber, int columnNumber)
             : base(text, fName, preffix, lineNumber, columnNumber)
@@ -15,7 +16,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// </summary>
         protected override bool IsExpandable
         {
-            get { return (Children.Count > 0); }
+            get { return false; }
         }
 
         public override bool CanGoToSource
@@ -56,5 +57,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
             base.OpenSourceFile();
         }
+
+        
     }
 }

@@ -2,26 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
-    class NamespaceReferenceList : ResultReferenceList
+    class NamespaceReferenceList : NodeReferenceList
     {
-        public NamespaceReferenceList(string text, string preffix, string fName)
-            : base(text, fName, preffix, 0, 0)
+        public NamespaceReferenceList(string text, string preffix, string fName, int row, int column)
+            : base(text, fName, preffix, row, column)
         {
         }
 
         protected override bool IsExpandable
         {
-            get { return true; }
+            get { return false; }
         }
         public override bool CanGoToSource
         {
             get
             {
-                return false; // Namespaces can not go to source I think )
+                return true; 
             }
         }
         protected override bool CanDelete { get { return false; } }
@@ -48,5 +49,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         {
             // do nothing - not supported for namespaces
         }
+
+        
     }
 }
