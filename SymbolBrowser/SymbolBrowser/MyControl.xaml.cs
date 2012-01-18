@@ -29,7 +29,8 @@ namespace Microsoft.SymbolBrowser
             InitializeComponent();
         }
 
-        Library library;
+        Library2 library;
+        
         private uint libCookie;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
@@ -38,8 +39,10 @@ namespace Microsoft.SymbolBrowser
             var objectManager = SymbolBrowserPackage.GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
             if (library == null)
             {
-                library = new Library();
-                objectManager.RegisterSimpleLibrary(library, out libCookie);
+                //library = new Library();
+                library = new Library2();
+                //objectManager.RegisterSimpleLibrary(library, out libCookie);
+                objectManager.RegisterLibrary(library, out libCookie);
             }
 
             // ToDo:
