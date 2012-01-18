@@ -12,9 +12,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
     /// <summary>
     /// A node representing a reference of the symbol
     /// </summary>
-    public class ResultReferenceList : ResultList
+    public class NodeReferenceList : SymbolNode
     {
-        public ResultReferenceList(string text, string prefix, string fName, int lineNumber, int columnNumber) :
+        public NodeReferenceList(string text, string prefix, string fName, int lineNumber, int columnNumber) :
             base(text, prefix, fName, lineNumber, columnNumber, LibraryNodeType.Hierarchy)
         {
             // set for search results reference list

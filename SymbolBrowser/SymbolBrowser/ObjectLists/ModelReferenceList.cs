@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
-    public class ModelReferenceList : ResultReferenceList
+    public class ModelReferenceList : NodeReferenceList
     {
         public ModelReferenceList(string text, string fName, string preffix, int lineNumber, int columnNumber)
             : base(text, fName, preffix, lineNumber, columnNumber)
@@ -55,6 +55,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
             base.OpenSourceFile();
         }
+
+        
 
     }
 }

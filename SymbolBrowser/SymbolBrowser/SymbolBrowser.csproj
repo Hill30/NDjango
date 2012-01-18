@@ -121,6 +121,7 @@
     </Compile>
     <Compile Include="MyToolWindow.cs" />
     <Compile Include="Guids.cs" />
+    <Compile Include="ObjectLists\NamespaceObjectNode.cs" />
     <Compile Include="ObjectLists\NamespaceNode.cs" />
     <Compile Include="ObjectLists\ModelNode.cs" />
     <Compile Include="ObjectLists\MemberNode.cs">
@@ -129,16 +130,17 @@
     <Compile Include="ObjectLists\MemberReferenceList.cs" />
     <Compile Include="ObjectLists\ModelReferenceList.cs" />
     <Compile Include="ObjectLists\NamespaceReferenceList.cs" />
-    <Compile Include="ObjectLists\ResultReferenceList.cs">
+    <Compile Include="ObjectLists\NodeReferenceList.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ObjectLists\RootNode.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="ObjectLists\ResultList.cs" />
+    <Compile Include="ObjectLists\SymbolNode.cs" />
     <Compile Include="SymbolBrowserPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />

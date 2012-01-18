@@ -22,6 +22,8 @@ namespace Microsoft.SymbolBrowser
     /// </summary>
     public partial class MyControl : UserControl
     {
+        Guid csLibGuid = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
+
         public MyControl()
         {
             InitializeComponent();
@@ -49,7 +51,7 @@ namespace Microsoft.SymbolBrowser
             foreach (string s in typeNames)
                 foundLists.Add(s, null);
 
-            Guid csLibGuid = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
+            
 
             IVsLibrary2 csLib;
             if (!ErrorHandler.Succeeded(objectManager.FindLibrary(ref csLibGuid, out csLib)))
@@ -115,8 +117,6 @@ namespace Microsoft.SymbolBrowser
                 AddSymbolToLibrary(_LIB_LISTTYPE.LLT_MEMBERS, s, ref csLib);
             }//foreach
 
-            
-
             IVsCombinedBrowseComponentSet extras;
             ErrorHandler.Succeeded(objectManager.CreateCombinedBrowseComponentSet(out extras));
 
@@ -156,6 +156,13 @@ namespace Microsoft.SymbolBrowser
             }
         }
 
+
+        /// <summary>
+        ///  Used to add our symbols with references
+        /// </summary>
+        /// <param name="symbolType"></param>
+        /// <param name="symbolText"></param>
+        /// <param name="csLib"></param>
         private void AddSymbolToLibrary(_LIB_LISTTYPE symbolType, string symbolText, ref IVsLibrary2 csLib)
         {
             IVsObjectList2 list;
@@ -390,11 +397,15 @@ namespace Microsoft.SymbolBrowser
             }
 
             contentRoot.Items.Add("Search results list");
-
-            simpleLib.GetList2(
-                (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
-                (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
-                new[]
+            Guid libGuid;
+            simpleLib.GetGuid(out libGuid);
+            if (Guid.Equals(libGuid, csLibGuid))
+            {
+                // Block specific for C# library
+                simpleLib.GetList2(
+                    (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
+                    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
+                    new[]
                     {
                         new VSOBSEARCHCRITERIA2
                             {
@@ -403,24 +414,25 @@ namespace Microsoft.SymbolBrowser
                                 szName = "ClassLibrary1.Class1"
                             }
                     },
-                    out list);
+                        out list);
 
-            list.GetItemCount(out c);
+                list.GetItemCount(out c);
 
-            for (uint i = 0; i < c; i++)
-            {
-                string text;
-                list.GetTextWithOwnership(i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
-                var fileNode = new TreeViewItem { Header = text };
+                for (uint i = 0; i < c; i++)
+                {
+                    string text;
+                    list.GetTextWithOwnership(i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
+                    var fileNode = new TreeViewItem { Header = text };
 
-                fileNode.Items.Add(buildCapabilities(list, i));
+                    fileNode.Items.Add(buildCapabilities(list, i));
 
-                fileNode.Items.Add(buildProperties(list, i));
+                    fileNode.Items.Add(buildProperties(list, i));
 
-                foreach (var childList in buildNestedLists(list, i))
-                    fileNode.Items.Add(childList);
+                    foreach (var childList in buildNestedLists(list, i))
+                        fileNode.Items.Add(childList);
 
-                contentRoot.Items.Add(fileNode);
+                    contentRoot.Items.Add(fileNode);
+                }
             }
             return contentRoot;
         }
@@ -1130,6 +1142,7 @@ namespace Microsoft.SymbolBrowser
         /// </summary>
         /// <param name="list"></param>
         /// <param name="title"></param>
+        [HandleProcessCorruptedStateExceptions]
         private void ExploreListStructure(IVsObjectList2 list, string title)
         {
             Logger.Log("\r\n-------------------------------\r\nDetails for list '" + title + "'\r\n------------------------------- ");
@@ -1216,10 +1229,57 @@ namespace Microsoft.SymbolBrowser
 
                     foreach (_LIB_LISTTYPE en in Enum.GetValues(typeof(_LIB_LISTTYPE)))
                     {
-                        list.GetList2(i, (uint)en, 0, null, out childList);
-                        if (childList == null)
+                        try
+                        {
+                            list.GetList2(i, (uint)en, 0, null, out childList);
+                            if (childList == null)
+                                continue;
+                        }
+                        catch 
+                        {
+                            Logger.Log("Error reading list type '"+en+"'");
                             continue;
+                        }
                     }
+
+                    
+                    list.GetList2(
+                        i,
+                        (uint)_LIB_LISTTYPE.LLT_CLASSES,
+                        16,
+                        new[]
+                            {
+                                new VSOBSEARCHCRITERIA2
+                                    {
+                                        eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
+                                        grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
+                                        szName = "*"
+                                    }
+                            },
+                            out childList);
+                    if(childList != null)
+                        ExploreListStructure(
+                                childList,
+                                string.Format("Child {0}({1}) of type {2} for list {3}", i, listName, _LIB_LISTTYPE.LLT_CLASSES, title));
+
+                    list.GetList2(
+                        i,
+                        (uint)_LIB_LISTTYPE.LLT_NAMESPACES,
+                        16,
+                        new[]
+                            {
+                                new VSOBSEARCHCRITERIA2
+                                    {
+                                        eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
+                                        grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
+                                        szName = "*"
+                                    }
+                            },
+                            out childList);
+                    if (childList != null)
+                        ExploreListStructure(
+                                childList,
+                                string.Format("Child {0}({1}) of type {2} for list {3}", i, listName, _LIB_LISTTYPE.LLT_NAMESPACES, title));
 
                     list.GetList2(
                         i,
@@ -1235,11 +1295,10 @@ namespace Microsoft.SymbolBrowser
                                     }
                             },
                             out childList);
-                    if(childList != null)
+                    if (childList != null)
                         ExploreListStructure(
                                 childList,
-                                string.Format("Child {0}({1}) of list {2}", i, listName, title));
-
+                                string.Format("Child {0}({1}) of type {2} for list {3}", i, listName, _LIB_LISTTYPE.LLT_MEMBERS, title));
                 }
 
             Logger.Log(string.Format("End of details for list {0}\r\n-------------------------------\r\n", title));

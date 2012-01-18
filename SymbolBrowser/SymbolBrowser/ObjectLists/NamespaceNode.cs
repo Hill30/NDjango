@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
-    class NamespaceNode : ResultList
+    class NamespaceNode : SymbolNode
     {
-        public NamespaceNode(string text, string preffix, string fName)
-            : base(text, fName, preffix, 0, 0, LibraryNodeType.Hierarchy)
+        public NamespaceNode(string text, string preffix, string fName, int row, int column)
+            : base(text, fName, preffix, row, column, LibraryNodeType.Hierarchy)// Namespace node contains classes, but class references are "Hierarchy"
         {
         }
 
@@ -48,5 +49,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         {
             // do nothing - not supported for namespaces
         }
+
+        
     }
 }

@@ -10,7 +10,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
     /// <summary>
     /// Represents a class in a reference search results
     /// </summary>
-    public class ModelNode : ResultList
+    public class ModelNode : SymbolNode
     {
         public ModelNode(string text, string fName, string preffix, int lineNumber, int columnNumber)
             : base(text, fName, preffix, lineNumber, columnNumber, LibraryNodeType.Hierarchy)
@@ -19,6 +19,12 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             memberAccess = _LIBCAT_MEMBERACCESS.LCMA_PRIVATE;
             memberType = _LIBCAT_MEMBERTYPE.LCMT_FUNCTION;
             modifierType = _LIBCAT_MODIFIERTYPE.LCMDT_PUREVIRTUAL;
+            visibility = _LIBCAT_VISIBILITY.LCV_VISIBLE;
+            hierarchyType = _LIBCAT_HIERARCHYTYPE.LCHT_UNKNOWN;
+            memberInheritance = _LIBCAT_MEMBERINHERITANCE.LCMI_IMMEDIATE;
+
+            phisContainerType = 0;
+            srchMatchType = 0;
         }
 
         protected override bool IsExpandable
@@ -63,5 +69,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             base.OpenSourceFile();
         }
 
+        
     }
 }

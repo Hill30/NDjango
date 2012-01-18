@@ -1,17 +1,23 @@
 ﻿using System;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
-    public class MemberNode : ResultList
+    public class MemberNode : SymbolNode
     {
         public MemberNode(string text, string fName, string preffix, int lineNumber, int columnNumber)
-            : base(text, fName, preffix, lineNumber, columnNumber, ResultList.LibraryNodeType.Members)
+            : base(text, fName, preffix, lineNumber, columnNumber, SymbolNode.LibraryNodeType.Hierarchy)
         {
             classType = _LIBCAT_CLASSTYPE.LCCT_NSPC;
             memberAccess = _LIBCAT_MEMBERACCESS.LCMA_PUBLIC;
             memberType = _LIBCAT_MEMBERTYPE.LCMT_METHOD;
             modifierType = _LIBCAT_MODIFIERTYPE.LCMDT_VIRTUAL;
+            visibility = _LIBCAT_VISIBILITY.LCV_VISIBLE;
+            hierarchyType = _LIBCAT_HIERARCHYTYPE.LCHT_UNKNOWN;
+            memberInheritance = _LIBCAT_MEMBERINHERITANCE.LCMI_IMMEDIATE;
+            phisContainerType = 0;
+            srchMatchType = 0;
         }
 
         /// <summary>
@@ -60,5 +66,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
             base.OpenSourceFile();
         }
+
+        
     }
 }

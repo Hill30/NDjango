@@ -11,18 +11,39 @@ namespace Microsoft.SymbolBrowser
     public class Library : IVsSimpleLibrary2
     {
         private const string SUPPORTED_EXT = ".django";
-        private ResultList 
-            root,
-            objRoot;
-        ResultList namespaceNode;
+        private SymbolNode root;
+        private RootNode objRoot;
+        SymbolNode namespaceNode;
         ModelNode classNode;
         MemberNode memberNode;
 
         public Library()
         {
-            root = new ResultList("Test template", "", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.PhysicalContainer);
+            CreateSearchNodes();
+            CreateObjectManagerNodes();
+            
+            //GetSupportedFileList();
+        }
 
-            namespaceNode = new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Hierarchy);
+        private void CreateObjectManagerNodes()
+        {
+            objRoot = new RootNode("Test template", "", "testTemplace.zzz", 0, 0);
+            objRoot.NodeListType = SymbolNode.LibraryNodeType.PhysicalContainer;
+            objRoot.Children.Clear();
+            objRoot.Children.Add(new SymbolNode("ClassLibrary1", "", "Class1.cs", 7, 0,
+                SymbolNode.LibraryNodeType.Namespaces));
+            objRoot.Children[0].Children.Add(new SymbolNode("Class1", "ClassLibrary1.", "Class1.cs", 7, 17,
+                SymbolNode.LibraryNodeType.Classes));
+            objRoot.Children[0].Children[0].Children.Add(new SymbolNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs",
+                9, 22, SymbolNode.LibraryNodeType.Members));
+        }
+
+        private void CreateSearchNodes()
+        {
+            // "flat" structure
+            root = new SymbolNode("Test template", "", "testTemplace.zzz", 0, 0, SymbolNode.LibraryNodeType.Hierarchy);
+
+            namespaceNode = new NamespaceNode("ClassLibrary1", "", "Class1.cs", 7, 0);
             classNode = new ModelNode("Class1", "ClassLibrary1.", "Class1.cs", 7, 17);
             memberNode = new MemberNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22);
 
@@ -51,22 +72,27 @@ namespace Microsoft.SymbolBrowser
                     @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (0, 0) : public Class1 GetBlaBlaBla()(NDjango symbol)",
                     @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
                     "", 0, 0);
+
             memberNode.AddChild(methodReferenceNode);
             memberNode.AddChild(methodReferenceNode1);
             memberNode.AddChild(methodReferenceNode2);
 
-            root.AddChild(memberNode); 
+            NamespaceReferenceList
+                nsl1 = new NamespaceReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (2, 2) (NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 0, 0),
+                nsl2 = new NamespaceReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class2.cs - (3, 3) (NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class2.cs",
+                    "", 0, 0);
+
+            namespaceNode.AddChild(nsl1);
+            namespaceNode.AddChild(nsl2);
+
+            root.AddChild(memberNode);
             root.AddChild(classNode);
             root.AddChild(namespaceNode);
-
-            objRoot = new ResultList(root);
-            objRoot.Children.Clear();
-            objRoot.Children.Add(new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Namespaces));
-            objRoot.Children[0].Children.Add(new ResultList("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, ResultList.LibraryNodeType.Classes));
-            objRoot.Children[0].Children[0].Children.Add(new ResultList("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22, ResultList.LibraryNodeType.Members));
-
-            
-            //GetSupportedFileList();
         }
 
         public void AddExternalReference(string symbol, IVsObjectList2 listToUse)
@@ -163,6 +189,7 @@ namespace Microsoft.SymbolBrowser
 
         public int GetLibFlags2(out uint pgrfFlags)
         {
+            // Same set as C# library has
             pgrfFlags =
                 (uint)_LIB_FLAGS.LF_EXPANDABLE
                 |(uint)_LIB_FLAGS.LF_PROJECT
@@ -178,6 +205,7 @@ namespace Microsoft.SymbolBrowser
 
         public int GetList2(uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
         {
+            #region ...
             /*
             string strSearchCriteria = pobSrch[0].szName;
             uint grfOptions = pobSrch[0].grfOptions;
@@ -247,18 +275,25 @@ namespace Microsoft.SymbolBrowser
 
             return VSConstants.S_OK;
             */
+            
+            #endregion
+
+            var listTypeName = Enum.GetName(typeof(_LIB_LISTTYPE), ListType);
+            if (listTypeName == "")
+                listTypeName = Enum.GetName(typeof(_LIB_LISTTYPE2), ListType);
 
             Logger.Log(string.Format("GetList2 : Library ListType:{0}({1}) flags: {2}",
                 Enum.GetName(typeof(_LIB_LISTTYPE2), ListType), 
                 Enum.GetName(typeof(_LIB_LISTTYPE), ListType),
                 Enum.GetName(typeof(_LIB_LISTFLAGS), flags)));
             if (pobSrch != null)
-                ppIVsSimpleObjectList2 = root.FilterView((ResultList.LibraryNodeType)ListType, pobSrch);
+                ppIVsSimpleObjectList2 = root.FilterView((SymbolNode.LibraryNodeType)ListType, pobSrch);
             else
                 ppIVsSimpleObjectList2 = objRoot;
             return VSConstants.S_OK;
 
 
+            #region ...
             //for (var i = 0; i < root.Children.Count; i++) {
             //    if (root.Children[i].NodeType == (ResultList.LibraryNodeType)ListType)
             //      root.GetList2(i, ListType, flags, pobSrch, out ppIVsSimpleObjectList2);
@@ -303,7 +338,7 @@ namespace Microsoft.SymbolBrowser
             //            return VSConstants.S_OK;
             //        }
             //    }
-                
+
             //    ppIVsSimpleObjectList2 = null;
             //    return VSConstants.E_FAIL;
             //}
@@ -361,7 +396,8 @@ namespace Microsoft.SymbolBrowser
             //    default:
             //        ppIVsSimpleObjectList2 = null;
             //        return VSConstants.E_FAIL;
-            //}
+            //} 
+            #endregion
         }
 
         public int GetSeparatorStringWithOwnership(out string pbstrSeparator)
@@ -372,34 +408,48 @@ namespace Microsoft.SymbolBrowser
 
         public int GetSupportedCategoryFields2(int Category, out uint pgrfCatField)
         {
-            //Logger.Log("GetSupportedCategoryFields2 with Category " + Enum.GetName(typeof(_LIB_CATEGORY2), Category));
+            // Copied from C# library
+            #region Log part
+            /*
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_ACTIVEPROJECT - LCAP_SHOWALWAYS(1)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_CLASSACCESS - (47)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_CLASSTYPE - (574)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_CLASSTYPE as _LIBCAT_CLASSTYPE2 - (574)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_LISTTYPE - (31)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_MEMBERACCESS - (47)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_MEMBERTYPE - (25)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_MODIFIER - (24)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_VISIBILITY - (3)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_HIERARCHYTYPE - (12)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_HIERARCHYTYPE as _LIBCAT_HIERARCHYTYPE2 - (12)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_Last2 - 0(0)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_MEMBERINHERITANCE - (33)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_NIL - 0(0)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_PHYSICALCONTAINERTYPE - (7)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_SEARCHMATCHTYPE - (0)
+             */
+            #endregion
             switch (Category)
             {
                 case (int)LIB_CATEGORY.LC_MEMBERTYPE:
-                    //pgrfCatField = (uint)_LIBCAT_MEMBERTYPE.LCMT_METHOD;
                     pgrfCatField = 25;
                     break;
 
                 case (int)LIB_CATEGORY.LC_MEMBERACCESS:
-                    //pgrfCatField = (uint)_LIBCAT_MEMBERACCESS.LCMA_PUBLIC |
-                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_PRIVATE |
-                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_PROTECTED |
-                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_PACKAGE |
-                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_FRIEND |
-                    //            (uint)_LIBCAT_MEMBERACCESS.LCMA_SEALED;
                     pgrfCatField = 47;
                     break;
 
                 case (int)LIB_CATEGORY.LC_LISTTYPE:
-                    //pgrfCatField = (uint)_LIB_LISTTYPE.LLT_MEMBERS;
-                    pgrfCatField = 31;
+                    // 31
+                    pgrfCatField = (uint)(_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS | _LIB_LISTTYPE.LLT_PACKAGE | _LIB_LISTTYPE.LLT_MEMBERS | _LIB_LISTTYPE.LLT_CLASSES | _LIB_LISTTYPE.LLT_NAMESPACES | _LIB_LISTTYPE.LLT_HIERARCHY);
                     break;
 
                 case (int)LIB_CATEGORY.LC_VISIBILITY:
-                    //pgrfCatField = (uint)(_LIBCAT_VISIBILITY.LCV_VISIBLE |_LIBCAT_VISIBILITY.LCV_HIDDEN);
-                    pgrfCatField = 3;
+                    // 3
+                    pgrfCatField = (uint)(_LIBCAT_VISIBILITY.LCV_VISIBLE | _LIBCAT_VISIBILITY.LCV_HIDDEN);
                     break;
                 case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
+                    // 12
                     pgrfCatField = (uint)(_LIBCAT_HIERARCHYTYPE.LCHT_PROJECTREFERENCES | _LIBCAT_HIERARCHYTYPE.LCHT_BASESANDINTERFACES);
                     break;
                 case (int)LIB_CATEGORY.LC_CLASSTYPE:
