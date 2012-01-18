@@ -28,14 +28,13 @@ namespace Microsoft.SymbolBrowser
         private void CreateObjectManagerNodes()
         {
             objRoot = new RootNode("Test template", "", "testTemplace.zzz", 0, 0);
-            objRoot.NodeListType = SymbolNode.LibraryNodeType.PhysicalContainer;
-            objRoot.Children.Clear();
             objRoot.Children.Add(new SymbolNode("ClassLibrary1", "", "Class1.cs", 7, 0,
                 SymbolNode.LibraryNodeType.Namespaces));
             objRoot.Children[0].Children.Add(new SymbolNode("Class1", "ClassLibrary1.", "Class1.cs", 7, 17,
                 SymbolNode.LibraryNodeType.Classes));
             objRoot.Children[0].Children[0].Children.Add(new SymbolNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs",
                 9, 22, SymbolNode.LibraryNodeType.Members));
+            objRoot.isObjectBrowserNode = objRoot.Children[0].isObjectBrowserNode = objRoot.Children[0].Children[0].isObjectBrowserNode = true;
         }
 
         private void CreateSearchNodes()

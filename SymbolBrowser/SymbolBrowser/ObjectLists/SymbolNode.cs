@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace Microsoft.SymbolBrowser.ObjectLists
 {
     /// <summary>
-    /// Root of our object list model. All nodes should inherit form this class
+    /// Root of our object list model
     /// </summary>
     public class SymbolNode : IVsSimpleObjectList2, IVsNavInfoNode
     {
@@ -53,8 +53,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             symbolPrefix = string.Empty,
             fName;
 
-        private uint
-            updateCount = 0;
+        private uint updateCount = 0;
+
+        public bool isObjectBrowserNode = false;
+
         private Dictionary<LibraryNodeType, SymbolNode> filteredView = new Dictionary<LibraryNodeType, SymbolNode>();
         private readonly List<SymbolNode> children = new List<SymbolNode>();
         /// <summary>
@@ -119,7 +121,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         public LibraryNodeType NodeListType
         {
             get { return nodeListType; }
-            set { nodeListType = value; }
         }
 
         /// <summary>
@@ -421,7 +422,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// </summary>
         /// <param name="pgrfCapabilities"></param>
         /// <returns></returns>
-        public virtual int GetCapabilities2(out uint pgrfCapabilities)
+        public int GetCapabilities2(out uint pgrfCapabilities)
         {
             // Copied from C# libray (root node)
             pgrfCapabilities = (uint)_LIB_LISTCAPABILITIES2.LLC_ALLOWELEMENTSEARCH;
@@ -446,7 +447,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetItemCount(out uint pCount)
         {
-            //Logger.Log("ResultList GetItemCount");
             pCount = (uint)children.Count;
             return VSConstants.S_OK;
         }
@@ -476,7 +476,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetTextWithOwnership(uint index, VSTREETEXTOPTIONS tto, out string pbstrText)
         {
-            //Logger.Log("ResultList GetTextWithOwnership");
             pbstrText = children[(int)index].symbolText;
             return VSConstants.S_OK;
         }
@@ -489,11 +488,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetTipTextWithOwnership(uint index, VSTREETOOLTIPTYPE eTipType, out string pbstrText)
         {
-            //Logger.Log("ResultList GetTipTextWithOwnership");
             pbstrText = children[(int)index].symbolText;
             return VSConstants.S_OK;
         }
-
         /// <summary>
         /// Returns the value for the specified category for the given list item. (LIB_CATEGORY enumeration)
         /// </summary>
@@ -503,12 +500,46 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public virtual int GetCategoryField2(uint index, int Category, out uint pfCatField)
         {
-            if (index == NullIndex)
-             // returning own categories
-                return GetCategory(Category, out pfCatField);            
+            if (isObjectBrowserNode)
+            {
+                pfCatField = (int)LIB_CATEGORY.LC_ACTIVEPROJECT;
+                return VSConstants.E_NOTIMPL;
+            }
             else
-                // Returning child node category
-                return Children[(int)index].GetCategory(Category, out pfCatField);
+            {
+                switch (Category)
+                {
+                    case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
+                        pfCatField = 0;
+                        break; // always 0
+
+                    case (int)LIB_CATEGORY.LC_LISTTYPE:
+                        pfCatField = (uint)nodeListType;
+                        break;
+                    case (int)LIB_CATEGORY.LC_VISIBILITY:
+                        pfCatField = (uint)visibility;
+                        break;
+                    case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
+                        pfCatField = (uint)hierarchyType;
+                        break;
+                    case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
+                        pfCatField = (uint)memberInheritance;
+                        break;
+                    case (int)LIB_CATEGORY.LC_CLASSTYPE:
+                        pfCatField = (uint)classType;
+                        break;
+                    case (int)LIB_CATEGORY.LC_MEMBERTYPE:
+                        pfCatField = (uint)memberType;
+                        break;
+                    case (int)LIB_CATEGORY.LC_MEMBERACCESS:
+                        pfCatField = (uint)memberAccess;
+                        break;
+                    default:
+                        pfCatField = 0;
+                        break;
+                }
+                return VSConstants.S_OK;
+            }
         }
         /// <summary>
         /// Returns a pointer to the property browse IDispatch for the given list item.
@@ -521,7 +552,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             //Logger.Log("ResultList.GetBrowseObject");
             ppdispBrowseObj = null;
             return VSConstants.E_NOTIMPL;
-            //throw new NotImplementedException();
         }
         /// <summary>
         /// Returns the user context object for the given list item.
@@ -531,7 +561,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetUserContext(uint index, out object ppunkUserCtx)
         {
-            //Logger.Log("ResultList GetUserContext");
             // is used for IntelliSence?... (uint)_LIB_LISTCAPABILITIES.LLC_HASSOURCECONTEXT
             // Got called on saving and closing the application using these symbols, WTF?!
             ppunkUserCtx = null;
@@ -555,7 +584,6 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetSourceContextWithOwnership(uint index, out string pbstrFilename, out uint pulLineNum)
         {
-            //Logger.Log("ResultList GetSourceContextWithOwnership");
             pbstrFilename = fName;
             pulLineNum = (uint)lineNumber;
             return VSConstants.S_OK;
@@ -641,7 +669,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetContextMenu(uint index, out Guid pclsidActive, out int pnMenuId, out IOleCommandTarget ppCmdTrgtActive)
         {
-            //Logger.Log("ResultList.GetContextMenu, returning E_NOTIMPL");
+            Logger.Log("ResultList.GetContextMenu, returning E_NOTIMPL");
             ppCmdTrgtActive = null;
             pnMenuId = 0;
             pclsidActive = new Guid();
@@ -671,7 +699,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <param name="pszNewName"></param>
         /// <param name="pfOK"></param>
         /// <returns></returns>
-        public int CanRename(uint index, string pszNewName, out int pfOK)
+         public int CanRename(uint index, string pszNewName, out int pfOK)
         {
             pfOK = 0;
             return VSConstants.E_NOTIMPL;
@@ -752,7 +780,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             //Logger.Log("ResultList.GetExtendedClipboardVariant");
             throw new NotImplementedException();
         }
-        
+
         /// <summary>
         /// Returns the specified property for the specified list item.
         /// </summary>
@@ -840,10 +868,10 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <returns></returns>
         public int GetList2(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
         {
-                //Logger.Log(string.Format(
-                //"ResultList.GetList2 index:{0} ListType: {1}",
-                //index,
-                //Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
+            //Logger.Log(string.Format(
+            //    "ResultList.GetList2 index:{0} ListType: {1}",
+            //    index,
+            //    Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
 
             ppIVsSimpleObjectList2 = children[(int)index].FilterView((LibraryNodeType)ListType, pobSrch);
 
