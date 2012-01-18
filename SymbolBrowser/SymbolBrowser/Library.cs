@@ -19,6 +19,27 @@ namespace Microsoft.SymbolBrowser
 
         public Library()
         {
+            CreateSearchNodes();
+            CreateObjectManagerNodes();
+            
+            //GetSupportedFileList();
+        }
+
+        private void CreateObjectManagerNodes()
+        {
+            objRoot = new RootNode("Test template", "", "testTemplace.zzz", 0, 0);
+            objRoot.NodeListType = SymbolNode.LibraryNodeType.PhysicalContainer;
+            objRoot.Children.Clear();
+            objRoot.Children.Add(new SymbolNode("ClassLibrary1", "", "Class1.cs", 7, 0,
+                SymbolNode.LibraryNodeType.Namespaces));
+            objRoot.Children[0].Children.Add(new SymbolNode("Class1", "ClassLibrary1.", "Class1.cs", 7, 17,
+                SymbolNode.LibraryNodeType.Classes));
+            objRoot.Children[0].Children[0].Children.Add(new SymbolNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs",
+                9, 22, SymbolNode.LibraryNodeType.Members));
+        }
+
+        private void CreateSearchNodes()
+        {
             // "flat" structure
             root = new SymbolNode("Test template", "", "testTemplace.zzz", 0, 0, SymbolNode.LibraryNodeType.Hierarchy);
 
@@ -69,21 +90,9 @@ namespace Microsoft.SymbolBrowser
             namespaceNode.AddChild(nsl1);
             namespaceNode.AddChild(nsl2);
 
-            root.AddChild(memberNode); 
+            root.AddChild(memberNode);
             root.AddChild(classNode);
             root.AddChild(namespaceNode);
-
-            // End of "flat" structure
-
-            objRoot = new RootNode("Test template", "", "testTemplace.zzz", 0, 0);
-            objRoot.NodeListType = SymbolNode.LibraryNodeType.PhysicalContainer;
-            objRoot.Children.Clear();
-            objRoot.Children.Add(new NamespaceObjectNode("ClassLibrary1", "", "Class1.cs", 7, 0));
-            objRoot.Children[0].Children.Add(new SymbolNode("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, SymbolNode.LibraryNodeType.Members));
-            objRoot.Children[0].Children[0].Children.Add(new SymbolNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22, SymbolNode.LibraryNodeType.Hierarchy));
-
-            
-            //GetSupportedFileList();
         }
 
         public void AddExternalReference(string symbol, IVsObjectList2 listToUse)

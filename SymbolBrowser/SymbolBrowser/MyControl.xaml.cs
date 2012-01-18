@@ -22,6 +22,8 @@ namespace Microsoft.SymbolBrowser
     /// </summary>
     public partial class MyControl : UserControl
     {
+        Guid csLibGuid = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
+
         public MyControl()
         {
             InitializeComponent();
@@ -49,7 +51,7 @@ namespace Microsoft.SymbolBrowser
             foreach (string s in typeNames)
                 foundLists.Add(s, null);
 
-            Guid csLibGuid = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
+            
 
             IVsLibrary2 csLib;
             if (!ErrorHandler.Succeeded(objectManager.FindLibrary(ref csLibGuid, out csLib)))
@@ -395,11 +397,15 @@ namespace Microsoft.SymbolBrowser
             }
 
             contentRoot.Items.Add("Search results list");
-
-            simpleLib.GetList2(
-                (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
-                (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
-                new[]
+            Guid libGuid;
+            simpleLib.GetGuid(out libGuid);
+            if (Guid.Equals(libGuid, csLibGuid))
+            {
+                // Block specific for C# library
+                simpleLib.GetList2(
+                    (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
+                    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
+                    new[]
                     {
                         new VSOBSEARCHCRITERIA2
                             {
@@ -408,24 +414,25 @@ namespace Microsoft.SymbolBrowser
                                 szName = "ClassLibrary1.Class1"
                             }
                     },
-                    out list);
+                        out list);
 
-            list.GetItemCount(out c);
+                list.GetItemCount(out c);
 
-            for (uint i = 0; i < c; i++)
-            {
-                string text;
-                list.GetTextWithOwnership(i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
-                var fileNode = new TreeViewItem { Header = text };
+                for (uint i = 0; i < c; i++)
+                {
+                    string text;
+                    list.GetTextWithOwnership(i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
+                    var fileNode = new TreeViewItem { Header = text };
 
-                fileNode.Items.Add(buildCapabilities(list, i));
+                    fileNode.Items.Add(buildCapabilities(list, i));
 
-                fileNode.Items.Add(buildProperties(list, i));
+                    fileNode.Items.Add(buildProperties(list, i));
 
-                foreach (var childList in buildNestedLists(list, i))
-                    fileNode.Items.Add(childList);
+                    foreach (var childList in buildNestedLists(list, i))
+                        fileNode.Items.Add(childList);
 
-                contentRoot.Items.Add(fileNode);
+                    contentRoot.Items.Add(fileNode);
+                }
             }
             return contentRoot;
         }
