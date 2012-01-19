@@ -4,83 +4,127 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
+using NDjango.Designer.SymbolLibrary.ObjectLists;
 
 //using System.Runtime.InteropServices.ComTypes;
 
 namespace NDjango.Designer.SymbolLibrary
 {
     [Guid("D918B9AC-1574-47BC-8CE8-3CFFD4073E88")]
-    public class NDjangoSymbolLibrary : IVsSimpleLibrary2, IVsLibrary
+    public class NDjangoSymbolLibrary : IVsSimpleLibrary2
     {
         private const string SUPPORTED_EXT = ".django";
-        private ResultList
-            root,
-            objRoot;
-        ResultList namespaceNode;
-        ResultList classNode;
-        ResultList memberNode;
+        private SymbolNode root;
+        private RootNode objRoot;
+        SymbolNode namespaceNode;
+        ModelNode classNode;
+        MemberNode memberNode;
 
         public NDjangoSymbolLibrary()
         {
-            root = new ResultList("Test template", "", "testTemplace.zzz", 0, 0, ResultList.LibraryNodeType.Package);
+            CreateSearchNodes();
+            CreateObjectManagerNodes();
+            
+            //GetSupportedFileList();
+        }
 
-            namespaceNode = new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Namespaces);
-            classNode = new ResultList("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, ResultList.LibraryNodeType.Members);
-            memberNode = new ResultList("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22, ResultList.LibraryNodeType.Members);
+        private void CreateObjectManagerNodes()
+        {
+            objRoot = new RootNode("Test template", "", "testTemplace.zzz", 0, 0);
+            objRoot.NodeListType = SymbolNode.LibraryNodeType.PhysicalContainer;
+            objRoot.Children.Clear();
+            objRoot.Children.Add(new SymbolNode("ClassLibrary1", "", "Class1.cs", 7, 0,
+                SymbolNode.LibraryNodeType.Namespaces));
+            objRoot.Children[0].Children.Add(new SymbolNode("Class1", "ClassLibrary1.", "Class1.cs", 7, 17,
+                SymbolNode.LibraryNodeType.Classes));
+            objRoot.Children[0].Children[0].Children.Add(new SymbolNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs",
+                9, 22, SymbolNode.LibraryNodeType.Members));
+        }
 
-            //ModelReferenceList classReferenceNode = new ModelReferenceList(@"C:\temp\c1.cs", "test.", "test class reference", 5, 4);
-            //classNode.AddChild(classReferenceNode);
+        private void CreateSearchNodes()
+        {
+            // "flat" structure
+            root = new SymbolNode("Test template", "", "testTemplace.zzz", 0, 0, SymbolNode.LibraryNodeType.Hierarchy);
 
-            //MemberReferenceList methodReferenceNode = new MemberReferenceList(@"C:\temp\c22.cs", "test2.", "test member reference", 5, 4);
-            //memberNode.AddChild(methodReferenceNode);
+            namespaceNode = new NamespaceNode("ClassLibrary1", "", "Class1.cs", 7, 0);
+            classNode = new ModelNode("Class1", "ClassLibrary1.", "Class1.cs", 7, 17);
+            memberNode = new MemberNode("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22);
+
+            ModelReferenceList
+                classReferenceNode = new ModelReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (8, 18) : public class Class1(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 8, 18),
+                classReferenceNode1 = new ModelReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class2.cs - (7, 13) : Class1 c1 = new Class1();(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class2.cs",
+                    "", 7, 13);
+            classNode.AddChild(classReferenceNode);
+            classNode.AddChild(classReferenceNode1);
+
+            MemberReferenceList
+                methodReferenceNode = new MemberReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (10, 23) : public Class1 GetBlaBlaBla()(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 10, 23),
+                methodReferenceNode1 = new MemberReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (0, 0) : public Class1 GetBlaBlaBla()(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 0, 0),
+                methodReferenceNode2 = new MemberReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (0, 0) : public Class1 GetBlaBlaBla()(NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 0, 0);
+
+            memberNode.AddChild(methodReferenceNode);
+            memberNode.AddChild(methodReferenceNode1);
+            memberNode.AddChild(methodReferenceNode2);
+
+            NamespaceReferenceList
+                nsl1 = new NamespaceReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs - (2, 2) (NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class1.cs",
+                    "", 0, 0),
+                nsl2 = new NamespaceReferenceList(
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class2.cs - (3, 3) (NDjango symbol)",
+                    @"C:\Users\sivanov\Documents\Visual Studio 2010\Projects\ClassLibrary1\ClassLibrary1\Class2.cs",
+                    "", 0, 0);
+
+            namespaceNode.AddChild(nsl1);
+            namespaceNode.AddChild(nsl2);
 
             root.AddChild(memberNode);
             root.AddChild(classNode);
             root.AddChild(namespaceNode);
-
-            objRoot = new ResultList(root);
-            objRoot.Children.Clear();
-            objRoot.Children.Add(new ResultList("ClassLibrary1", "", "Class1.cs", 7, 0, ResultList.LibraryNodeType.Namespaces));
-            objRoot.Children[0].Children.Add(new ResultList("Class1", "ClassLibrary1.", "Class1.cs", 7, 17, ResultList.LibraryNodeType.Classes));
-            objRoot.Children[0].Children[0].Children.Add(new ResultList("GetBlaBlaBla", "ClassLibrary1.Class1.", "Class1.cs", 9, 22, ResultList.LibraryNodeType.Members));
-
-
-            //GetSupportedFileList();
         }
 
-        //public void AddExternalReference(string symbol, IVsObjectList2 listToUse)
-        //{
-        //    bool found = false;
-        //    foreach (var c in root.Children)
-        //    {
-        //        if (string.Compare(symbol, c.UniqueName, false) == 0)
-        //        {
-        //            c.ListToReference = listToUse;
-        //            found = true;
-        //            break;
-        //        }
-        //        foreach (var c2 in c.Children)
-        //        {
-        //            if (string.Compare(symbol, c2.UniqueName, false) == 0)
-        //            {
-        //                c2.ListToReference = listToUse;
-        //                found = true;
-        //                break;
-        //            }
-        //            //foreach (var c3 in c2.Children)
-        //            //    if (string.Compare(symbol, c3.SymbolText, false) == 0)
-        //            //    {
-        //            //        c3.ListToReference = listToUse;
-        //            //        found = true;
-        //            //        break;
-        //            //    }
-        //        }
-        //    }
-        //    if (!found)
+        public void AddExternalReference(string symbol, IVsObjectList2 listToUse)
+        {
+            bool found = false;
+            foreach (var c in root.Children)
+            {
+                if (string.Compare(symbol, c.UniqueName, false) == 0)
+                {
+                    c.ListToReference = listToUse;
+                    found = true;
+                    break;
+                }
+                foreach (var c2 in c.Children)
+                {
+                    if (string.Compare(symbol, c2.UniqueName, false) == 0)
+                    {
+                        c2.ListToReference = listToUse;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if(!found)
+                
+                throw new IndexOutOfRangeException(String.Format("Could not find symbol with text {0}", symbol));
+        }
 
-        //        throw new IndexOutOfRangeException(String.Format("Could not find symbol with text {0}", symbol));
-        //}
-
+        #region ...
         //SI: This should be performed using NDjango means
         //private ProjectItems GetSupportedFileList()
         //{
@@ -119,7 +163,8 @@ namespace NDjango.Designer.SymbolLibrary
         //         * */
         //    }
         //    return null;
-        //}
+        //} 
+        #endregion
 
         #region IVsSimpleLibrary2 Members
 
@@ -147,11 +192,12 @@ namespace NDjango.Designer.SymbolLibrary
 
         public int GetLibFlags2(out uint pgrfFlags)
         {
+            // Same set as C# library has
             pgrfFlags =
                 (uint)_LIB_FLAGS.LF_EXPANDABLE
-                | (uint)_LIB_FLAGS.LF_PROJECT
+                |(uint)_LIB_FLAGS.LF_PROJECT
                 | (uint)_LIB_FLAGS2.LF_SUPPORTSBASETYPES
-                //| (uint)_LIB_FLAGS2.LF_SUPPORTSCLASSDESIGNER
+                | (uint)_LIB_FLAGS2.LF_SUPPORTSCLASSDESIGNER
                 | (uint)_LIB_FLAGS2.LF_SUPPORTSFILTERING
                 | (uint)_LIB_FLAGS2.LF_SUPPORTSINHERITEDMEMBERS
                 | (uint)_LIB_FLAGS2.LF_SUPPORTSLISTREFERENCES
@@ -162,6 +208,7 @@ namespace NDjango.Designer.SymbolLibrary
 
         public int GetList2(uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
         {
+            #region ...
             /*
             string strSearchCriteria = pobSrch[0].szName;
             uint grfOptions = pobSrch[0].grfOptions;
@@ -231,18 +278,22 @@ namespace NDjango.Designer.SymbolLibrary
 
             return VSConstants.S_OK;
             */
+            
+            #endregion
 
-            //Logger.Log(string.Format("GetList2 : Library ListType:{0}({1}) flags: {2}",
-            //    Enum.GetName(typeof(_LIB_LISTTYPE2), ListType),
-            //    Enum.GetName(typeof(_LIB_LISTTYPE), ListType),
-            //    Enum.GetName(typeof(_LIB_LISTFLAGS), flags)));
+            var listTypeName = Enum.GetName(typeof(_LIB_LISTTYPE), ListType);
+            if (listTypeName == "")
+                listTypeName = Enum.GetName(typeof(_LIB_LISTTYPE2), ListType);
+
+            
             if (pobSrch != null)
-                ppIVsSimpleObjectList2 = root.FilterView((ResultList.LibraryNodeType)ListType, pobSrch);
+                ppIVsSimpleObjectList2 = root.FilterView((SymbolNode.LibraryNodeType)ListType, pobSrch);
             else
                 ppIVsSimpleObjectList2 = objRoot;
             return VSConstants.S_OK;
 
 
+            #region ...
             //for (var i = 0; i < root.Children.Count; i++) {
             //    if (root.Children[i].NodeType == (ResultList.LibraryNodeType)ListType)
             //      root.GetList2(i, ListType, flags, pobSrch, out ppIVsSimpleObjectList2);
@@ -345,7 +396,8 @@ namespace NDjango.Designer.SymbolLibrary
             //    default:
             //        ppIVsSimpleObjectList2 = null;
             //        return VSConstants.E_FAIL;
-            //}
+            //} 
+            #endregion
         }
 
         public int GetSeparatorStringWithOwnership(out string pbstrSeparator)
@@ -356,109 +408,70 @@ namespace NDjango.Designer.SymbolLibrary
 
         public int GetSupportedCategoryFields2(int Category, out uint pgrfCatField)
         {
+            // Copied from C# library
+            #region Log part
+            /*
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_ACTIVEPROJECT - LCAP_SHOWALWAYS(1)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_CLASSACCESS - (47)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_CLASSTYPE - (574)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_CLASSTYPE as _LIBCAT_CLASSTYPE2 - (574)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_LISTTYPE - (31)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_MEMBERACCESS - (47)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_MEMBERTYPE - (25)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_MODIFIER - (24)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY LC_VISIBILITY - (3)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_HIERARCHYTYPE - (12)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_HIERARCHYTYPE as _LIBCAT_HIERARCHYTYPE2 - (12)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_Last2 - 0(0)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_MEMBERINHERITANCE - (33)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_NIL - 0(0)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_PHYSICALCONTAINERTYPE - (7)
+            1/11/2012 8:44 PM: C# LIB_CATEGORY2 LC_SEARCHMATCHTYPE - (0)
+             */
+            #endregion
             switch (Category)
             {
                 case (int)LIB_CATEGORY.LC_MEMBERTYPE:
-                    pgrfCatField = 
-                        (uint)_LIBCAT_MEMBERTYPE.LCMT_METHOD | 
-                        (uint)_LIBCAT_MEMBERTYPE.LCMT_PROPERTY | 
-                        (uint)_LIBCAT_MEMBERTYPE.LCMT_FIELD;
+                    pgrfCatField = 25;
                     break;
 
                 case (int)LIB_CATEGORY.LC_MEMBERACCESS:
-                    pgrfCatField =
-                        (uint) _LIBCAT_MEMBERACCESS.LCMA_PUBLIC |
-                        (uint) _LIBCAT_MEMBERACCESS.LCMA_PRIVATE |
-                        (uint) _LIBCAT_MEMBERACCESS.LCMA_PROTECTED |
-                        (uint) _LIBCAT_MEMBERACCESS.LCMA_PACKAGE |
-                        (uint) _LIBCAT_MEMBERACCESS.LCMA_SEALED;
-                    break;
-
-                case (int)LIB_CATEGORY.LC_CLASSTYPE:
-                    pgrfCatField =
-                        (uint)_LIBCAT_CLASSTYPE.LCCT_CLASS |
-                        (uint)_LIBCAT_CLASSTYPE.LCCT_INTERFACE |
-                        (uint)_LIBCAT_CLASSTYPE.LCCT_STRUCT |
-                        (uint)_LIBCAT_CLASSTYPE.LCCT_UNION |
-                        (uint) _LIBCAT_CLASSTYPE.LCCT_ENUM |
-                        (uint) _LIBCAT_CLASSTYPE.LCCT_DELEGATE;
-                    break;
-
-                case (int)LIB_CATEGORY.LC_CLASSACCESS:
-                    pgrfCatField =
-                        (uint)_LIBCAT_CLASSACCESS.LCCA_PUBLIC |
-                        (uint)_LIBCAT_CLASSACCESS.LCCA_PRIVATE |
-                        (uint)_LIBCAT_CLASSACCESS.LCCA_PROTECTED |
-                        (uint)_LIBCAT_CLASSACCESS.LCCA_PACKAGE |
-                        (uint)_LIBCAT_CLASSACCESS.LCCA_SEALED;
+                    pgrfCatField = 47;
                     break;
 
                 case (int)LIB_CATEGORY.LC_LISTTYPE:
-                    pgrfCatField =
-                        (uint) _LIB_LISTTYPE.LLT_HIERARCHY |
-                        (uint) _LIB_LISTTYPE.LLT_NAMESPACES |
-                        (uint) _LIB_LISTTYPE.LLT_CLASSES |
-                        (uint) _LIB_LISTTYPE.LLT_MEMBERS |
-                        (uint) _LIB_LISTTYPE.LLT_PHYSICALCONTAINERS;
+                    // 31
+                    pgrfCatField = (uint)(_LIB_LISTTYPE.LLT_PHYSICALCONTAINERS | _LIB_LISTTYPE.LLT_PACKAGE | _LIB_LISTTYPE.LLT_MEMBERS | _LIB_LISTTYPE.LLT_CLASSES | _LIB_LISTTYPE.LLT_NAMESPACES | _LIB_LISTTYPE.LLT_HIERARCHY);
                     break;
 
                 case (int)LIB_CATEGORY.LC_VISIBILITY:
-                    pgrfCatField =
-                        (uint) _LIBCAT_VISIBILITY.LCV_VISIBLE |
-                        (uint) _LIBCAT_VISIBILITY.LCV_HIDDEN;
+                    // 3
+                    pgrfCatField = (uint)(_LIBCAT_VISIBILITY.LCV_VISIBLE | _LIBCAT_VISIBILITY.LCV_HIDDEN);
                     break;
-
-                case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
-                    pgrfCatField = 
-                        (uint) _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_GLOBAL |
-                        (uint) _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECTREFERENCE |
-                        (uint) _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECT;
-                    break;
-
                 case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
-                    pgrfCatField =
-                        (uint) _LIBCAT_HIERARCHYTYPE.LCHT_BASESANDINTERFACES |
-                        (uint) _LIBCAT_HIERARCHYTYPE.LCHT_PROJECTREFERENCES;
+                    // 12
+                    pgrfCatField = (uint)(_LIBCAT_HIERARCHYTYPE.LCHT_PROJECTREFERENCES | _LIBCAT_HIERARCHYTYPE.LCHT_BASESANDINTERFACES);
                     break;
-
+                case (int)LIB_CATEGORY.LC_CLASSTYPE:
+                    pgrfCatField = (uint)574; // _LIBCAT_CLASSTYPE.LCCT_DELEGATE | _LIBCAT_CLASSTYPE.LCCT_ENUM |  _LIBCAT_CLASSTYPE.LCCT_UNION | _LIBCAT_CLASSTYPE.LCCT_STRUCT | _LIBCAT_CLASSTYPE.LCCT_INTERFACE | _LIBCAT_CLASSTYPE.LCCT_CLASS
+                    break;
+                case (int)LIB_CATEGORY.LC_CLASSACCESS:
+                    pgrfCatField = (uint)47; //_LIBCAT_CLASSACCESS.LCCA_SEALED | _LIBCAT_CLASSACCESS.LCCA_PUBLIC | _LIBCAT_CLASSACCESS.LCCA_PROTECTED | _LIBCAT_CLASSACCESS.LCCA_PRIVATE | _LIBCAT_CLASSACCESS.LCCA_PACKAGE;
+                    break;
                 case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
-                    pgrfCatField =
-                        (uint) _LIBCAT_MEMBERINHERITANCE.LCMI_IMMEDIATE |
-                        (uint) _LIBCAT_MEMBERINHERITANCE.LCMI_INHERITED;
+                    pgrfCatField = (uint)33; //_LIBCAT_MEMBERINHERITANCE.LCMI_INHERITED | _LIBCAT_MEMBERINHERITANCE.LCMI_IMMEDIATE;
                     break;
-
+                case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
+                    pgrfCatField = (uint)7; //_LIBCAT_PHYSICALCONTAINERTYPE.LCPT_GLOBAL | _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECTREFERENCE | _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECT;
+                    break;
                 default:
                     pgrfCatField = 0;
                     return VSConstants.E_FAIL;
             }
             return VSConstants.S_OK;
-
-            /*
-            switch (Category)
-            {
-                case (int)LIB_CATEGORY.LC_LISTTYPE:
-                    pgrfCatField = (uint)_LIB_LISTTYPE.LLT_REFERENCES;
-                    return VSConstants.S_OK;
-                case (int)LIB_CATEGORY.LC_ACTIVEPROJECT:
-                case (int)LIB_CATEGORY.LC_CLASSACCESS:
-                case (int)LIB_CATEGORY.LC_CLASSTYPE:
-                case (int)LIB_CATEGORY.LC_MEMBERACCESS:
-                case (int)LIB_CATEGORY.LC_MEMBERTYPE:
-                case (int)LIB_CATEGORY.LC_MODIFIER:
-                case (int)LIB_CATEGORY.LC_NODETYPE:
-                case (int)LIB_CATEGORY.LC_VISIBILITY:
-                case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
-                case (int)_LIB_CATEGORY2.LC_MEMBERINHERITANCE:
-                case (int)_LIB_CATEGORY2.LC_NIL:
-                case (int)_LIB_CATEGORY2.LC_PHYSICALCONTAINERTYPE:
-                case (int)_LIB_CATEGORY2.LC_SEARCHMATCHTYPE:
-                default:
-                    pgrfCatField = 0;
-                    return VSConstants.E_FAIL;
-            }*/
         }
 
-        public int LoadState(Microsoft.VisualStudio.OLE.Interop.IStream pIStream, LIB_PERSISTTYPE lptType)
+        public int LoadState(IStream pIStream, LIB_PERSISTTYPE lptType)
         {
             throw new NotImplementedException();
         }
@@ -468,7 +481,7 @@ namespace NDjango.Designer.SymbolLibrary
             throw new NotImplementedException();
         }
 
-        public int SaveState(Microsoft.VisualStudio.OLE.Interop.IStream pIStream, LIB_PERSISTTYPE lptType)
+        public int SaveState(IStream pIStream, LIB_PERSISTTYPE lptType)
         {
             throw new NotImplementedException();
         }
@@ -481,70 +494,5 @@ namespace NDjango.Designer.SymbolLibrary
         }
 
         #endregion
-
-        #region IVsLibrary Members
-
-        int IVsLibrary.AddBrowseContainer(VSCOMPONENTSELECTORDATA[] pcdComponent, ref uint pgrfOptions, out string pbstrComponentAdded)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsLibrary.GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsLibrary.GetGuid(out Guid ppguidLib)
-        {
-            return GetGuid(out ppguidLib);
-        }
-
-        int IVsLibrary.GetLibFlags(out uint pfFlags)
-        {
-            return GetLibFlags2(out pfFlags);
-        }
-
-        int IVsLibrary.GetLibList(LIB_PERSISTTYPE lptType, out IVsLiteTreeList pplist)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsLibrary.GetList(uint listType, uint flags, VSOBSEARCHCRITERIA[] pobSrch, out IVsObjectList pplist)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsLibrary.GetSeparatorString(string[] pszSeparator)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsLibrary.GetSupportedCategoryFields(LIB_CATEGORY Category, out uint pCatField)
-        {
-            return GetSupportedCategoryFields2((int)Category, out pCatField);
-        }
-
-        int IVsLibrary.LoadState(IStream pIStream, LIB_PERSISTTYPE lptType)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsLibrary.RemoveBrowseContainer(uint dwReserved, string pszLibName)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsLibrary.SaveState(IStream pIStream, LIB_PERSISTTYPE lptType)
-        {
-            throw new NotImplementedException();
-        }
-
-        int IVsLibrary.UpdateCounter(out uint pCurUpdate)
-        {
-            return UpdateCounter(out pCurUpdate);
-        }
-
-        #endregion
     }
-
 }

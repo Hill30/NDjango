@@ -26,6 +26,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using NDjango.Designer.SymbolLibrary;
 using NDjango.Interfaces;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Shell;
@@ -64,6 +65,9 @@ namespace NDjango.Designer.Parsing
 
         public string Filename { get; private set; }
 
+        private NDjangoSymbolLibrary djangoSymbolLibrary;
+        private uint libraryCookie;
+
         class ModelMeta
         {
             public string ModelClass { get; set; }
@@ -82,14 +86,18 @@ namespace NDjango.Designer.Parsing
         /// <param name="buffer">buffer to watch</param>
         public NodeProvider(IProjectHandler project, string filename, NDjango.TypeResolver.ITypeResolver type_resolver)
         {
+            
             Project = project;
             this.type_resolver = type_resolver;
             Filename = filename;
 
             // we need to run rebuildNodes on a separate thread. Using timer
             // for this seems to be an overkill, but we need the timer anyway so - why not
-            parserTimer =
-                new Timer(rebuildNodes, null, 0, Timeout.Infinite);
+            parserTimer = new Timer(rebuildNodes, null, 0, Timeout.Infinite);
+
+            djangoSymbolLibrary = new NDjangoSymbolLibrary();
+            //GlobalServices.ObjectManager.RegisterSimpleLibrary(djangoSymbolLibrary, out libraryCookie);
+
         }
 
         /// <summary>

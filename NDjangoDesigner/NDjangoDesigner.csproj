@@ -137,9 +137,17 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="NDjangoDesignerPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SymbolLibrary\LibraryMgr.cs" />
     <Compile Include="SymbolLibrary\NDjangoSymbolLibrary.cs" />
-    <Compile Include="SymbolLibrary\ResultList.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\MemberNode.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\MemberReferenceList.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\ModelNode.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\ModelReferenceList.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\NamespaceNode.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\NamespaceObjectNode.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\NamespaceReferenceList.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\NodeReferenceList.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\RootNode.cs" />
+    <Compile Include="SymbolLibrary\ObjectLists\SymbolNode.cs" />
     <Compile Include="Tags\Tagger.cs" />
     <Compile Include="Tags\TaggerProvider.cs" />
   </ItemGroup>

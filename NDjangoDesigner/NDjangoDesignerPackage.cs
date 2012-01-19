@@ -34,8 +34,8 @@ namespace NDjango.Designer
     {
         private AddViewDlg viewDialog;
 
-        [Import]
-        public ILibraryMgr libraryMgr;
+//        [Import]
+//        public ILibraryMgr libraryMgr;
 
         /// <summary>
         /// This function is called when the user clicks the menu item that shows the 
@@ -69,14 +69,14 @@ namespace NDjango.Designer
 
             ((IComponentModel)GetGlobalService(typeof(SComponentModel))).DefaultCompositionService.SatisfyImportsOnce(this);
 
-            libraryMgr.Initialize();
+            //libraryMgr.Initialize();
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                libraryMgr.Dispose();
+                //libraryMgr.Dispose();
             }
             base.Dispose(disposing);
         }
