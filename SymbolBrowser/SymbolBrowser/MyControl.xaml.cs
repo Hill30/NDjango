@@ -259,23 +259,9 @@ namespace Microsoft.SymbolBrowser
 
             Guid libGuid;
             ErrorHandler.Succeeded(simpleLib.GetGuid(out libGuid));
-
             IVsNavInfo navInfo = null;
-
             var rc = VSConstants.E_NOTIMPL;
-            //for (var i = (uint)0; navInfo==null && i<32 && rc != VSConstants.S_OK; i++)
-            //{
-            //    //rc = extras.CreateNavInfo(
-            //    //    libGuid,
-            //    //    new[]
-            //    //        {
-            //    //            new SYMBOL_DESCRIPTION_NODE {dwType = (uint)(0), pszName = "ClassLibrary12"},
-            //    //        },
-            //    //    1,
-            //    //    out navInfo
-            //    //    );
-            //    //if (rc == VSConstants.S_OK)
-            //    //    break;
+
             rc = extras.CreateNavInfo(
                 libGuid,
                 new[]
@@ -285,7 +271,6 @@ namespace Microsoft.SymbolBrowser
                 1,
                 out navInfo
                 );
-            //}
 
             var navInfoRoot = new TreeViewItem { Header = "NavInfo (rc=" + rc + ")" };
             if (rc == VSConstants.S_OK)
@@ -354,6 +339,9 @@ namespace Microsoft.SymbolBrowser
 
             libRoot.Items.Add("Flags=" + flags);
 
+            libRoot.Items.Add(ExpandLibrary(simpleLib));
+
+            #region ...
             //IVsLiteTreeList globalLibs;
             //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
             //AddLibList(libRoot, "Global", globalLibs);
@@ -362,7 +350,7 @@ namespace Microsoft.SymbolBrowser
             //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
             //AddLibList(libRoot, "Project", globalLibs);
 
-            libRoot.Items.Add(ExpandLibrary(simpleLib));
+
 
             //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_NAMESPACES);
 
@@ -371,7 +359,8 @@ namespace Microsoft.SymbolBrowser
             //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_MEMBERS);
 
             //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_REFERENCES);
-            //expander.Items.Add(libRoot);
+            //expander.Items.Add(libRoot); 
+            #endregion
         }
 
         TreeViewItem ExpandLibrary(IVsSimpleLibrary2 simpleLib)
@@ -399,45 +388,61 @@ namespace Microsoft.SymbolBrowser
                 contentRoot.Items.Add(fileNode);
             }
 
-            contentRoot.Items.Add("Search results list");
+            
             Guid libGuid;
             simpleLib.GetGuid(out libGuid);
             if (Guid.Equals(libGuid, csLibGuid))
             {
                 // Block specific for C# library
-                simpleLib.GetList2(
-                    (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
-                    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
-                    new[]
+
+                contentRoot.Items.Add("Search library for class Class1");
+
+                SearchLibForItem(contentRoot, simpleLib, _LIB_LISTTYPE.LLT_CLASSES, "ClassLibrary1.Class1");
+
+                contentRoot.Items.Add("Search library for method GetBlaBlaBla");
+
+                SearchLibForItem(contentRoot, simpleLib, _LIB_LISTTYPE.LLT_MEMBERS, "GetBlaBlaBla");
+            }
+
+            return contentRoot;
+        }
+
+        void SearchLibForItem(TreeViewItem contentRoot, IVsSimpleLibrary2 simpleLib, _LIB_LISTTYPE listType, string searchPhrase) 
+        {
+            IVsSimpleObjectList2 list;
+            uint c;
+
+            simpleLib.GetList2(
+                (uint)listType, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
+                (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
+                new[]
                     {
                         new VSOBSEARCHCRITERIA2
                             {
                                 eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
                                 grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
-                                szName = "ClassLibrary1.Class1"
+                                szName = searchPhrase
                             }
                     },
-                        out list);
+                    out list);
 
-                list.GetItemCount(out c);
+            list.GetItemCount(out c);
 
-                for (uint i = 0; i < c; i++)
-                {
-                    string text;
-                    list.GetTextWithOwnership(i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
-                    var fileNode = new TreeViewItem { Header = text };
+            for (uint i = 0; i < c; i++)
+            {
+                string text;
+                list.GetTextWithOwnership(i, VSTREETEXTOPTIONS.TTO_DEFAULT, out text);
+                var fileNode = new TreeViewItem { Header = text };
 
-                    fileNode.Items.Add(buildCapabilities(list, i));
+                fileNode.Items.Add(buildCapabilities(list, i));
 
-                    fileNode.Items.Add(buildProperties(list, i));
+                fileNode.Items.Add(buildProperties(list, i));
 
-                    foreach (var childList in buildNestedLists(list, i))
-                        fileNode.Items.Add(childList);
+                foreach (var childList in buildNestedLists(list, i))
+                    fileNode.Items.Add(childList);
 
-                    contentRoot.Items.Add(fileNode);
-                }
+                contentRoot.Items.Add(fileNode);
             }
-            return contentRoot;
         }
 
         [HandleProcessCorruptedStateExceptions]

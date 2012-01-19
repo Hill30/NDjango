@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.SymbolBrowser
 {
-    [Guid("D918B9AC-1574-47BC-8CE8-3CFFD4073E88")]
+    [Guid("5566BB11-6B6D-4CE2-B64B-E75E96BCE227")]
     public class Library2 : IVsLibrary2
     {
         private const string 
@@ -20,7 +20,7 @@ namespace Microsoft.SymbolBrowser
         ModelNode2 classNode;
         MemberNode2 memberNode;
 
-        private Guid libraryGuid = new Guid("D918B9AC-1574-47BC-8CE8-3CFFD4073E88");
+        private Guid libraryGuid = new Guid("5566BB11-6B6D-4CE2-B64B-E75E96BCE227");
         
 
         public Library2()
