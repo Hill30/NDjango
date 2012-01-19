@@ -12,7 +12,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
     /// <summary>
     /// Root of our object list model
     /// </summary>
-    public class SymbolNode : IVsSimpleObjectList2, IVsNavInfoNode
+    public class SymbolNode2 : IVsObjectList2, IVsNavInfoNode, IVsLiteTreeList
     {
         /// <summary>
         /// Enumeration of the possible types of node. The type of a node can be the combination
@@ -57,8 +57,8 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         public bool isObjectBrowserNode = false;
 
-        private Dictionary<LibraryNodeType, SymbolNode> filteredView = new Dictionary<LibraryNodeType, SymbolNode>();
-        private readonly List<SymbolNode> children = new List<SymbolNode>();
+        private Dictionary<LibraryNodeType, SymbolNode2> filteredView = new Dictionary<LibraryNodeType, SymbolNode2>();
+        private readonly List<SymbolNode2> children = new List<SymbolNode2>();
         /// <summary>
         /// Type of child items this list contains
         /// </summary>
@@ -76,7 +76,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         protected _LIBCAT_PHYSICALCONTAINERTYPE phisContainerType = _LIBCAT_PHYSICALCONTAINERTYPE.LCPT_PROJECT; // 4
         protected _LIBCAT_SEARCHMATCHTYPE srchMatchType = _LIBCAT_SEARCHMATCHTYPE.LSMT_LEAF_WHOLEWORD; // 4
 
-        public SymbolNode(string text, string prefix, string fName, int lineNumber, int columnNumber, LibraryNodeType type)
+        public SymbolNode2(string text, string prefix, string fName, int lineNumber, int columnNumber, LibraryNodeType type)
         {
             this.symbolText = text;
             this.symbolPrefix = prefix;
@@ -86,7 +86,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             this.nodeListType = type;
         }
 
-        internal SymbolNode(SymbolNode node)
+        internal SymbolNode2(SymbolNode2 node)
         {
             this.symbolText = node.symbolText;
             this.symbolPrefix = node.symbolPrefix;
@@ -128,12 +128,12 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// </summary>
         public IVsObjectList2 ListToReference { get; set; }
 
-        public void AddChild(SymbolNode child)
+        public void AddChild(SymbolNode2 child)
         {
             children.Add(child);
             updateCount++;
         }
-        public void RemoveChild(SymbolNode child)
+        public void RemoveChild(SymbolNode2 child)
         {
             children.Remove(child);
             updateCount++;
@@ -172,9 +172,9 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             description.AddDescriptionText3(symbolText, VSOBDESCRIPTIONSECTION.OBDS_NAME, null);
         }
 
-        internal IVsSimpleObjectList2 FilterView(LibraryNodeType filterType, VSOBSEARCHCRITERIA2[] pobSrch)
+        internal IVsObjectList2 FilterView(LibraryNodeType filterType, VSOBSEARCHCRITERIA2[] pobSrch)
         {
-            SymbolNode
+            SymbolNode2
                 filtered = null,
                 temp = null;
 
@@ -217,12 +217,12 @@ namespace Microsoft.SymbolBrowser.ObjectLists
                         i += 1;
             }
 
-            return filtered as IVsSimpleObjectList2;
+            return filtered as IVsObjectList2;
         }
 
-        protected virtual SymbolNode Clone()
+        protected virtual SymbolNode2 Clone()
         {
-            return new SymbolNode(this);
+            return new SymbolNode2(this);
         }
 
         protected virtual void OpenSourceFile()
@@ -350,7 +350,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             return VSConstants.S_OK;
         }
 
-        public List<SymbolNode> Children { get { return children; } }
+        public List<SymbolNode2> Children { get { return children; } }
 
         #region Iron Python had some search for document pointer using RDT.
         // To me it seems that VS does the same thing itself
@@ -624,7 +624,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <param name="SrcType"></param>
         /// <param name="pfOK"></param>
         /// <returns></returns>
-        int IVsSimpleObjectList2.CanGoToSource(uint index, VSOBJGOTOSRCTYPE SrcType, out int pfOK)
+        int IVsObjectList2.CanGoToSource(uint index, VSOBJGOTOSRCTYPE SrcType, out int pfOK)
         {
             //if (ListToReference != null && index == ) {
 
@@ -646,7 +646,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <param name="index"></param>
         /// <param name="SrcType"></param>
         /// <returns></returns>
-        int IVsSimpleObjectList2.GoToSource(uint index, VSOBJGOTOSRCTYPE SrcType)
+        int IVsObjectList2.GoToSource(uint index, VSOBJGOTOSRCTYPE SrcType)
         {
             if (index >= (uint)children.Count)
             {
@@ -715,7 +715,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
         /// <param name="index"></param>
         /// <param name="pfOK"></param>
         /// <returns></returns>
-        int IVsSimpleObjectList2.CanDelete(uint index, out int pfOK)
+        int IVsObjectList2.CanDelete(uint index, out int pfOK)
         {
             //Logger.Log("ResultList.CanDelete");
             if (index >= (uint)children.Count)
@@ -857,26 +857,7 @@ namespace Microsoft.SymbolBrowser.ObjectLists
             pfExpandable = children[(int)index].IsExpandable ? 1 : 0;
             return VSConstants.S_OK;
         }
-        /// <summary>
-        /// Returns a child IVsSimpleObjectList2 for the specified category.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="ListType"></param>
-        /// <param name="flags"></param>
-        /// <param name="pobSrch"></param>
-        /// <param name="ppIVsSimpleObjectList2"></param>
-        /// <returns></returns>
-        public int GetList2(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
-        {
-            //Logger.Log(string.Format(
-            //    "ResultList.GetList2 index:{0} ListType: {1}",
-            //    index,
-            //    Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
-
-            ppIVsSimpleObjectList2 = children[(int)index].FilterView((LibraryNodeType)ListType, pobSrch);
-
-            return VSConstants.S_OK;
-        }
+        
         /// <summary>
         /// Notifies the current tree list that it is being closed.
         /// </summary>
@@ -908,6 +889,156 @@ namespace Microsoft.SymbolBrowser.ObjectLists
 
         #endregion
 
+        int IVsObjectList2.FillDescription(uint index, uint grfOptions, IVsObjectBrowserDescription2 pobDesc)
+        {
+            throw new NotImplementedException();
+        }
 
+        int IVsObjectList2.GetExpandable(uint index, out int pfExpandable)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        int IVsObjectList2.GetExpandedList(uint index, out int pfCanRecurse, out IVsLiteTreeList pptlNode)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList2.GetListChanges(ref uint pcChanges, VSTREELISTITEMCHANGE[] prgListChanges)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList2.GetNavigationInfo2(uint index, VSOBNAVIGATIONINFO3[] pobNav)
+        {
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsObjectList2.GetSourceContext(uint index, IntPtr pszFilename, out uint pulLineNum)
+        {
+            pulLineNum = 0;
+            return VSConstants.E_NOTIMPL;
+        }
+
+        int IVsObjectList2.GetText(uint index, VSTREETEXTOPTIONS tto, out string ppszText)
+        {
+            if (index == NullIndex)
+                ppszText = this.UniqueName;
+            else
+                ppszText = children[(int)index].UniqueName;
+            return VSConstants.S_OK;
+        }
+
+        int IVsObjectList2.GetTipText(uint index, VSTREETOOLTIPTYPE eTipType, out string ppszText)
+        {
+            if (index == NullIndex)
+                ppszText = this.UniqueName;
+            else
+                ppszText = children[(int)index].UniqueName;
+            return VSConstants.S_OK;
+        }
+
+        int IVsObjectList2.LocateExpandedList(IVsLiteTreeList ExpandedList, out uint iIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList2.LocateNavigationInfo2(VSOBNAVIGATIONINFO3[] pobNav, VSOBNAVNAMEINFONODE2[] pobName, int fDontUpdate, out int pfMatchedName, out uint pIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList2.ToggleState(uint index, out uint ptscr)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsObjectList2.UpdateCounter(out uint pCurUpdate, out uint pgrfChanges)
+        {
+            pCurUpdate = 0;
+            pgrfChanges = (uint)_VSTREEITEMCHANGESMASK.TCT_NOCHANGE;
+            return VSConstants.S_OK;
+        }
+        /// <summary>
+        /// Returns a child IVsObjectList2 for the specified category.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="ListType"></param>
+        /// <param name="flags"></param>
+        /// <param name="pobSrch"></param>
+        /// <param name="ppIVsObjectList2"></param>
+        /// <returns></returns>
+        int IVsObjectList2.GetList2(uint index, uint ListType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsObjectList2 ppIVsObjectList2)
+        {
+            //Logger.Log(string.Format(
+            //"ResultList.GetList2 index:{0} ListType: {1}",
+            //index,
+            //Enum.GetName(typeof(_LIB_LISTTYPE), ListType)));
+
+            ppIVsObjectList2 = children[(int)index].FilterView((LibraryNodeType)ListType, pobSrch);
+
+            return VSConstants.S_OK;
+        }
+
+        int IVsLiteTreeList.GetDisplayData(uint index, VSTREEDISPLAYDATA[] pData)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetExpandable(uint index, out int pfExpandable)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetExpandedList(uint index, out int pfCanRecurse, out IVsLiteTreeList pptlNode)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetFlags(out uint pFlags)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetItemCount(out uint pCount)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetListChanges(ref uint pcChanges, VSTREELISTITEMCHANGE[] prgListChanges)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetText(uint index, VSTREETEXTOPTIONS tto, out string ppszText)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.GetTipText(uint index, VSTREETOOLTIPTYPE eTipType, out string ppszText)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.LocateExpandedList(IVsLiteTreeList ExpandedList, out uint iIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.OnClose(VSTREECLOSEACTIONS[] ptca)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.ToggleState(uint index, out uint ptscr)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IVsLiteTreeList.UpdateCounter(out uint pCurUpdate, out uint pgrfChanges)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

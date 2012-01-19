@@ -114,6 +114,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Library2.cs" />
     <Compile Include="Library.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MyControl.xaml.cs">
@@ -121,6 +122,15 @@
     </Compile>
     <Compile Include="MyToolWindow.cs" />
     <Compile Include="Guids.cs" />
+    <Compile Include="ObjectLists\MemberReferenceList2.cs" />
+    <Compile Include="ObjectLists\RootNode2.cs" />
+    <Compile Include="ObjectLists\ModelReferenceList2.cs" />
+    <Compile Include="ObjectLists\NamespaceReferenceList2.cs" />
+    <Compile Include="ObjectLists\NodeReferenceList2.cs" />
+    <Compile Include="ObjectLists\MemberNode2.cs" />
+    <Compile Include="ObjectLists\ModelNode2.cs" />
+    <Compile Include="ObjectLists\NamespaceNode2.cs" />
+    <Compile Include="ObjectLists\SymbolNode2.cs" />
     <Compile Include="ObjectLists\NamespaceObjectNode.cs" />
     <Compile Include="ObjectLists\NamespaceNode.cs" />
     <Compile Include="ObjectLists\ModelNode.cs" />
