@@ -24,139 +24,205 @@ namespace Microsoft.SymbolBrowser
     {
         Guid csLibGuid = new Guid("58f1bad0-2288-45b9-ac3a-d56398f7781d");
 
+        // types and methods to be added to the library as symbols
+        string[] typeNames = new string[] { "ClassLibrary1.Class1" };
+        string[] methodNames = new string[] { "ClassLibrary1.Class1.GetBlaBlaBla" };
+
+        Library2 library;
+        private uint libCookie;
+        Cursor initialCursor = Cursors.Arrow;
+
         public MyControl()
         {
             InitializeComponent();
+            initialCursor = this.Cursor;
         }
-
-        Library2 library;
-        
-        private uint libCookie;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
         private void button1_Click(object sender, RoutedEventArgs e)
         {
-            var objectManager = SymbolBrowserPackage.GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
-            if (library == null)
+            try
+            {   
+                this.Cursor = Cursors.Wait;
+
+                var objectManager = SymbolBrowserPackage.GetGlobalService(typeof(SVsObjectManager)) as IVsObjectManager2;
+                if (library == null)
+                {
+                    //library = new Library();                
+                    //objectManager.RegisterSimpleLibrary(library, out libCookie);
+
+                    library = new Library2();
+                    objectManager.RegisterLibrary(library, out libCookie);
+                }
+
+                IVsLibrary2 csLib;
+                if (!ErrorHandler.Succeeded(objectManager.FindLibrary(ref csLibGuid, out csLib)))
+                {
+                    MessageBox.Show("Could not load native C# library");
+                    return;
+                }
+
+                LogLibrarySupportedCategories(csLib);
+
+                #region Forming logs with symbol list structure
+                // SI: Uncomment one of the blocks to make logger log the data for the corresponding list
+
+                //IVsObjectList2 simpleList;
+                //foreach (_LIB_LISTTYPE eVal in Enum.GetValues(typeof(_LIB_LISTTYPE)))
+                //{
+                //    simpleList = null;
+                //    csLib.GetList2((uint)eVal, 0, null, out simpleList);
+                //    ExploreListStructure(simpleList, "Simple list (" + eVal.ToString() + ")");
+                //}
+
+                //IVsObjectList2 searchList;
+                //csLib.GetList2(
+                //    (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
+                //    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
+                //    new[]
+                //        {
+                //            new VSOBSEARCHCRITERIA2
+                //                {
+                //                    eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
+                //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
+                //                    szName = "ClassLibrary1.Class1"
+                //                }
+                //        },
+                //        out searchList);
+                //ExploreListStructure(searchList, "Search for ClassLibrary1.Class1 result list");
+
+                //csLib.GetList2(
+                //    (uint)_LIB_LISTTYPE.LLT_MEMBERS, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
+                //    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
+                //    new[]
+                //        {
+                //            new VSOBSEARCHCRITERIA2
+                //                {
+                //                    eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
+                //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
+                //                    szName = "ClassLibrary1.Class1.GetBlaBlaBla"
+                //                }
+                //        },
+                //        out searchList);
+                //ExploreListStructure(searchList, "Search for ClassLibrary1.Class1.GetBlaBlaBla result list"); 
+                #endregion
+
+                // Obtain a list of corresponding symbols from native C# library
+                foreach (var s in typeNames)
+                    AddSymbolToLibrary(_LIB_LISTTYPE.LLT_CLASSES, s, ref csLib);
+
+                // Obtain a list of corresponding symbols from native C# library
+                foreach (var s in methodNames)
+                    AddSymbolToLibrary(_LIB_LISTTYPE.LLT_MEMBERS, s, ref csLib);
+
+                IVsCombinedBrowseComponentSet extras;
+                ErrorHandler.Succeeded(objectManager.CreateCombinedBrowseComponentSet(out extras));
+
+                var solution = SymbolBrowserPackage.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
+
+                IEnumHierarchies hiers;
+                ErrorHandler.Succeeded(solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, Guid.Empty, out hiers));
+                var projects = new IVsHierarchy[20];
+                uint actualCount;
+                ErrorHandler.Succeeded(hiers.Next((uint)projects.Length, projects, out actualCount));
+
+                foreach (var project in projects)
+                {
+                    if (project == null) continue;
+                    IVsSimpleBrowseComponentSet subset;
+                    ErrorHandler.Succeeded(objectManager.CreateSimpleBrowseComponentSet(
+                        (uint)_BROWSE_COMPONENT_SET_TYPE.BCST_EXCLUDE_LIBRARIES,
+                        null, 0, out subset));
+
+                    ErrorHandler.Succeeded(subset.put_Owner(project));
+
+                    ErrorHandler.Succeeded(extras.AddSet(subset));
+                }
+
+                IVsEnumLibraries2 libs;
+                ErrorHandler.Succeeded(objectManager.EnumLibraries(out libs));
+                var libArray = new IVsLibrary2[20];
+                uint fetched;
+                libs.Next((uint)libArray.Length, libArray, out fetched);
+                treeView1.Items.Clear();
+                foreach (var lib in libArray)
+                {
+                    if (lib == null)
+                        continue;
+
+                    AddLibrary(lib, extras);
+                }
+            }
+            finally 
             {
-                //library = new Library();
-                library = new Library2();
-                //objectManager.RegisterSimpleLibrary(library, out libCookie);
-                objectManager.RegisterLibrary(library, out libCookie);
+                this.Cursor = initialCursor;
+            }
+        }
+
+        private void TryCastingList(IVsLibrary2 csLib, TreeViewItem libRoot)
+        {
+            IVsObjectList2 list;
+            TreeViewItem treeItem = new TreeViewItem
+            {
+                Header = "Casting results"
+            };
+
+
+            var success = ErrorHandler.Succeeded(csLib.GetList2(
+                (uint)_LIB_LISTTYPE.LLT_CLASSES,
+                (uint)_LIB_LISTFLAGS.LLF_USESEARCHFILTER,
+                new[]
+                    {
+                        new VSOBSEARCHCRITERIA2
+                            {
+                                eSrchType = VSOBSEARCHTYPE.SO_SUBSTRING,
+                                grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_NONE,
+                                szName = "a"
+                            }
+                    }, out list));
+
+            uint flags = 0;
+            try
+            {
+                ((IVsLiteTreeList)list).GetFlags(out flags);
+                treeItem.Items.Add("Casting IVsObjectList2 to IVsLiteTreeList: Success");
+            }
+            catch
+            {
+                treeItem.Items.Add("Casting IVsObjectList2 to IVsLiteTreeList: ERROR");
             }
 
-            // ToDo:
-            // OBTAIN A LIST OF MODELS
-            string[] typeNames = new string[] { "ClassLibrary1.Class1" };
-            string[] methodNames = new string[] { "ClassLibrary1.Class1.GetBlaBlaBla" };
-            // creating storage fo rfound results
-            Dictionary<string, IVsSimpleObjectList2> foundLists = new Dictionary<string, IVsSimpleObjectList2>();
-            foreach (string s in typeNames)
-                foundLists.Add(s, null);
-
-            
-
-            IVsLibrary2 csLib;
-            if (!ErrorHandler.Succeeded(objectManager.FindLibrary(ref csLibGuid, out csLib)))
+            try
             {
-                MessageBox.Show("Could not load native C# library");
-                return;
+                ((IVsLiteTreeList)csLib).GetFlags(out flags);
+                treeItem.Items.Add("Casting IVsLibrary2 to IVsLiteTreeList: Success");
+            }
+            catch
+            {
+                treeItem.Items.Add("Casting IVsLibrary2 to IVsLiteTreeList: ERROR");
             }
 
-            LogLibrarySupportedCategories(csLib);
-
-            #region Forming logs with symbol list structure
-            // SI: Uncomment one of the blocks to make logger log the data for the corresponding list
-
-            //IVsObjectList2 simpleList;
-            //foreach (_LIB_LISTTYPE eVal in Enum.GetValues(typeof(_LIB_LISTTYPE)))
-            //{
-            //    simpleList = null;
-            //    csLib.GetList2((uint)eVal, 0, null, out simpleList);
-            //    ExploreListStructure(simpleList, "Simple list (" + eVal.ToString() + ")");
-            //}
-
-            //IVsObjectList2 searchList;
-            //csLib.GetList2(
-            //    (uint)_LIB_LISTTYPE.LLT_CLASSES, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
-            //    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
-            //    new[]
-            //        {
-            //            new VSOBSEARCHCRITERIA2
-            //                {
-            //                    eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
-            //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
-            //                    szName = "ClassLibrary1.Class1"
-            //                }
-            //        },
-            //        out searchList);
-            //ExploreListStructure(searchList, "Search for ClassLibrary1.Class1 result list");
-
-            //csLib.GetList2(
-            //    (uint)_LIB_LISTTYPE.LLT_MEMBERS, // search for classes - LLT_CLASSES, methods - LLT_MEMBERS
-            //    (uint)(_LIB_LISTFLAGS.LLF_USESEARCHFILTER | _LIB_LISTFLAGS.LLF_DONTUPDATELIST),
-            //    new[]
-            //        {
-            //            new VSOBSEARCHCRITERIA2
-            //                {
-            //                    eSrchType = VSOBSEARCHTYPE.SO_ENTIREWORD,
-            //                    grfOptions = (uint) _VSOBSEARCHOPTIONS.VSOBSO_LOOKINREFS, // 2                                
-            //                    szName = "ClassLibrary1.Class1.GetBlaBlaBla"
-            //                }
-            //        },
-            //        out searchList);
-            //ExploreListStructure(searchList, "Search for ClassLibrary1.Class1.GetBlaBlaBla result list"); 
-            #endregion
-
-            // Obtain a list of corresponding symbols from native C# library
-            foreach (var s in typeNames)
+            try
             {
-                AddSymbolToLibrary(_LIB_LISTTYPE.LLT_CLASSES, s, ref csLib);
-            }//foreach
-
-            // Obtain a list of corresponding symbols from native C# library
-            foreach (var s in methodNames)
+                ((IVsLiteTree)list).Refresh();
+                treeItem.Items.Add("Casting IVsObjectList2 to IVsLiteTree: Success");
+            }
+            catch
             {
-                AddSymbolToLibrary(_LIB_LISTTYPE.LLT_MEMBERS, s, ref csLib);
-            }//foreach
-
-            IVsCombinedBrowseComponentSet extras;
-            ErrorHandler.Succeeded(objectManager.CreateCombinedBrowseComponentSet(out extras));
-
-            var solution = SymbolBrowserPackage.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
-
-            IEnumHierarchies hiers;
-            ErrorHandler.Succeeded(solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_ALLPROJECTS, Guid.Empty, out hiers));
-            var projects = new IVsHierarchy[20];
-            uint actualCount;
-            ErrorHandler.Succeeded(hiers.Next((uint)projects.Length, projects, out actualCount));
-
-            foreach (var project in projects)
-            {
-                if (project == null) continue;
-                IVsSimpleBrowseComponentSet subset;
-                ErrorHandler.Succeeded(objectManager.CreateSimpleBrowseComponentSet(
-                    (uint)_BROWSE_COMPONENT_SET_TYPE.BCST_EXCLUDE_LIBRARIES,
-                    null, 0, out subset));
-
-                ErrorHandler.Succeeded(subset.put_Owner(project));
-
-                ErrorHandler.Succeeded(extras.AddSet(subset));
+                treeItem.Items.Add("Casting IVsObjectList2 to IVsLiteTree: ERROR");
             }
 
-            IVsEnumLibraries2 libs;
-            ErrorHandler.Succeeded(objectManager.EnumLibraries(out libs));
-            var libArray = new IVsLibrary2[20];
-            uint fetched;
-            libs.Next((uint)libArray.Length, libArray, out fetched);
-            treeView1.Items.Clear();
-            foreach (var lib in libArray)
+            try
             {
-                if (lib == null)
-                    continue;
-
-                AddLibrary(lib, extras);
+                ((IVsLiteTree)csLib).Refresh();
+                treeItem.Items.Add("Casting IVsLibrary2 to IVsLiteTree: Success");
             }
+            catch
+            {
+                treeItem.Items.Add("Casting IVsLibrary2 to IVsLiteTree: ERROR");
+            }
+
+            libRoot.Items.Add(treeItem);
         }
 
 
@@ -218,149 +284,165 @@ namespace Microsoft.SymbolBrowser
 
             if (libRoot.Items.Count != 1 || libRoot.Items[0] != expander)
                 return;
-            libRoot.Items.Clear();
 
-            var simpleLib = lib as IVsSimpleLibrary2;
+            try
+            {
+                this.Cursor = Cursors.Wait;
 
-            uint libFlags;
-            ErrorHandler.Succeeded(lib.GetLibFlags2(out libFlags));
+                libRoot.Items.Clear();
 
-            var flags = "";
-            if ((libFlags & (uint)_LIB_FLAGS.LF_EXPANDABLE) != 0)
-                flags += "|LF_EXPANDABLE";
-            if ((libFlags & (uint)_LIB_FLAGS.LF_GLOBAL) != 0)
-                flags += "|LF_GLOBAL";
-            if ((libFlags & (uint)_LIB_FLAGS.LF_HIDEINLIBPICKER) != 0)
-                flags += "|LF_HIDEINLIBPICKER";
-            if ((libFlags & (uint)_LIB_FLAGS.LF_PROJECT) != 0)
-                flags += "|LF_PROJECT";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSBASETYPES) != 0)
-                flags += "|LF_SUPPORTSBASETYPES";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSCALLBROWSER) != 0)
-                flags += "|LF_SUPPORTSCALLBROWSER";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSCLASSDESIGNER) != 0)
-                flags += "|LF_SUPPORTSCLASSDESIGNER";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSDERIVEDTYPES) != 0)
-                flags += "|LF_SUPPORTSDERIVEDTYPES";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSFILTERING) != 0)
-                flags += "|LF_SUPPORTSFILTERING";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSFILTERINGWITHEXPANSION) != 0)
-                flags += "|LF_SUPPORTSFILTERINGWITHEXPANSION";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSINHERITEDMEMBERS) != 0)
-                flags += "|LF_SUPPORTSINHERITEDMEMBERS";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSLISTREFERENCES) != 0)
-                flags += "|LF_SUPPORTSLISTREFERENCES";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSPRIVATEMEMBERS) != 0)
-                flags += "|LF_SUPPORTSPRIVATEMEMBERS";
-            if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSPROJECTREFERENCES) != 0)
-                flags += "|LF_SUPPORTSPROJECTREFERENCES";
-            flags = flags.Substring(1);
+                var simpleLib = lib as IVsSimpleLibrary2;
+
+                uint libFlags;
+                ErrorHandler.Succeeded(lib.GetLibFlags2(out libFlags));
+
+                var flags = "";
+                if ((libFlags & (uint)_LIB_FLAGS.LF_EXPANDABLE) != 0)
+                    flags += "|LF_EXPANDABLE";
+                if ((libFlags & (uint)_LIB_FLAGS.LF_GLOBAL) != 0)
+                    flags += "|LF_GLOBAL";
+                if ((libFlags & (uint)_LIB_FLAGS.LF_HIDEINLIBPICKER) != 0)
+                    flags += "|LF_HIDEINLIBPICKER";
+                if ((libFlags & (uint)_LIB_FLAGS.LF_PROJECT) != 0)
+                    flags += "|LF_PROJECT";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSBASETYPES) != 0)
+                    flags += "|LF_SUPPORTSBASETYPES";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSCALLBROWSER) != 0)
+                    flags += "|LF_SUPPORTSCALLBROWSER";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSCLASSDESIGNER) != 0)
+                    flags += "|LF_SUPPORTSCLASSDESIGNER";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSDERIVEDTYPES) != 0)
+                    flags += "|LF_SUPPORTSDERIVEDTYPES";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSFILTERING) != 0)
+                    flags += "|LF_SUPPORTSFILTERING";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSFILTERINGWITHEXPANSION) != 0)
+                    flags += "|LF_SUPPORTSFILTERINGWITHEXPANSION";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSINHERITEDMEMBERS) != 0)
+                    flags += "|LF_SUPPORTSINHERITEDMEMBERS";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSLISTREFERENCES) != 0)
+                    flags += "|LF_SUPPORTSLISTREFERENCES";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSPRIVATEMEMBERS) != 0)
+                    flags += "|LF_SUPPORTSPRIVATEMEMBERS";
+                if ((libFlags & (uint)_LIB_FLAGS2.LF_SUPPORTSPROJECTREFERENCES) != 0)
+                    flags += "|LF_SUPPORTSPROJECTREFERENCES";
+                flags = flags.Substring(1);
 
 
-            Guid libGuid;
-            ErrorHandler.Succeeded(simpleLib.GetGuid(out libGuid));
-            IVsNavInfo navInfo = null;
-            var rc = VSConstants.E_NOTIMPL;
+                Guid libGuid;
+                ErrorHandler.Succeeded(simpleLib.GetGuid(out libGuid));
+                IVsNavInfo navInfo = null;
+                var rc = VSConstants.E_NOTIMPL;
 
-            rc = extras.CreateNavInfo(
-                libGuid,
-                new[]
+                rc = extras.CreateNavInfo(
+                    libGuid,
+                    new[]
                         {
                             new SYMBOL_DESCRIPTION_NODE {dwType = (uint)_LIB_LISTTYPE.LLT_NAMESPACES, pszName = "ClassLibrary3"},
                         },
-                1,
-                out navInfo
-                );
+                    1,
+                    out navInfo
+                    );
 
-            var navInfoRoot = new TreeViewItem { Header = "NavInfo (rc=" + rc + ")" };
-            if (rc == VSConstants.S_OK)
-            {
-                Guid symbolGuid;
-                ErrorHandler.Succeeded(navInfo.GetLibGuid(out symbolGuid));
-                navInfoRoot.Items.Add("Guid=" + symbolGuid);
-                uint symbolType;
-                ErrorHandler.Succeeded(navInfo.GetSymbolType(out symbolType));
-                var symbolTypeString = Enum.GetName(typeof(_LIB_LISTTYPE), symbolType);
-                if (symbolTypeString != null)
+
+
+                var navInfoRoot = new TreeViewItem { Header = "NavInfo (rc=" + rc + ")" };
+                if (rc == VSConstants.S_OK)
                 {
-                    navInfoRoot.Items.Add("Type = _LIB_LISTTYPE." + symbolTypeString);
-                }
-                else
-                {
-                    symbolTypeString = Enum.GetName(typeof(_LIB_LISTTYPE2), symbolType);
+                    Guid symbolGuid;
+                    ErrorHandler.Succeeded(navInfo.GetLibGuid(out symbolGuid));
+                    navInfoRoot.Items.Add("Guid=" + symbolGuid);
+                    uint symbolType;
+                    ErrorHandler.Succeeded(navInfo.GetSymbolType(out symbolType));
+                    var symbolTypeString = Enum.GetName(typeof(_LIB_LISTTYPE), symbolType);
                     if (symbolTypeString != null)
                     {
-                        navInfoRoot.Items.Add("Type = _LIB_LISTTYPE2." + symbolTypeString);
+                        navInfoRoot.Items.Add("Type = _LIB_LISTTYPE." + symbolTypeString);
                     }
                     else
                     {
-                        navInfoRoot.Items.Add("Type = " + symbolType);
-                    }
-                }
-
-                IVsEnumNavInfoNodes infoNodes;
-                ErrorHandler.Succeeded(navInfo.EnumCanonicalNodes(out infoNodes));
-                var navInfoNodesArray = new IVsNavInfoNode[20];
-                uint fetched;
-                ErrorHandler.Succeeded(infoNodes.Next((uint)navInfoNodesArray.Length, navInfoNodesArray, out fetched));
-                if (fetched > 0)
-                {
-                    var navNodes = new TreeViewItem { Header = "Nodes" };
-                    foreach (var node in navInfoNodesArray)
-                    {
-                        if (node == null)
-                            continue;
-                        string nodeName;
-                        ErrorHandler.Succeeded(node.get_Name(out nodeName));
-                        uint nodeType;
-                        ErrorHandler.Succeeded(node.get_Type(out nodeType));
-                        var nodeTypeString = Enum.GetName(typeof(_LIB_LISTTYPE), nodeType);
-                        if (nodeTypeString != null)
+                        symbolTypeString = Enum.GetName(typeof(_LIB_LISTTYPE2), symbolType);
+                        if (symbolTypeString != null)
                         {
-                            navNodes.Items.Add(nodeName + "(_LIB_LISTTYPE." + nodeTypeString + ")");
+                            navInfoRoot.Items.Add("Type = _LIB_LISTTYPE2." + symbolTypeString);
                         }
                         else
                         {
-                            nodeTypeString = Enum.GetName(typeof(_LIB_LISTTYPE2), symbolType);
-                            if (symbolTypeString != null)
+                            navInfoRoot.Items.Add("Type = " + symbolType);
+                        }
+                    }
+
+                    IVsEnumNavInfoNodes infoNodes;
+                    ErrorHandler.Succeeded(navInfo.EnumCanonicalNodes(out infoNodes));
+                    var navInfoNodesArray = new IVsNavInfoNode[20];
+                    uint fetched;
+                    ErrorHandler.Succeeded(infoNodes.Next((uint)navInfoNodesArray.Length, navInfoNodesArray, out fetched));
+                    if (fetched > 0)
+                    {
+                        var navNodes = new TreeViewItem { Header = "Nodes" };
+                        foreach (var node in navInfoNodesArray)
+                        {
+                            if (node == null)
+                                continue;
+                            string nodeName;
+                            ErrorHandler.Succeeded(node.get_Name(out nodeName));
+                            uint nodeType;
+                            ErrorHandler.Succeeded(node.get_Type(out nodeType));
+                            var nodeTypeString = Enum.GetName(typeof(_LIB_LISTTYPE), nodeType);
+                            if (nodeTypeString != null)
                             {
                                 navNodes.Items.Add(nodeName + "(_LIB_LISTTYPE." + nodeTypeString + ")");
                             }
                             else
                             {
-                                navNodes.Items.Add(nodeName + "(" + symbolType + ")");
+                                nodeTypeString = Enum.GetName(typeof(_LIB_LISTTYPE2), symbolType);
+                                if (symbolTypeString != null)
+                                {
+                                    navNodes.Items.Add(nodeName + "(_LIB_LISTTYPE." + nodeTypeString + ")");
+                                }
+                                else
+                                {
+                                    navNodes.Items.Add(nodeName + "(" + symbolType + ")");
+                                }
                             }
                         }
                     }
+
                 }
 
+                TryCastingList(lib, libRoot);
+
+                libRoot.Items.Add(navInfoRoot);
+
+                libRoot.Items.Add("Flags=" + flags);
+
+                libRoot.Items.Add(ExpandLibrary(simpleLib));
+
+                #region ...
+                //IVsLiteTreeList globalLibs;
+                //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
+                //AddLibList(libRoot, "Global", globalLibs);
+
+                //IVsLiteTreeList projectLibs;
+                //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
+                //AddLibList(libRoot, "Project", globalLibs);
+
+
+
+                //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_NAMESPACES);
+
+                //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_CLASSES);
+
+                //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_MEMBERS);
+
+                //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_REFERENCES);
+                //expander.Items.Add(libRoot); 
+                #endregion
+
             }
-            libRoot.Items.Add(navInfoRoot);
-
-            libRoot.Items.Add("Flags=" + flags);
-
-            libRoot.Items.Add(ExpandLibrary(simpleLib));
-
-            #region ...
-            //IVsLiteTreeList globalLibs;
-            //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_GLOBAL, out globalLibs));
-            //AddLibList(libRoot, "Global", globalLibs);
-
-            //IVsLiteTreeList projectLibs;
-            //ErrorHandler.Succeeded(lib.GetLibList(LIB_PERSISTTYPE.LPT_PROJECT, out projectLibs));
-            //AddLibList(libRoot, "Project", globalLibs);
-
-
-
-            //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_NAMESPACES);
-
-            //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_CLASSES);
-
-            //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_MEMBERS);
-
-            //AddNested(lib, libRoot, _LIB_LISTTYPE.LLT_REFERENCES);
-            //expander.Items.Add(libRoot); 
-            #endregion
+            finally 
+            {
+                this.Cursor = initialCursor;
+            }
         }
 
         TreeViewItem ExpandLibrary(IVsSimpleLibrary2 simpleLib)
