@@ -43,15 +43,15 @@
             this.panel3 = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
             this.panel5 = new System.Windows.Forms.Panel();
-            this.panel6 = new System.Windows.Forms.Panel();
             this.panel7 = new System.Windows.Forms.Panel();
+            this.panel6 = new System.Windows.Forms.Panel();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             this.panel4.SuspendLayout();
             this.panel5.SuspendLayout();
-            this.panel6.SuspendLayout();
             this.panel7.SuspendLayout();
+            this.panel6.SuspendLayout();
             this.SuspendLayout();
             // 
             // lblViewName
@@ -65,6 +65,8 @@
             // 
             // tbViewName
             // 
+            this.tbViewName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tbViewName.Location = new System.Drawing.Point(12, 25);
             this.tbViewName.Name = "tbViewName";
             this.tbViewName.Size = new System.Drawing.Size(267, 20);
@@ -81,6 +83,8 @@
             // 
             // comboModel
             // 
+            this.comboModel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.comboModel.FormattingEnabled = true;
             this.comboModel.Items.AddRange(new object[] {
             "none"});
@@ -88,6 +92,7 @@
             this.comboModel.Name = "comboModel";
             this.comboModel.Size = new System.Drawing.Size(267, 21);
             this.comboModel.TabIndex = 3;
+            this.comboModel.KeyDown += new System.Windows.Forms.KeyEventHandler(this.comboModel_KeyDown);
             // 
             // lblBaseTemplate
             // 
@@ -110,26 +115,29 @@
             // 
             // checkedListBlocks
             // 
-            this.checkedListBlocks.Dock = System.Windows.Forms.DockStyle.Left;
+            this.checkedListBlocks.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkedListBlocks.Enabled = false;
             this.checkedListBlocks.FormattingEnabled = true;
             this.checkedListBlocks.Location = new System.Drawing.Point(12, 0);
             this.checkedListBlocks.Name = "checkedListBlocks";
             this.checkedListBlocks.Size = new System.Drawing.Size(267, 156);
             this.checkedListBlocks.TabIndex = 8;
-            this.checkedListBlocks.Enabled = false;
             // 
             // lblBlocks
             // 
             this.lblBlocks.AutoSize = true;
+            this.lblBlocks.Enabled = false;
             this.lblBlocks.Location = new System.Drawing.Point(12, 3);
             this.lblBlocks.Name = "lblBlocks";
             this.lblBlocks.Size = new System.Drawing.Size(128, 13);
             this.lblBlocks.TabIndex = 9;
             this.lblBlocks.Text = "Select Blocks to override:";
-            this.lblBlocks.Enabled = false;
             // 
             // btnCancel
             // 
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnCancel.Location = new System.Drawing.Point(166, 15);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(95, 28);
@@ -140,6 +148,8 @@
             // 
             // comboBaseTemplate
             // 
+            this.comboBaseTemplate.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBaseTemplate.FormattingEnabled = true;
             this.comboBaseTemplate.Items.AddRange(new object[] {
             "none"});
@@ -148,6 +158,7 @@
             this.comboBaseTemplate.Size = new System.Drawing.Size(267, 21);
             this.comboBaseTemplate.TabIndex = 11;
             this.comboBaseTemplate.SelectedIndexChanged += new System.EventHandler(this.comboBaseTemplate_SelectedIndexChanged);
+            this.comboBaseTemplate.KeyDown += new System.Windows.Forms.KeyEventHandler(this.comboBaseTemplate_KeyDown);
             // 
             // panel1
             // 
@@ -199,15 +210,6 @@
             this.panel5.Size = new System.Drawing.Size(294, 180);
             this.panel5.TabIndex = 16;
             // 
-            // panel6
-            // 
-            this.panel6.Controls.Add(this.lblBlocks);
-            this.panel6.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel6.Location = new System.Drawing.Point(0, 0);
-            this.panel6.Name = "panel6";
-            this.panel6.Size = new System.Drawing.Size(294, 24);
-            this.panel6.TabIndex = 9;
-            // 
             // panel7
             // 
             this.panel7.Controls.Add(this.checkedListBlocks);
@@ -217,6 +219,15 @@
             this.panel7.Padding = new System.Windows.Forms.Padding(12, 0, 0, 0);
             this.panel7.Size = new System.Drawing.Size(294, 156);
             this.panel7.TabIndex = 10;
+            // 
+            // panel6
+            // 
+            this.panel6.Controls.Add(this.lblBlocks);
+            this.panel6.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel6.Location = new System.Drawing.Point(0, 0);
+            this.panel6.Name = "panel6";
+            this.panel6.Size = new System.Drawing.Size(294, 24);
+            this.panel6.TabIndex = 9;
             // 
             // AddViewDlg
             // 
@@ -242,9 +253,9 @@
             this.panel4.ResumeLayout(false);
             this.panel4.PerformLayout();
             this.panel5.ResumeLayout(false);
+            this.panel7.ResumeLayout(false);
             this.panel6.ResumeLayout(false);
             this.panel6.PerformLayout();
-            this.panel7.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }

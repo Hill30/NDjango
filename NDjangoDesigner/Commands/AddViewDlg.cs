@@ -18,6 +18,7 @@ namespace NDjango.Designer.Commands
         public AddViewDlg()
         {
             InitializeComponent();
+            this.MinimumSize = this.Size; // minimum size is set to what is defined in designer
         }
 
         public void FillDialogControls()
@@ -136,6 +137,26 @@ namespace NDjango.Designer.Commands
             }
 
             lblBlocks.Enabled = checkedListBlocks.Enabled = IsInheritance && checkedListBlocks.Items.Count > 0;
+        }
+
+        private void comboModel_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Suppress overwriting of selected text, allow only changing selected item
+            if (e.KeyCode != Keys.Up && e.KeyCode != Keys.Down)
+            {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        private void comboBaseTemplate_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Suppress overwriting of selected text, allow only changing selected item
+            if (e.KeyCode != Keys.Up && e.KeyCode != Keys.Down)
+            {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
         }
 
 
