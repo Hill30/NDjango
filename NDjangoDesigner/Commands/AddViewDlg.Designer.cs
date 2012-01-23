@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AddViewDlg));
             this.lblViewName = new System.Windows.Forms.Label();
             this.tbViewName = new System.Windows.Forms.TextBox();
             this.lblViewModel = new System.Windows.Forms.Label();
@@ -121,7 +122,7 @@
             this.checkedListBlocks.FormattingEnabled = true;
             this.checkedListBlocks.Location = new System.Drawing.Point(12, 0);
             this.checkedListBlocks.Name = "checkedListBlocks";
-            this.checkedListBlocks.Size = new System.Drawing.Size(267, 156);
+            this.checkedListBlocks.Size = new System.Drawing.Size(267, 154);
             this.checkedListBlocks.TabIndex = 8;
             // 
             // lblBlocks
@@ -237,6 +238,7 @@
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Location = new System.Drawing.Point(150, 150);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
