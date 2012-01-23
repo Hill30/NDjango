@@ -92,7 +92,6 @@
             this.comboModel.Name = "comboModel";
             this.comboModel.Size = new System.Drawing.Size(267, 21);
             this.comboModel.TabIndex = 3;
-            this.comboModel.KeyDown += new System.Windows.Forms.KeyEventHandler(this.comboModel_KeyDown);
             // 
             // lblBaseTemplate
             // 
@@ -158,7 +157,6 @@
             this.comboBaseTemplate.Size = new System.Drawing.Size(267, 21);
             this.comboBaseTemplate.TabIndex = 11;
             this.comboBaseTemplate.SelectedIndexChanged += new System.EventHandler(this.comboBaseTemplate_SelectedIndexChanged);
-            this.comboBaseTemplate.KeyDown += new System.Windows.Forms.KeyEventHandler(this.comboBaseTemplate_KeyDown);
             // 
             // panel1
             // 
