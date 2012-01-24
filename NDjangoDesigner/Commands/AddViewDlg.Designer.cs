@@ -118,6 +118,7 @@
             this.checkedListBlocks.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkedListBlocks.CheckOnClick = true;
             this.checkedListBlocks.Enabled = false;
             this.checkedListBlocks.FormattingEnabled = true;
             this.checkedListBlocks.Location = new System.Drawing.Point(12, 0);
