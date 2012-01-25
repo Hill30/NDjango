@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>NDjango</OutputName>
     <OutputType>Package</OutputType>
-    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.5\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\</OutputPath>
@@ -47,7 +47,10 @@
 	</Target>
 	-->
   <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
+    <PreBuildEvent>cd ..
+rmdir /s /q ..\ASPMVCSampleLibrary\bin
+rmdir /s /q ..\ASPMVCSampleLibrary\obj
+
+Paraffin.exe -dir ..\ASPMVCSampleLibrary -custom SampleLibrary -g SampleLibrarySource.wxs</PreBuildEvent>
   </PropertyGroup>
 </Project>
