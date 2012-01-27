@@ -168,7 +168,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ItemTemplates\NDjangoTemplate.zip">
+    <Content Include="ItemTemplates\CSharp\Web\MVC 3\NDjangoTemplate.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -180,7 +180,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ItemTemplates\NDjangoMasterTemplate.zip">
+    <Content Include="ItemTemplates\CSharp\Web\MVC 3\NDjangoMasterTemplate.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
