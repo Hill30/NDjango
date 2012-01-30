@@ -114,6 +114,9 @@
     <Compile Include="Commands\ViewWizard.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="GlobalServices.cs" />
+    <Compile Include="Misc\otherStuff.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Parsing\ASPNETMVCProjectHandler.cs" />
     <Compile Include="Parsing\DesignerNode.cs" />
     <Compile Include="Parsing\TypeLibrary\NDjangoMethodInfo.cs" />
