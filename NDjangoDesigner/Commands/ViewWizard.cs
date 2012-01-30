@@ -59,9 +59,13 @@ namespace NDjango.Designer.Commands
             }
         }
         #region private fields
-        string projectDir;
-        string projectName;
-        string viewsFolderName;
+        // SI: Changed these strings to static as there is a problem with registering onselect event
+        // when working with templates. AFAIK there is only one possible thread that works with these variables
+        // so this should be safe.
+        static string projectDir;
+        static string projectName;
+        static string viewsFolderName;
+
         INode blockNameNode = null;
         Project curProject;
         Project CurrentProject 

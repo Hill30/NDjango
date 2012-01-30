@@ -5,15 +5,18 @@ using System.Text;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.TemplateWizard;
 using System.ComponentModel.Design;
 using System.Xml;
 using System.Runtime.InteropServices;
 using OleConstants = Microsoft.VisualStudio.OLE.Interop.Constants;
 using NDjangoDesigner;
 
+using EnvDTE;
+using EnvDTE80;
 namespace NDjango.Designer.Commands
 {
-    class AddViewCommand : OleMenuCommand
+    class AddViewCommand : OleMenuCommand, IWizard
     {
         private static AddViewDlg viewDialog;
 
@@ -21,8 +24,8 @@ namespace NDjango.Designer.Commands
             : base(Execute, new CommandID(Constants.guidNDjangoDesignerCmdSet, (int)Constants.cmdidNDjangoDesigner))
         {
             BeforeQueryStatus += new EventHandler(QueryStatus);
-            viewDialog = new AddViewDlg();
         }
+
         void QueryStatus(object sender, EventArgs e) 
         { 
             int active;
@@ -31,8 +34,83 @@ namespace NDjango.Designer.Commands
         }
         private static void Execute(object sender, EventArgs e)
         {
+            viewDialog = new AddViewDlg();
             viewDialog.FillDialogControls();
             viewDialog.ShowDialog();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void ExecuteForNewItem(string newFileName)
+        {
+            viewDialog = new AddViewDlg();
+            viewDialog.FillDialogControls();
+
+            viewDialog.ViewName = newFileName;
+            viewDialog.ViewNameEnabled = false;
+
+            viewDialog.ShowDialog();
+        }
+
+        public static void viewDialog_OnAddPressed(object sender, EventArgs e)
+        {
+            // Do nothing
+        }
+
+        void IWizard.BeforeOpeningFile(EnvDTE.ProjectItem projectItem)
+        {   
+            // Do nothing
+        }
+
+        void IWizard.ProjectFinishedGenerating(EnvDTE.Project project)
+        {
+            // Do nothing
+        }
+
+        void IWizard.ProjectItemFinishedGenerating(EnvDTE.ProjectItem projectItem)
+        {
+            // Do nothing
+        }
+
+        void IWizard.RunFinished()
+        {
+            // Do nothing
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="automationObject">???</param>
+        /// <param name="replacementsDictionary">Dictionary containing variables that will be replaced in the template. Addable.</param>
+        /// <param name="runKind">Specifies constants that define the different templates the template wizard can create.
+        /// AsNewItem / AsNewProject / AsMultiProject</param>
+        /// <param name="customParams">The custom parameters with which to perform parameter replacement in the project.</param>
+        void IWizard.RunStarted(object automationObject, Dictionary<string, string> replacementsDictionary, WizardRunKind runKind, object[] customParams)
+        {
+            // "$rootname$" is always present
+            ExecuteForNewItem(replacementsDictionary["$rootname$"]);
+
+            // NOTE! 
+            // 1 - Item in template XML must have its parameter ReplaceParameters being set to "true" in order for this to function!
+            // 2 - Strings to replace should end up with the line break
+            if (viewDialog.SelectedModel != string.Empty)
+                replacementsDictionary.Add("$model$", "{% model Model:" + viewDialog.SelectedModel + " %}\r\n");
+            else
+                replacementsDictionary.Add("$model$", string.Empty);
+
+            if (viewDialog.ModelToExtend != string.Empty)
+                replacementsDictionary.Add("$extends$", "{% extends \"" + viewDialog.ModelToExtend + "\" %}\r\n");
+            else
+                replacementsDictionary.Add("$extends$", string.Empty);
+
+            
+            replacementsDictionary.Add("$pregenerated$", viewDialog.PreGeneratedTemplateText + "\r\n");
+        }
+
+        bool IWizard.ShouldAddProjectItem(string filePath)
+        {
+            return true;
         }
     }
 }
