@@ -49,6 +49,7 @@ namespace NDjango.Designer.Commands
 
             viewDialog.ViewName = newFileName;
             viewDialog.ViewNameEnabled = false;
+            viewDialog.WriteItemDirectly = false;
 
             viewDialog.ShowDialog();
         }
@@ -88,6 +89,18 @@ namespace NDjango.Designer.Commands
         /// <param name="customParams">The custom parameters with which to perform parameter replacement in the project.</param>
         void IWizard.RunStarted(object automationObject, Dictionary<string, string> replacementsDictionary, WizardRunKind runKind, object[] customParams)
         {
+            //List<string> l1 = 
+            //    new List<string>(), 
+            //    l2 = new List<string>();
+
+            //foreach (UIHierarchyItem item in (((DTE2)automationObject).ToolWindows.SolutionExplorer.SelectedItems as Array))
+            //{
+            //    ProjectItem prjItem = item.Object as ProjectItem;
+            //    string prjPath = prjItem.Properties.Item("FullPath").Value.ToString();
+
+
+            //    l1.Add(prjPath);
+            //}
             // "$rootname$" is always present
             ExecuteForNewItem(replacementsDictionary["$rootname$"]);
 
@@ -100,7 +113,7 @@ namespace NDjango.Designer.Commands
                 replacementsDictionary.Add("$model$", string.Empty);
 
             if (viewDialog.ModelToExtend != string.Empty)
-                replacementsDictionary.Add("$extends$", "{% extends \"" + viewDialog.ModelToExtend + "\" %}\r\n");
+                replacementsDictionary.Add("$extends$", "{% extends \"~\\" + viewDialog.ModelToExtend + "\" %}\r\n");
             else
                 replacementsDictionary.Add("$extends$", string.Empty);
 

@@ -196,6 +196,8 @@ namespace NDjango.Designer.Commands
                     File.Delete(templateFile);
                 }
             }
+            else
+                this.Close();
             
         }
 
