@@ -21,7 +21,7 @@ namespace NDjango.Designer.Commands
         public AddViewDlg()
         {
             InitializeComponent();
-            this.MinimumSize = this.Size; // minimum size is set to what is defined in designer
+            MinimumSize = Size; // minimum size is set to what is defined in designer
             WriteItemDirectly = true;
         }
 
@@ -73,16 +73,25 @@ namespace NDjango.Designer.Commands
 
         public string SelectedModel
         {
-            get { return (comboModel.SelectedItem == null || comboModel.SelectedItem.ToString() == "None") ? 
-                string.Empty : 
-                comboBaseTemplate.SelectedItem.ToString(); }
+            get
+            {
+                string model = string.Empty;
+                if(IsViewModel)
+                    model = comboModel.SelectedItem.ToString();
+                return model;
+            }
         }
 
-        public string ModelToExtend
+        public string TemplateToExtend
         {
-            get { return (comboModel.SelectedItem == null || comboModel.SelectedItem.ToString() == "None") ? 
-                string.Empty : 
-                comboModel.SelectedItem.ToString(); }
+            get
+            {
+                string template = string.Empty;
+                if(IsInheritance)
+                           template = comboBaseTemplate.SelectedItem.ToString();
+
+                return template;
+            }
         }
 
         public string ViewsFolderName
@@ -92,14 +101,22 @@ namespace NDjango.Designer.Commands
 
         // PRIVATE PROPERTIES
 
-        private bool IsInheritance 
+        public bool IsInheritance 
         {
-            get { return (comboBaseTemplate.SelectedItem != null && comboBaseTemplate.SelectedItem.ToString() != TEXT_NONE); } 
+            get
+            {
+                return (comboBaseTemplate.SelectedItem != null &&
+                    String.CompareOrdinal(comboBaseTemplate.SelectedItem.ToString(), TEXT_NONE) != 0);
+            } 
         }
 
-        private bool IsViewModel 
+        public bool IsViewModel 
         {
-            get { return comboModel.SelectedItem != null && comboModel.SelectedItem.ToString() != TEXT_NONE; } 
+            get 
+            { 
+                return (comboModel.SelectedItem != null && 
+                    String.CompareOrdinal(comboModel.SelectedItem.ToString(), TEXT_NONE) != 0); 
+            } 
         }
 
         // METHODS
@@ -163,58 +180,13 @@ namespace NDjango.Designer.Commands
             if (comboBaseTemplate.SelectedItem != null)
                 wizard.RegisterInserted(comboBaseTemplate.SelectedItem.ToString());
 
-            string itemName = ViewName + ".django";            
-            string templateFile = Path.GetTempFileName();
-            string PreGeneratedTemplateText = string.Empty;
 
-            // We need to generate these tags only if we're writing directly to the file. otherwise this will be generated on the fly
-            if (IsViewModel && WriteItemDirectly)
-                PreGeneratedTemplateText += "{% model Model:" + comboModel.SelectedItem + " %}\r\n";
-            
-            // We need to generate these tags only if we're writing directly to the file. otherwise this will be generated on the fly
-            if (IsInheritance && WriteItemDirectly)
-            {
-                PreGeneratedTemplateText += "{% extends \"" + comboBaseTemplate.SelectedItem + "\" %}\r\n";
-                if (checkedListBlocks.CheckedItems.Count > 0)
-                {
-                    foreach (string name in checkedListBlocks.CheckedItems)
-                    {
-                        PreGeneratedTemplateText += "{% block " + name + " %}\r\n";
-                        PreGeneratedTemplateText += "{% endblock " + name + " %}\r\n";
-                    }
-                }
-            }
-
-            if (WriteItemDirectly)
-            {
-                using (StreamWriter sw = new StreamWriter(templateFile))
-                {
-                    sw.WriteLine(PreGeneratedTemplateText);
-                    sw.Close();
-                }
-
-                try
-                {
-                    wizard.AddFromFile(templateFile, itemName);
-                    this.Close();
-                }
-                catch (COMException ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-                finally
-                {
-                    File.Delete(templateFile);
-                }
-            }
-            else
-                this.Close();
-            
+            Close();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
         
         private void comboBaseTemplate_SelectedIndexChanged(object sender, EventArgs e)

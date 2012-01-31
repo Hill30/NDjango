@@ -18,7 +18,7 @@ using EnvDTE;
 
 namespace NDjango.Designer.Commands
 {
-    public class ViewWizard: IVsSelectionEvents
+    public class ViewWizard
     {
         public static IVsMonitorSelection SelectionService = (IVsMonitorSelection)Package.GetGlobalService(typeof(SVsShellMonitorSelection));
         public static DTE dte = (DTE)Package.GetGlobalService(typeof(DTE));
@@ -26,7 +26,7 @@ namespace NDjango.Designer.Commands
         public static uint selectionCookie;
         public ViewWizard()
         {
-            SelectionService.AdviseSelectionEvents(this, out selectionCookie);
+            //SelectionService.AdviseSelectionEvents(this, out selectionCookie);
             contextCookie = RegisterContext();
         }
         
@@ -59,12 +59,8 @@ namespace NDjango.Designer.Commands
             }
         }
         #region private fields
-        // SI: Changed these strings to static as there is a problem with registering onselect event
-        // when working with templates. AFAIK there is only one possible thread that works with these variables
-        // so this should be safe.
-        static string projectDir;
-        static string projectName;
-        static string viewsFolderName;
+        string projectDir;
+        string viewsFolderName;
 
         INode blockNameNode = null;
         Project curProject;
@@ -86,41 +82,6 @@ namespace NDjango.Designer.Commands
             set { viewsFolderName = value; }
         }
 
-        int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
-        {
-            return VSConstants.S_OK;
-        }
-        int IVsSelectionEvents.OnElementValueChanged(uint elementid, object varValueOld, object varValueNew)
-        {
-              return VSConstants.S_OK;
-        }
-        int IVsSelectionEvents.OnSelectionChanged(IVsHierarchy pHierOld, uint itemidOld,IVsMultiItemSelect pMISOld, ISelectionContainer pSCOld,IVsHierarchy pHierNew, uint itemidNew,IVsMultiItemSelect pMISNew, ISelectionContainer pSCNew)
-        {
-
-            if (pHierNew != null)
-            {
-                string itemName;
-                //pHierNew.GetProperty(itemidNew, (int)__VSHPROPID.VSHPROPID_Name, out itemName);
-                pHierNew.GetCanonicalName(itemidNew, out itemName);
-                bool activectx = itemName != null && (itemName.ToString().Contains("Views") ||itemName.ToString().Contains("views"));
-                if (activectx)
-                {
-                    object temp;
-                    hierarchy = pHierNew;
-                    pHierNew.GetProperty(VSConstants.VSITEMID_ROOT,(int)__VSHPROPID.VSHPROPID_ProjectDir, out temp);
-                    projectDir = temp.ToString();
-                    //root = projectFullName.Substring(0, projectFullName.LastIndexOf('\\') + 1);
-                    pHierNew.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectName, out temp);
-                    projectName = temp.ToString();
-                    viewsFolderName = itemName.ToString();
-                }
-                int factive = (activectx)? 1 : 0;
-                SelectionService.SetCmdUIContext(contextCookie, factive);
-
-            }
-            return VSConstants.S_OK;
-
-        }
         public void AddNewItemFromVsTemplate(string templateName, string language, string name)
         {
             if (name == null)

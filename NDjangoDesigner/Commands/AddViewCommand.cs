@@ -103,13 +103,13 @@ namespace NDjango.Designer.Commands
             // NOTE! 
             // 1 - Item in template XML must have its parameter ReplaceParameters being set to "true" in order for this to function!
             // 2 - Strings to replace should end up with the line break
-            if (viewDialog.SelectedModel != string.Empty)
+            if (viewDialog.IsViewModel)
                 replacementsDictionary.Add("$model$", "{% model Model:" + viewDialog.SelectedModel + " %}\r\n");
             else
                 replacementsDictionary.Add("$model$", string.Empty);
 
-            if (viewDialog.ModelToExtend != string.Empty)
-                replacementsDictionary.Add("$extends$", "{% extends \"~\\" + viewDialog.ModelToExtend + "\" %}\r\n");
+            if (viewDialog.IsInheritance)
+                replacementsDictionary.Add("$extends$", "{% extends \"~\\" + viewDialog.TemplateToExtend + "\" %}\r\n");
             else
                 replacementsDictionary.Add("$extends$", string.Empty);
 
