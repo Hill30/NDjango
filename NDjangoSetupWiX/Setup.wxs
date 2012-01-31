@@ -65,7 +65,7 @@
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" Overridable="yes" />
     <WixVariable Id="WixUIBannerBmp" Value="bitmaps\bannrbmp.bmp" />
     <WixVariable Id="WixUIDialogBmp" Value="bitmaps\dlgbmp.bmp" />
-    <WixVariable Id="WixUICostingPopupOptOut" Value="1" Overridable="yes" />
+    <!--<WixVariable Id="WixUICostingPopupOptOut" Value="1" Overridable="yes" />-->
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="VS10FILES" >
