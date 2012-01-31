@@ -25,6 +25,12 @@ namespace NDjango.Designer.Commands
             WriteItemDirectly = true;
         }
 
+        public void FillDialogControls(string viewsFolderName)
+        {
+            wizard.ViewsFolderName = viewsFolderName;
+            FillDialogControls();
+        }
+
         public void FillDialogControls()
         {
             wizard.Update();
@@ -77,6 +83,11 @@ namespace NDjango.Designer.Commands
             get { return (comboModel.SelectedItem == null || comboModel.SelectedItem.ToString() == "None") ? 
                 string.Empty : 
                 comboModel.SelectedItem.ToString(); }
+        }
+
+        public string ViewsFolderName
+        {
+            set { wizard.ViewsFolderName = value; }
         }
 
         // PRIVATE PROPERTIES

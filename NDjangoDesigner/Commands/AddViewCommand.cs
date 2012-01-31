@@ -42,10 +42,10 @@ namespace NDjango.Designer.Commands
         /// <summary>
         /// 
         /// </summary>
-        private static void ExecuteForNewItem(string newFileName)
+        private static void ExecuteForNewItem(string newFileName, string viewsFolderName)
         {
-            viewDialog = new AddViewDlg();
-            viewDialog.FillDialogControls();
+            viewDialog = new AddViewDlg();            
+            viewDialog.FillDialogControls(viewsFolderName);
 
             viewDialog.ViewName = newFileName;
             viewDialog.ViewNameEnabled = false;
@@ -89,20 +89,16 @@ namespace NDjango.Designer.Commands
         /// <param name="customParams">The custom parameters with which to perform parameter replacement in the project.</param>
         void IWizard.RunStarted(object automationObject, Dictionary<string, string> replacementsDictionary, WizardRunKind runKind, object[] customParams)
         {
-            //List<string> l1 = 
-            //    new List<string>(), 
-            //    l2 = new List<string>();
+            List<string> l1 = new List<string>();
 
-            //foreach (UIHierarchyItem item in (((DTE2)automationObject).ToolWindows.SolutionExplorer.SelectedItems as Array))
-            //{
-            //    ProjectItem prjItem = item.Object as ProjectItem;
-            //    string prjPath = prjItem.Properties.Item("FullPath").Value.ToString();
-
-
-            //    l1.Add(prjPath);
-            //}
+            foreach (UIHierarchyItem item in (((DTE2)automationObject).ToolWindows.SolutionExplorer.SelectedItems as Array))
+            {
+                ProjectItem prjItem = item.Object as ProjectItem;
+                l1.Add(prjItem.Properties.Item("FullPath").Value.ToString());
+            }
+            
             // "$rootname$" is always present
-            ExecuteForNewItem(replacementsDictionary["$rootname$"]);
+            ExecuteForNewItem(replacementsDictionary["$rootname$"], l1[0]);
 
             // NOTE! 
             // 1 - Item in template XML must have its parameter ReplaceParameters being set to "true" in order for this to function!

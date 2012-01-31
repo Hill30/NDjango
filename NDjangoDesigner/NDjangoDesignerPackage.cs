@@ -58,14 +58,14 @@ namespace NDjango.Designer
         protected override void Initialize()
         {
             base.Initialize();
-            var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (null != mcs)
-            {
-                //CommandID addViewCommandID = new CommandID(GuidList.guidNDjangoDesignerCmdSet, (int)GuidList.cmdidNDjangoDesigner);
-                //OleMenuCommand cmd = new OleMenuCommand(ShowAddView, addViewCommandID);
-                mcs.AddCommand(new AddViewCommand());
-            }
-            viewDialog = new AddViewDlg();
+            //var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            //if (null != mcs)
+            //{
+            //    //CommandID addViewCommandID = new CommandID(GuidList.guidNDjangoDesignerCmdSet, (int)GuidList.cmdidNDjangoDesigner);
+            //    //OleMenuCommand cmd = new OleMenuCommand(ShowAddView, addViewCommandID);
+            //    mcs.AddCommand(new AddViewCommand());
+            //}
+            //viewDialog = new AddViewDlg();
 
             ((IComponentModel)GetGlobalService(typeof(SComponentModel))).DefaultCompositionService.SatisfyImportsOnce(this);
 

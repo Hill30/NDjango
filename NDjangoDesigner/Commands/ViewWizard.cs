@@ -80,6 +80,12 @@ namespace NDjango.Designer.Commands
         TemplateDirectory templatesDir;
         #endregion
 
+        public string ViewsFolderName
+        {
+            get { return viewsFolderName; }
+            set { viewsFolderName = value; }
+        }
+
         int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
         {
             return VSConstants.S_OK;
@@ -230,24 +236,35 @@ namespace NDjango.Designer.Commands
 
         private void GetCurrentProject()
         {
-            foreach (Project project in dte.Solution.Projects)
-                if (project.Name == projectName)
-                {
-                    curProject = project;
-                    break;
-                }
-                else if (project.ProjectItems != null)
-                    LoopItems(project);
-        }
-        private void LoopItems(Project project)
-        {
-            foreach (ProjectItem item in project.ProjectItems)
-                if (item.Name == projectName)
-                {
-                    curProject = item.SubProject;
-                    break;
-                }
-
+        //    foreach (Project project in dte.Solution.Projects)
+        //        if (project.Name == projectName)
+        //        {
+        //            curProject = project;
+        //            break;
+        //        }
+        //        else if (project.ProjectItems != null)
+        //            LoopItems(project);
+        //}
+        //private void LoopItems(Project project)
+        //{
+        //    foreach (ProjectItem item in project.ProjectItems)
+        //        if (item.Name == projectName)
+        //        {
+        //            curProject = item.SubProject;
+        //            break;
+        //        }
+            IntPtr ppHier;
+            uint pitemid;
+            IVsMultiItemSelect ppMIS;
+            IntPtr ppSC;
+            GlobalServices.SelectionTracker.GetCurrentSelection(out ppHier, out pitemid, out ppMIS, out ppSC);
+            var o = (IVsHierarchy)Marshal.GetObjectForIUnknown(ppHier);
+            Marshal.Release(ppHier);
+            object pvar;
+            if (o.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out pvar) == VSConstants.S_OK)
+            {
+                curProject = pvar as EnvDTE.Project;
+            }
         }
         public IEnumerable<string> GetTemplates(string root)
         {
