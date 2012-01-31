@@ -1,3 +1,6 @@
+mkdir NDjango\lib\Net40\
+mkdir NDjango\lib\Net35\
+
 copy ..\NDjangoDesigner\bin\Debug\ASPMVCIntegration.NDjangoExtension40.dll NDjango\lib\Net40\
 copy ..\NDjangoDesigner\bin\Debug\ASPMVCSampleLibrary.NDjangoExtension40.dll NDjango\lib\Net40\
 copy ..\NDjangoDesigner\bin\Debug\NDjango.Core40.dll NDjango\lib\Net40\
