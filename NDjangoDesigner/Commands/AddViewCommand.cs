@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
@@ -19,6 +20,7 @@ namespace NDjango.Designer.Commands
     class AddViewCommand : OleMenuCommand, IWizard
     {
         private static AddViewDlg viewDialog;
+        private bool shouldAddProjectItem;
 
         public AddViewCommand()
             : base(Execute, new CommandID(Constants.guidNDjangoDesignerCmdSet, (int)Constants.cmdidNDjangoDesigner))
@@ -42,7 +44,7 @@ namespace NDjango.Designer.Commands
         /// <summary>
         /// 
         /// </summary>
-        private static void ExecuteForNewItem(string newFileName, string viewsFolderName)
+        private static bool ExecuteForNewItem(string newFileName, string viewsFolderName)
         {
             viewDialog = new AddViewDlg();            
             viewDialog.FillDialogControls(viewsFolderName);
@@ -51,7 +53,7 @@ namespace NDjango.Designer.Commands
             viewDialog.ViewNameEnabled = false;
             viewDialog.WriteItemDirectly = false;
 
-            viewDialog.ShowDialog();
+            return (viewDialog.ShowDialog() == DialogResult.OK);
         }
 
         public static void viewDialog_OnAddPressed(object sender, EventArgs e)
@@ -98,7 +100,9 @@ namespace NDjango.Designer.Commands
             }
             
             // "$rootname$" is always present
-            ExecuteForNewItem(replacementsDictionary["$rootname$"], l1[0]);
+            shouldAddProjectItem = ExecuteForNewItem(replacementsDictionary["$rootname$"], l1[0]);
+            if (!shouldAddProjectItem)
+                return;
 
             // NOTE! 
             // 1 - Item in template XML must have its parameter ReplaceParameters being set to "true" in order for this to function!
@@ -119,7 +123,7 @@ namespace NDjango.Designer.Commands
 
         bool IWizard.ShouldAddProjectItem(string filePath)
         {
-            return true;
+            return shouldAddProjectItem;
         }
     }
 }

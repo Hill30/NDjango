@@ -180,15 +180,10 @@ namespace NDjango.Designer.Commands
             if (comboBaseTemplate.SelectedItem != null)
                 wizard.RegisterInserted(comboBaseTemplate.SelectedItem.ToString());
 
-
+            DialogResult = DialogResult.OK;
             Close();
         }
 
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
-        
         private void comboBaseTemplate_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (IsInheritance)
