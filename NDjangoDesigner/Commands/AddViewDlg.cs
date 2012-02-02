@@ -177,6 +177,15 @@ namespace NDjango.Designer.Commands
                 return;
             }
 
+            if (IsInheritance && checkedListBlocks.CheckedItems.Count > 0)
+            {   
+                foreach (string name in checkedListBlocks.CheckedItems)
+                {
+                    PreGeneratedTemplateText += "{% block " + name + " %}\r\n";
+                    PreGeneratedTemplateText += "{% endblock " + name + " %}\r\n";
+                }
+            }
+
             if (comboBaseTemplate.SelectedItem != null)
                 wizard.RegisterInserted(comboBaseTemplate.SelectedItem.ToString());
 
