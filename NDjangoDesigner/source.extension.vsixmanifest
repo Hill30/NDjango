@@ -22,6 +22,7 @@
   <Content>
     <MefComponent>|%CurrentProject%|</MefComponent>
     <VsPackage>|%CurrentProject%;PkgdefProjectOutputGroup|</VsPackage>
+    <Assembly AssemblyName="ndjango.wizards, Version=1.0.0.0, Culture=neutral, PublicKeyToken=30efe4783c6d9cdd">ndjango.wizards.dll</Assembly>
     <ProjectTemplate>ProjectTemplates</ProjectTemplate>
     <ItemTemplate>ItemTemplates</ItemTemplate>
   </Content>
