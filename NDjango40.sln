@@ -22,7 +22,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVCSampleApplication40",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPMVCSampleLibrary40", "ASPMVCSampleLibrary\ASPMVCSampleLibrary40.csproj", "{31DA6E9F-1CDC-48B7-B559-E60591DE8159}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ndjango.wizards", "ndjango.wizards\Ndjango.wizards.csproj", "{2B778C64-A1D0-45E7-9455-16DEA05706CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDjango.wizards", "ndjango.wizards\NDjango.wizards.csproj", "{2B778C64-A1D0-45E7-9455-16DEA05706CA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

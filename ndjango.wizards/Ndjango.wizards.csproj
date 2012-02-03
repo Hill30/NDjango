@@ -8,7 +8,7 @@
     <ProjectGuid>{2B778C64-A1D0-45E7-9455-16DEA05706CA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ndjango.wizards</RootNamespace>
+    <RootNamespace>NDjango.wizards</RootNamespace>
     <AssemblyName>ndjango.wizards</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
