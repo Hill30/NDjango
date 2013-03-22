@@ -7,12 +7,19 @@ open System.Runtime.CompilerServices;
 
 open System.Runtime.InteropServices;
 
+#if FRAMEWORK40
 module AssemblyInfo =
   [<Literal>] 
-  let public Version = "0.9.9.0"
+  let public Version = "4.0.0.1"
   [<Literal>]
-  let public FileVersion = "0.9.9.0"
-
+  let public FileVersion = "4.0.0.1"
+#else
+module AssemblyInfo =
+  [<Literal>] 
+  let public Version = "2.0.0.1"
+  [<Literal>]
+  let public FileVersion = "2.0.0.1"
+#endif
 
 // General Information about an assembly is controlled through the following
 
@@ -30,7 +37,7 @@ module AssemblyInfo =
 
 [<assembly: AssemblyProduct("NDjango")>]
 
-[<assembly: AssemblyCopyright("Copyright © Hill30, Inc. 2008, 2009, 2010")>]
+[<assembly: AssemblyCopyright("Copyright © Hill30, Inc. 2008-2013")>]
 
 [<assembly: AssemblyTrademark("")>]
 

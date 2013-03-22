@@ -20,7 +20,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;FRAMEWORK40</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -115,11 +115,11 @@
   <ItemGroup>
     <ProjectReference Include="..\ASPMVCIntegration\ASPMVCIntegration40.csproj">
       <Project>{F8D5E545-691B-4743-9177-3FF50CC67E74}</Project>
-      <Name>ASPMVC2010Integration</Name>
+      <Name>ASPMVCIntegration40</Name>
     </ProjectReference>
     <ProjectReference Include="..\ASPMVCSampleLibrary\ASPMVCSampleLibrary40.csproj">
       <Project>{31DA6E9F-1CDC-48B7-B559-E60591DE8159}</Project>
-      <Name>ASPMVCSampleLibrary2010</Name>
+      <Name>ASPMVCSampleLibrary40</Name>
     </ProjectReference>
     <ProjectReference Include="..\NDjangoParserFilters\NDjangoParserFilters40.csproj">
       <Project>{89DC9575-C706-4D0D-944A-79E5865FFE88}</Project>
@@ -127,7 +127,7 @@
     </ProjectReference>
     <ProjectReference Include="..\NDjangoParser\NDjangoParser40.fsproj">
       <Project>{B75384C4-C545-4511-A7FE-93D438B8AFA4}</Project>
-      <Name>NDjangoParser2010</Name>
+      <Name>NDjangoParser40</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
